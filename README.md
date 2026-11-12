@@ -1,0 +1,56 @@
+# 卡斯卡迪亚之旅
+
+中文离线桌面游戏，使用 Godot 4.7.2 / GDScript / Compatibility 渲染器。
+
+## 启动
+
+打开 `build/windows/Cascadia.exe`。`Cascadia.pck` 必须与 EXE 放在同一文件夹。无需安装 Godot，无需联网。支持 Windows x64，窗口最低 1280×720，推荐 1920×1080。
+
+编辑工程：用 Godot 4.7.2 导入根目录的 `project.godot`，按 F6/F5 运行。
+
+## 开始游玩
+
+- 点击「开始新的旅程」，选择单人或 2–4 人同机轮流，填写名字。
+- 五种动物各选 A–D 卡，也可使用全部 A 卡或随机卡。
+- 左侧选一组地块与动物，点击「确认选取」。
+- 点击棋盘空位放地块。Q/E 或底部按钮每次旋转 60°。
+- 点击「放动物」，在白圈标出的合法位置安置动物，或选择「放归动物」。动物和地块可任意先后摆放。
+- 预览可重新点击调整，也可「撤回摆放」。两件组件处理完毕后，点击「完成回合」。
+- 滚轮缩放，中键拖动，「居中版图」恢复全景。顶部玩家标签可查看他人版图。
+
+自然标记可用于跨组搭配或更换任意动物，每回合可多次使用。三枚同种动物可免费更换一次；四枚同种自动连续刷新。刷新揭示后不可撤回。单人每回合还会从剩余两列各淘汰最下方组件，再在上方补充。
+
+每位玩家 20 回合结束。结算包含五种动物、五种最大相连生境、生境奖励和剩余自然标记。点击结算中的动物或生境分数，可回到棋盘查看金色高亮。游戏内「规则」和右侧动物卡提供中文说明。
+
+## 存档与设置
+
+每次选取、摆放、刷新、确认回合自动保存。主菜单「继续上次旅程」恢复对局和随机状态。新开局覆盖自动存档。
+
+存档位置：`%APPDATA%/Godot/app_userdata/卡斯卡迪亚之旅/autosave.json`。同目录 `settings.json` 保存音量和全屏选择。Esc 打开设置或关闭弹窗。
+
+## 工程结构
+
+- `scripts/core/`：规则状态、固定组件定义、六角坐标、计分与存档。
+- `scripts/ui/`：菜单、市集、棋盘、计分高亮、音效。
+- `data/tiles.json`：85 张基础地块和 5 组起始三联板块的固定数据。
+- `assets/`：随包字体、原创插画和图标。
+- `tests/`：无界面规则测试、布局回归、带渲染的整局自动验收。
+- `docs/SOURCES.md`：规则、组件事实及素材来源。
+
+## 验证与导出
+
+在工程目录运行（将 `godot` 换成本机 Godot 4.7.2 可执行文件路径）：
+
+```powershell
+godot --headless --editor --path . --import --quit
+godot --headless --path . --script tests/run_tests.gd
+godot --headless --path . --script tests/ui_smoke.gd --quit-after 60
+godot --path . --resolution 1280x720 -- --playtest
+godot --headless --path . --export-release "Windows Desktop" build/windows/Cascadia.exe
+```
+
+带渲染的验收通过 UI 信号完成单人 20 回合及四人 80 回合，检查存档恢复、玩家切换、布局和终局，输出截图到 `build/screenshots`。它会暂存并恢复原自动存档。导出的 EXE 也可附加 `-- --playtest` 运行相同验收，截图保存在 EXE 旁的 `screenshots` 文件夹。规则测试另覆盖 1、2、3、4 人整局。详细验收记录见 `docs/TESTING.md`。
+
+首版不包含联网、AI、扩展、家庭变体、挑战关卡或成就。此工程为非官方桌游规则复刻，原创绘图，未使用原版卡面扫描件。
+
+规则书与作者后续澄清有少数差异，本版按已批准的规则书口径实现；具体见 `docs/RULE_INTERPRETATIONS.md`（鲑鱼分叉、麋鹿 D 等）。

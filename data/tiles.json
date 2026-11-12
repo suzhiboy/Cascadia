@@ -1,0 +1,1162 @@
+[
+  {
+    "id": 1,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 2,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "hawk",
+      "fox",
+      "elk"
+    ],
+    "rotation": 1
+  },
+  {
+    "id": 3,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "bear"
+    ],
+    "rotation": 5
+  },
+  {
+    "id": 4,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 5,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk",
+      "elk"
+    ],
+    "rotation": 4
+  },
+  {
+    "id": 6,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "bear",
+      "fox"
+    ],
+    "rotation": 5
+  },
+  {
+    "id": 7,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 8,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "hawk"
+    ],
+    "rotation": 1
+  },
+  {
+    "id": 9,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "bear",
+      "elk"
+    ],
+    "rotation": 5
+  },
+  {
+    "id": 10,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 11,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "hawk",
+      "bear",
+      "elk"
+    ],
+    "rotation": 4
+  },
+  {
+    "id": 12,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "fox",
+      "salmon"
+    ],
+    "rotation": 5
+  },
+  {
+    "id": 13,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 14,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "salmon",
+      "bear",
+      "elk"
+    ],
+    "rotation": 4
+  },
+  {
+    "id": 15,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk"
+    ],
+    "rotation": 2
+  },
+  {
+    "id": 16,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 17,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 18,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 19,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 20,
+    "habitats": [
+      "mountain"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 21,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 22,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 23,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 24,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 25,
+    "habitats": [
+      "forest"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 26,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 27,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 28,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 29,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 30,
+    "habitats": [
+      "prairie"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 31,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 32,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 33,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 34,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 35,
+    "habitats": [
+      "wetland"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 36,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 37,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 38,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 39,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 40,
+    "habitats": [
+      "river"
+    ],
+    "wildlife": [
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 41,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "hawk",
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 42,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "fox",
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 43,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "fox",
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 44,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 45,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 46,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 47,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 48,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 49,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon",
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 50,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 51,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 52,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "hawk",
+      "fox",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 53,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 54,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "fox",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 55,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 56,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 57,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "hawk",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 58,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "bear",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 59,
+    "habitats": [
+      "mountain",
+      "forest"
+    ],
+    "wildlife": [
+      "elk",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 60,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 61,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "bear",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 62,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "elk",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 63,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "elk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 64,
+    "habitats": [
+      "forest",
+      "prairie"
+    ],
+    "wildlife": [
+      "fox",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 65,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 66,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 67,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 68,
+    "habitats": [
+      "prairie",
+      "wetland"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 69,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 70,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 71,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 72,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "salmon",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 73,
+    "habitats": [
+      "wetland",
+      "river"
+    ],
+    "wildlife": [
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 74,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "salmon",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 75,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "salmon",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 76,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "hawk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 77,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "hawk",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 78,
+    "habitats": [
+      "river",
+      "mountain"
+    ],
+    "wildlife": [
+      "bear",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 79,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "hawk",
+      "elk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 80,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "hawk",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 81,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "bear",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 82,
+    "habitats": [
+      "mountain",
+      "prairie"
+    ],
+    "wildlife": [
+      "elk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 83,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "hawk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 84,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "bear",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 85,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 86,
+    "habitats": [
+      "mountain",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 87,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "bear",
+      "fox"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 88,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "bear",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 89,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 90,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "elk",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 91,
+    "habitats": [
+      "forest",
+      "wetland"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 92,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "bear",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 93,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 94,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "elk",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 95,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "elk",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 96,
+    "habitats": [
+      "forest",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "bear"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 97,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "elk",
+      "salmon"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 98,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "elk",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 99,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "hawk"
+    ],
+    "rotation": 0
+  },
+  {
+    "id": 100,
+    "habitats": [
+      "prairie",
+      "river"
+    ],
+    "wildlife": [
+      "fox",
+      "bear"
+    ],
+    "rotation": 0
+  }
+]
