@@ -255,6 +255,35 @@ func commit_turn() -> String:
 	_resolve_four()
 	return ""
 
+func rotate_pending(amount: int) -> String:
+	if pending.is_empty():
+		return "请先从市场选取。"
+	pending.rotation = posmod(int(pending.rotation) + amount, 6)
+	return ""
+
+func apply_action(action: String, args: Dictionary) -> String:
+	match action:
+		"draft":
+			return draft(int(args.get("tile_index", -1)), int(args.get("animal_index", -1)))
+		"refresh":
+			return refresh(Array(args.get("indices", [])), bool(args.get("spend_nature", false)))
+		"place_tile":
+			var p = Vector2i(int(args.get("q", 0)), int(args.get("r", 0)))
+			return place_tile(p, int(args.get("rotation", 0)))
+		"place_animal":
+			return place_animal(Vector2i(int(args.get("q", 0)), int(args.get("r", 0))))
+		"discard_animal":
+			return discard_animal()
+		"clear_preview":
+			clear_preview()
+			return ""
+		"rotate_pending":
+			return rotate_pending(int(args.get("amount", 0)))
+		"commit_turn":
+			return commit_turn()
+		_:
+			return "未知的联机操作。"
+
 func snapshot() -> Dictionary:
 	return {"version":1,"config":config.duplicate(true),"players":players.duplicate(true),"deck":deck.duplicate(),"bag":bag.duplicate(),"market_tiles":market_tiles.duplicate(),"market_animals":market_animals.duplicate(),"removed_tiles":removed_tiles.duplicate(),"removed_animals":removed_animals.duplicate(),"held":held.duplicate(),"pending":pending.duplicate(true),"active":active,"optional_used":optional_used,"finished":finished,"rng_state":str(rng.state)}
 

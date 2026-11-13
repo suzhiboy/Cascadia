@@ -9,6 +9,9 @@ const P = preload("res://scripts/ui/palette.gd")
 const BoardView = preload("res://scripts/ui/board.gd")
 const MarketTile = preload("res://scripts/ui/market_tile.gd")
 const Sound = preload("res://scripts/ui/sound.gd")
+const LanSessionClass = preload("res://scripts/network/lan_session.gd")
+const LanProtocol = preload("res://scripts/network/lan_protocol.gd")
+const LanDiscoveryClass = preload("res://scripts/network/lan_discovery.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
 const BACKGROUND = preload("res://assets/art/wilderness.png")
 const WILDLIFE = preload("res://assets/art/wildlife.png")
@@ -33,6 +36,10 @@ var settings = {"volume":0.6,"fullscreen":false}
 var board_pan = Vector2.ZERO
 var board_zoom = 1.0
 var preserve_camera = false
+var lan_session
+var lan_modal_body: VBoxContainer
+var lan_discovery
+var lan_room_list: VBoxContainer
 
 func _ready() -> void:
 	theme = P.theme()
@@ -41,6 +48,15 @@ func _ready() -> void:
 	sound = Sound.new()
 	add_child(sound)
 	show_menu()
+	lan_session = LanSessionClass.new()
+	add_child(lan_session)
+	lan_session.state_changed.connect(_on_lan_state_changed)
+	lan_session.session_closed.connect(_on_lan_closed)
+	lan_session.lobby_changed.connect(_on_lan_lobby_changed)
+	lan_session.connection_changed.connect(_on_lan_connection_changed)
+	lan_discovery = LanDiscoveryClass.new()
+	add_child(lan_discovery)
+	lan_discovery.room_found.connect(_on_lan_room_found)
 	get_tree().auto_accept_quit = false
 	if "--playtest" in OS.get_cmdline_user_args():
 		var runner = load("res://tests/visual_playtest.gd").new()
@@ -48,7 +64,9 @@ func _ready() -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if game != null:
+		if lan_session != null and lan_session.started:
+			lan_session.shutdown()
+		elif game != null:
 			game.save_game()
 		get_tree().quit()
 
@@ -200,6 +218,7 @@ func show_menu() -> void:
 	content.add_child(_wrap("一片山林，一条河流。\n让每一种生命，找到它的位置。",25))
 	_spacer(content)
 	content.add_child(_button("开始新的旅程",show_setup,true))
+	content.add_child(_button("局域网联机",show_lan_lobby))
 	var resume = _button("继续上次旅程",_continue_game)
 	resume.disabled = not FileAccess.file_exists("user://autosave.json")
 	content.add_child(resume)
@@ -312,6 +331,116 @@ func show_setup() -> void:
 		for animal in T.ANIMALS: config.cards[animal] = ["A","B","C","D","random"][choices[animal].selected]
 		start_game(config),true))
 
+func show_lan_lobby() -> void:
+	lan_modal_body = _open_modal("局域网联机",900,660)
+	lan_modal_body.add_child(_wrap("房主创建 2–4 人房间；可从局域网列表加入，也可输入主机 IP。联机局使用独立状态，不覆盖离线存档。",20,P.MUTED))
+	lan_room_list = _vbox(6)
+	lan_room_list.add_child(_label("正在搜索局域网房间……",17,P.MUTED))
+	lan_modal_body.add_child(lan_room_list)
+	lan_discovery.start_scan()
+	var host_name = LineEdit.new()
+	host_name.placeholder_text = "房主名字"
+	host_name.text = "房主"
+	host_name.custom_minimum_size.y = 50
+	lan_modal_body.add_child(host_name)
+	var count = OptionButton.new()
+	count.custom_minimum_size.y = 50
+	for i in range(2,5):
+		count.add_item("%d 人联机" % i)
+	lan_modal_body.add_child(count)
+	var host_row = _hbox(10)
+	var host_button = _button("创建房间",func():
+		var error = lan_session.host_lobby({"count":count.selected+2,"host_name":host_name.text,"cards":{},"port":LanProtocol.DEFAULT_GAME_PORT})
+		if error != OK:
+			status = "创建房间失败：端口 %d 不可用。" % LanProtocol.DEFAULT_GAME_PORT
+		else:
+			status = "房间已创建，等待另一位旅行者加入。"
+			_render_lan_lobby(), true)
+	host_row.add_child(host_button)
+	lan_modal_body.add_child(host_row)
+	lan_modal_body.add_child(HSeparator.new())
+	var address = LineEdit.new()
+	address.placeholder_text = "主机 IP，例如 192.168.1.20"
+	address.text = "127.0.0.1"
+	address.custom_minimum_size.y = 50
+	lan_modal_body.add_child(address)
+	var join_name = LineEdit.new()
+	join_name.placeholder_text = "你的名字"
+	join_name.text = "旅行者"
+	join_name.custom_minimum_size.y = 50
+	lan_modal_body.add_child(join_name)
+	var seat = OptionButton.new()
+	seat.custom_minimum_size.y = 50
+	for i in range(2,5):
+		seat.add_item("申请第 %d 个座位" % i)
+	lan_modal_body.add_child(seat)
+	lan_modal_body.add_child(_button("加入房间",func():
+		var error = lan_session.join_lobby(address.text.strip_edges(),LanProtocol.DEFAULT_GAME_PORT,join_name.text,seat.selected+1)
+		status = "正在连接房主……" if error == OK else "无法连接到房间。"
+		_render_lan_lobby()))
+	lan_modal_body.add_child(_wrap("默认端口 35721。Windows 首次联网时，请允许应用访问专用网络。",16,P.MUTED))
+
+func _render_lan_lobby() -> void:
+	if not is_instance_valid(lan_modal_body):
+		return
+	for child in lan_modal_body.get_children():
+		if child != lan_modal_body.get_child(0) and child != lan_modal_body.get_child(1):
+			child.queue_free()
+	lan_modal_body.add_child(_wrap(status,20,P.RUST))
+	if lan_session.is_host():
+		lan_modal_body.add_child(_button("开始联机对局",func():
+			var error = lan_session.host_start_game()
+			if not error.is_empty():
+				status = error
+				_render_lan_lobby()))
+
+func _on_lan_lobby_changed(data: Dictionary) -> void:
+	if lan_session.is_host() and lan_discovery != null:
+		lan_discovery.start_announce(data)
+	if is_instance_valid(lan_modal_body):
+		status = "已连接 %d / %d 位旅行者。" % [data.get("slots",[]).filter(func(s):return s.connected).size(),int(data.get("count",2))]
+		_render_lan_lobby()
+
+func _on_lan_room_found(room: Dictionary) -> void:
+	if not is_instance_valid(lan_room_list) or not is_instance_valid(lan_modal_body) or lan_session.started:
+		return
+	var key = str(room.get("room_id", room.get("address", "")))
+	for child in lan_room_list.get_children():
+		if child.get_meta("room_key", "") == key:
+			return
+	var address = str(room.get("address", "127.0.0.1"))
+	var port = int(room.get("port", LanProtocol.DEFAULT_GAME_PORT))
+	var button = _button("加入  %s  ·  %s/%s" % [str(room.get("host_name", "房主")),int(room.get("joined", 0)),int(room.get("count", 2))],func():
+		lan_session.join_lobby(address,port,"旅行者",1)
+		status = "正在连接房间……"
+		_render_lan_lobby())
+	button.set_meta("room_key",key)
+	lan_room_list.add_child(button)
+
+func _on_lan_connection_changed(kind: String, _details: Dictionary) -> void:
+	status = "联机状态：" + kind
+	if is_instance_valid(lan_modal_body):
+		_render_lan_lobby()
+
+func _on_lan_state_changed(snapshot: Dictionary, _revision: int) -> void:
+	if game == null:
+		game = lan_session.game
+	else:
+		game.restore(snapshot)
+	if is_instance_valid(lan_modal_body):
+		_close_modal()
+		lan_modal_body = null
+	view_player = lan_session.local_seat()
+	_reset_selection()
+	status = "联机对局开始。轮到 %s。" % game.players[game.active].name
+	_render_game()
+
+func _on_lan_closed(reason: String) -> void:
+	lan_session.shutdown()
+	game = null
+	show_menu()
+	status = reason
+
 # Name field with a stripe in that traveller's colour, matching their tab in game.
 
 func _player_field(color: Color) -> StyleBoxFlat:
@@ -358,6 +487,8 @@ func _reset_selection() -> void:
 	mode = "tile"
 
 func _save() -> void:
+	if lan_session != null and lan_session.started:
+		return
 	if game.save_game() != OK:
 		status = "自动存档写入失败，请检查磁盘空间。"
 
@@ -542,13 +673,13 @@ func _build_market(parent: Control) -> void:
 	_spacer(content)
 	var take = _button("确认更换动物" if refreshing else ("自由搭配 · 确认" if independent else "确认选取"),func():
 		if refreshing:
-			var error = game.refresh(refresh_indices,true)
+			var error = _request_action("refresh",{"indices":refresh_indices,"spend_nature":true})
 			if error.is_empty(): _reset_selection()
 			_action(error)
 		else: _draft(),true)
 	take.disabled = (refresh_indices.is_empty() if refreshing else selection_tile < 0 or selection_animal < 0) or not game.pending.is_empty() or game.finished
 	content.add_child(take)
-	var free = _styled(_button("更换三枚同种动物",func():_action(game.refresh(game.triplicate(),false))),"QuietButton")
+	var free = _styled(_button("更换三枚同种动物",func():_action(_request_action("refresh",{"indices":game.triplicate(),"spend_nature":false}))),"QuietButton")
 	free.disabled = game.triplicate().is_empty()
 	content.add_child(free)
 	var nature = _styled(_button("使用自然标记  ·  %d" % int(game.players[game.active].nature),show_nature),"QuietButton")
@@ -672,13 +803,14 @@ func _build_actions(parent: Control) -> void:
 		row.add_child(_button("↶ Q",func():_rotate(-1)))
 		row.add_child(_button("E ↷",func():_rotate(1)))
 		row.add_child(VSeparator.new())
-		row.add_child(_styled(_button("放归动物",func():
-			game.discard_animal()
-			_action("")),"QuietButton"))
-		row.add_child(_styled(_button("撤回摆放",func():
-			game.clear_preview()
+		var release_button = _button("放归动物",func():
+			_action(_request_action("discard_animal")))
+		row.add_child(_styled(release_button,"QuietButton"))
+		var undo_button = _button("撤回摆放",func():
+			_request_action("clear_preview")
 			mode="tile"
-			_action("")),"QuietButton"))
+			_action(""))
+		row.add_child(_styled(undo_button,"QuietButton"))
 		row.add_child(VSeparator.new())
 		var confirm = _button("完成回合",_commit,true)
 		confirm.custom_minimum_size.x = 150
@@ -710,7 +842,7 @@ func _market_pick(index: int, is_animal: bool) -> void:
 	_render_game()
 
 func _draft() -> void:
-	var error = game.draft(selection_tile,selection_animal)
+	var error = _request_action("draft",{"tile_index":selection_tile,"animal_index":selection_animal})
 	if error.is_empty():
 		_reset_selection()
 		status = "点击虚线空格放地块；也可先切换到「放动物」。"
@@ -722,12 +854,12 @@ func _board_click(cell: Vector2i) -> void:
 		return
 	var error = ""
 	if mode == "tile":
-		error = game.place_tile(cell,int(game.pending.rotation))
+		error = _request_action("place_tile",{"q":cell.x,"r":cell.y,"rotation":int(game.pending.rotation)})
 		if error.is_empty():
 			mode = "animal"
 			status = "点击带白圈的栖息地安置动物，也可选择放归。"
 	else:
-		error = game.place_animal(cell)
+		error = _request_action("place_animal",{"q":cell.x,"r":cell.y})
 		if error.is_empty():
 			mode = "tile" if game.pending.tile_pos == null else "animal"
 			status = "地块与动物均可继续调整。满意后点击「完成回合」。" if game.ready_to_commit() else "动物已选择栖息地，接着摆放地块。"
@@ -736,7 +868,7 @@ func _board_click(cell: Vector2i) -> void:
 func _rotate(amount: int) -> void:
 	if game == null or not is_instance_valid(board) or game.finished or game.pending.is_empty() or view_player != game.active:
 		return
-	game.pending.rotation = posmod(int(game.pending.rotation)+amount,6)
+	_request_action("rotate_pending",{"amount":amount})
 	_action("")
 	board.rotation_offset = -amount*PI/3.0
 
@@ -748,6 +880,13 @@ func _action(error: String) -> void:
 	sound.tap()
 	_render_game()
 
+func _request_action(action: String, args: Dictionary = {}) -> String:
+	if lan_session != null and lan_session.started:
+		lan_session.request(action,args)
+		status = "正在同步操作……"
+		return ""
+	return game.apply_action(action,args)
+
 func _message(text: String) -> void:
 	status = text
 	if is_instance_valid(status_label):
@@ -755,7 +894,7 @@ func _message(text: String) -> void:
 		status_label.add_theme_color_override("font_color",Color("a45333"))
 
 func _commit() -> void:
-	var error = game.commit_turn()
+	var error = _request_action("commit_turn")
 	if not error.is_empty():
 		_message(error)
 		return
