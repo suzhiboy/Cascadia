@@ -3,7 +3,7 @@ extends RefCounted
 
 const DETAILS = {
 	"bear": {
-		"A":["成双相伴","独立的两只熊为一组。1 / 2 / 3 / 4+ 对：4 / 11 / 19 / 27 分。超过两只的相连群不计分。"],
+		"A":["成双相伴","棕熊喜欢两两同居。两只棕熊共边相邻，而且这对棕熊旁边没有其他棕熊，才算一对合法棕熊。\n合法棕熊对有 1 / 2 / 3 / 4 对或更多时，共得 4 / 11 / 19 / 27 分。三只以上连在一起，整群不计分。"],
 		"B":["三只成群","每个恰好三只的独立熊群得 10 分。形状不限，其他大小不计分。"],
 		"C":["多样家族","独立熊群：1 / 2 / 3 只得 2 / 5 / 8 分。三种大小均出现，另加 3 分一次。"],
 		"D":["壮大家族","独立熊群：2 / 3 / 4 只得 5 / 8 / 13 分。其他大小不计分。"]
@@ -38,4 +38,6 @@ static func title(animal: String, card: String) -> String:
 	return DETAILS[animal][card][0]
 
 static func description(animal: String, card: String) -> String:
-	return DETAILS[animal][card][1]
+	return ("" if animal == "bear" and card == "A" else INTRO[animal]+"\n\n") + DETAILS[animal][card][1]
+
+const INTRO = {"bear": "棕熊按家族计分。共边相邻的棕熊连成一个家族，不能把一个大家族拆开算。", "elk": "麋鹿喜欢结伴迁徙。先看鹿群的形状，再按本张卡的要求计分。", "salmon": "鲑鱼喜欢一路相伴。共边相连的鲑鱼是一条鱼群；只要其中一只紧挨着三只或更多鲑鱼，整条鱼群就不得分。", "hawk": "鵟是喜欢远眺的猛禽。“相邻”指共用一条边；“看见”指沿六角格的直线望去，中间没有另一只鵟挡住。", "fox": "狐狸喜欢观察邻居。“周围”只看共边相邻的六个格子，隔一格的动物不算邻居。"}

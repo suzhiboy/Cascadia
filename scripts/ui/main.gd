@@ -793,18 +793,20 @@ func show_nature() -> void:
 
 func show_card(animal: String, card: String) -> void:
 	var body = _open_modal(T.ANIMAL_NAMES[animal]+" · "+card+"  "+Cards.title(animal,card),820,710)
-	var art = _art(animal)
-	art.custom_minimum_size.y = 250
-	var frame = _chip(art,"CardPanel")
-	frame.size_flags_vertical = Control.SIZE_FILL
-	body.add_child(frame)
-	body.add_child(_wrap(Cards.description(animal,card),24))
-	if animal == "elk" and card == "B":
-		body.add_child(_wrap("三只组成互相邻接的紧密三角；四只组成两个共享边的三角形。",20,P.MUTED))
-	if animal == "salmon":
-		body.add_child(_wrap("相连鱼群中出现任何一只邻接三只或更多鲑鱼，整个鱼群失效。三个相连的三角形鱼群有效。",19,P.MUTED))
+	var scroll = ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(scroll)
+	var content = _vbox(14)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
+	content.add_child(_wrap(Cards.description(animal,card),23))
+	var diagram = load("res://scripts/ui/rule_diagram.gd").new()
+	diagram.animal = animal
+	diagram.card = card
+	content.add_child(_chip(diagram,"CardPanel"))
+	content.add_child(_wrap("图中每个圆片代表一只动物；共用一条边才算相邻。分数仅计算这张动物卡，不含生境分。",18,P.MUTED))
 	_spacer(body)
-	if game.finished:
+	if game != null and game.finished:
 		body.add_child(_button("查看本项得分 · %d 分" % reports[view_player].wildlife[animal].points,func():_highlight_score(view_player,animal,true),true))
 
 func _highlight_score(player: int, category: String, is_wildlife: bool) -> void:
@@ -901,6 +903,15 @@ func show_help() -> void:
 	var content = _vbox(10)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
+	content.add_child(_heading("看图认识动物计分",24,P.DARK))
+	var links = _hbox(8)
+	for animal in T.ANIMALS:
+		var selected_card = str(game.config.cards[animal]) if game != null else "A"
+		links.add_child(_button(T.ANIMAL_NAMES[animal]+" "+selected_card,func():show_card(animal,selected_card)))
+	content.add_child(links)
+	var bear_diagram = load("res://scripts/ui/rule_diagram.gd").new()
+	content.add_child(_chip(bear_diagram,"CardPanel"))
+	content.add_child(_wrap("棕熊 A：两只相依，得 4 分；第三只加入后，整个三只熊群不计分。点击上方动物，查看对应计分图例。",20))
 	var sections = [
 		["01  选一组，放两次","从四组市集中选取一个地块和一枚动物。地块须与已有地块共边，地形无需匹配。动物须放在有对应图标、且未入住的地块；可以是新地块，也可以是旧地块。地块与动物可按任意顺序摆放。"],
 		["02  为动物找到家","每个地块最多一枚动物。如果没有合适的栖息地，或你不想放置，可以选择「放归动物」，它会回到袋中。单一动物图标、带叶形标记的关键地块入住后，获得一枚自然标记。"],
