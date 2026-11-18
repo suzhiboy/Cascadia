@@ -28,3 +28,11 @@ Noto Sans SC，Google Fonts / Noto 项目，SIL Open Font License 1.1。原始�
 Godot Engine 使用 MIT 许可证。Windows 包中附有引擎及其第三方组件许可证 `GODOT-LICENSES.txt`，来自 Godot 4.7.2 导出模板的运行时许可证信息。
 
 Cascadia 原桌游的名称、规则及组件设计属于其各自权利人。本工程不是官方发行版本。
+
+## 背景音乐
+
+beyond_evergreen_sea_final.ogg：用户于 2026-11-17 提供的原始音频，未经转码。未另行确认作者或授权条款。
+
+雨幕鸦语（assets/audio/rain_crow_whispers.mp3）：用户于 2026-11-18 提供的 Crow Calls over Rain （混音） (1)(1).mp3，重命名副本，未经转码，原文件保留。
+
+Crow Calls over Rain（混音）（assets/audio/crow_calls_over_rain_mix.mp3）：用户于 2026-11-18 提供的 Crow_Calls_over_Rain_（混音）.mp3。与已收录的雨幕鸦语文件 SHA256 不同，作为第三首追加，未经转码，原文件保留。
