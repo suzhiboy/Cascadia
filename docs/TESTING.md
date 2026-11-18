@@ -24,3 +24,10 @@
 字体、插画和声音全部来自包内或运行时合成；游戏代码不调用网络 API。实际 release 启动不依赖编辑器或任何资源下载。未改动本机网络设置。
 
 复核由独立上下文代码审查完成。发现的菜单 Q/E 误触、继续对局残留高亮、跨玩家镜头、连续刷新袋子耗尽、存档替换问题均已复现并通过回归。规则书与后续作者说明的差异见 `RULE_INTERPRETATIONS.md`。
+
+
+2026-11-17 便利功能验证：
+- rules: 734 checks, 0 failures；UI smoke: 0 failures；protocol: 0 failures。
+- improvements_test：试摆状态/RNG不变、图例交互、网络视角/弹窗保留、大字布局；0 failures，渲染截图在 build/improvements-*.png。
+- Windows release 四进程：321 次状态更新，每人 20 回合；四端最终 SHA256 相同。日志 build/lan-host.log、build/lan-client1.log 至 client3.log。
+- UI smoke 退出时报告 2 个 ObjectDB 实例未释放警告；无脚本错误，未把该警告计为通过或隐藏。

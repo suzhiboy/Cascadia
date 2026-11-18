@@ -47,6 +47,7 @@ func _process(delta: float) -> void:
 		while udp.get_available_packet_count() > 0:
 			var room = LanProtocol.parse_announcement(udp.get_packet())
 			if not room.is_empty():
+				room["address"] = udp.get_packet_ip()
 				room["last_seen"] = Time.get_ticks_msec()
 				seen[str(room.get("room_id", room.get("address", "")))] = room
 				room_found.emit(room)

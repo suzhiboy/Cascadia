@@ -4,6 +4,8 @@ signal cell_clicked(cell: Vector2i)
 const H = preload("res://scripts/core/hex.gd")
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
+var animations = true
+var show_names = true
 var cells: Dictionary = {}
 var frontier: Array = []
 var legal_animals: Array = []
@@ -68,13 +70,16 @@ func _ready() -> void:
 	_ghost_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ghost_ring.visible = false
 	add_child(_ghost_ring)
+	if not animations:
+		pulse = 1.0
+		return
 	var tween = create_tween()
 	tween.tween_property(self,"pulse",1.0,.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(queue_redraw)
 	set_process(true)
 
 func _process(delta: float) -> void:
-	clock += delta
+	if animations: clock += delta
 	_update_ghost()
 	if pulse < 1.0:
 		queue_redraw()
@@ -290,3 +295,11 @@ func _marching_hex(center: Vector2, hex_radius: float, color: Color, width: floa
 		for j in range(5):
 			var t0 = j/5.0+shift
 			draw_line(a.lerp(b,clampf(t0,0,1)),a.lerp(b,clampf(t0+.12,0,1)),color,width,true)
+
+func _get_tooltip(at_position: Vector2) -> String:
+	if not show_names: return ""
+	var cell_key = H.key(H.from_pixel((at_position-size*.5-pan)/zoom,radius))
+	if not cells.has(cell_key): return ""
+	var cell = cells[cell_key]
+	var tile = TileDefinition.get_tile(int(cell.tile))
+	return " / ".join(tile.habitats.map(func(h):return TileDefinition.HABITAT_NAMES[h]))+"\n"+("入住："+TileDefinition.ANIMAL_NAMES[cell.animal] if cell.animal != "" else "可入住："+ "、".join(tile.wildlife.map(func(a):return TileDefinition.ANIMAL_NAMES[a])))

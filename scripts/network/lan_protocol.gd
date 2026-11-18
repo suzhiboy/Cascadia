@@ -1,7 +1,7 @@
 class_name LanProtocol
 extends RefCounted
 
-const PROTOCOL_VERSION := 1
+const PROTOCOL_VERSION := 2
 const DEFAULT_GAME_PORT := 35721
 const DISCOVERY_PORT := 35722
 const RECONNECT_TIMEOUT_SEC := 120.0
