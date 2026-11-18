@@ -84,7 +84,7 @@ func _process(delta: float) -> void:
 	_update_ghost()
 	if pulse < 1.0:
 		queue_redraw()
-	elif not legal_animals.is_empty() or not highlight.is_empty() or preview_key != "":
+	elif animations and (not legal_animals.is_empty() or not highlight.is_empty() or preview_key != ""):
 		# Gentle breathing for legal spots, score highlights and the pending tile (~30 fps).
 		_frame_wait += delta
 		if _frame_wait >= .033:
@@ -124,8 +124,10 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		if dragging:
 			pan += event.relative
-		hovered = H.from_pixel((event.position-size*.5-pan)/zoom,radius)
-		queue_redraw()
+		var cell = H.from_pixel((event.position-size*.5-pan)/zoom,radius)
+		if dragging or cell != hovered:
+			hovered = cell
+			queue_redraw()
 
 func _update_ghost() -> void:
 	if not is_instance_valid(_ghost):

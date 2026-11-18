@@ -288,19 +288,24 @@ static func majority(sizes: Array) -> Array:
 			output.append(1 if first_count == 1 and n == second and sizes.count(second) == 1 else 0)
 	return output
 
+static func player_score(board: Dictionary, nature: int, cards: Dictionary) -> Dictionary:
+	var report = {"wildlife":{},"habitats":habitats(board),"nature":nature,"total":nature}
+	for animal in T.ANIMALS:
+		report.wildlife[animal] = wildlife(board,animal,cards[animal])
+		report.total += report.wildlife[animal].points
+	for habitat in T.HABITATS:
+		report.total += report.habitats[habitat].points
+	return report
+
 static func game_scores(game) -> Array:
 	var reports = []
 	for player in game.players:
-		var report = {"wildlife":{},"habitats":habitats(player.board),"nature":int(player.nature),"total":int(player.nature)}
-		for animal in T.ANIMALS:
-			report.wildlife[animal] = wildlife(player.board,animal,game.config.cards[animal])
-			report.total += report.wildlife[animal].points
-		reports.append(report)
+		reports.append(player_score(player.board,player.nature,game.config.cards))
 	for habitat in T.HABITATS:
 		var bonuses = majority(reports.map(func(r):return r.habitats[habitat].points))
 		for i in range(reports.size()):
 			reports[i].habitats[habitat].bonus = bonuses[i]
-			reports[i].total += reports[i].habitats[habitat].points+bonuses[i]
+			reports[i].total += bonuses[i]
 	return reports
 
 static func winners(game, reports: Array) -> Array:
