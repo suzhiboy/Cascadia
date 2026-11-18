@@ -1,47 +1,49 @@
-# 卡斯卡迪亚之旅
+# Cascadia
 
-中文离线桌面游戏，使用 Godot 4.7.2 / GDScript / Compatibility 渲染器。
+**English** · [简体中文](README.zh-CN.md)
 
-## 启动
+An unofficial desktop adaptation of Cascadia, built with Godot 4.7.2, GDScript, and the Compatibility renderer. The in-game interface is in Simplified Chinese; solo and same-device play work offline.
 
-打开 `build/windows/Cascadia.exe`。`Cascadia.pck` 必须与 EXE 放在同一文件夹。无需安装 Godot，无需联网。支持 Windows x64，窗口最低 1280×720，推荐 1920×1080。
+## Getting Started
 
-编辑工程：用 Godot 4.7.2 导入根目录的 `project.godot`，按 F6/F5 运行。
+On Windows x64, run `build/windows/Cascadia.exe`. Keep `Cascadia.pck` in the same folder as the executable. No Godot installation or internet connection is required. The minimum window size is 1280×720; 1920×1080 is recommended.
 
-## 开始游玩
+To edit the game, import the root `project.godot` in Godot 4.7.2 and press F5 to run the project or F6 to run the current scene.
 
-- 第一次玩可从主菜单进入「首回合练习」：跟着高亮选组、旋转并连接湿地、安置鲑鱼，再查看这一回合的得分。可随时退出或重玩，不会覆盖正式存档；提示淡入受设置中的「轻量动画」控制。
-- 点击「开始新的旅程」，选择单人或 2–4 人同机轮流，填写名字。
-- 点击「局域网联机」可创建或加入同一局域网的 2 人房间；默认连接主机的 `35721` 端口。
-- 五种动物各选 A–D 卡，也可使用全部 A 卡或随机卡。
-- 左侧选一组地块与动物，点击「确认选取」。
-- 点击棋盘空位放地块。Q/E 或底部按钮每次旋转 60°。
-- 点击「放动物」，在白圈标出的合法位置安置动物，或选择「放归动物」。动物和地块可任意先后摆放。
-- 预览可重新点击调整，也可「撤回摆放」。两件组件处理完毕后，点击「完成回合」。
-- 滚轮缩放，中键拖动，「居中版图」恢复全景。顶部玩家标签可查看他人版图。
+## How to Play
 
-自然标记可用于跨组搭配或更换任意动物，每回合可多次使用。三枚同种动物可免费更换一次；四枚同种自动连续刷新。刷新揭示后不可撤回。单人每回合还会从剩余两列各淘汰最下方组件，再在上方补充。
+- **New to Cascadia?** Choose **First Turn Practice** (首回合练习) from the main menu. Follow the highlights to draft a pair, rotate and connect a wetland tile, place a salmon, and see how the turn scored. You can quit or replay without touching your regular save. The **Light Animations** (轻量动画) setting controls hint fades.
+- Choose **Start a New Journey** (开始新的旅程) for solo play or 2–4 players taking turns on the same device. Enter player names before starting.
+- Choose **LAN Multiplayer** (局域网联机) to host or join a 2–4 player room on the same local network. The default game port is UDP `35721`.
+- Pick a scoring card (A–D) for each of the five wildlife species, use all A cards, or randomize the selection.
+- Select a habitat tile and wildlife token pair from the market on the left, then click **Confirm Draft** (确认选取).
+- Click an open space on the board to place the tile. Use Q/E or the on-screen buttons to rotate it in 60° increments.
+- Choose **Place Wildlife** (放动物) and click a legal space marked with a white ring, or use **Release Wildlife** (放归动物) to return the token to the bag. You can place the tile and token in either order.
+- Click again to adjust a preview, or choose **Undo Placement** (撤回摆放). Once both components are handled, click **Finish Turn** (完成回合).
+- Scroll to zoom, drag with the middle mouse button to pan, or choose **Center Board** (居中版图) to reset the view. Use the player tabs at the top to inspect other boards.
 
-每位玩家 20 回合结束。结算包含五种动物、五种最大相连生境、生境奖励和剩余自然标记。点击结算中的动物或生境分数，可回到棋盘查看金色高亮。游戏内「规则」和右侧动物卡提供中文说明。
+Spend nature tokens to draft across different pairs or replace any number of wildlife tokens. You can spend more than one nature token per turn. If three market tokens show the same species, you may replace them for free once per turn. Four matching tokens are replaced automatically, repeating if needed. A refresh cannot be undone once the new tokens are revealed. In solo play, the bottom remaining component in each market column is also removed at the end of the turn before the columns are refilled from the top.
 
-## 存档与设置
+The game ends after 20 turns per player. Your final score includes wildlife points, the largest connected corridor of each of the five habitat types, habitat bonuses, and unused nature tokens. Click a wildlife or habitat score to highlight the contributing spaces in gold. The **Rules** (规则) menu and the wildlife cards on the right explain scoring in Chinese.
 
-每次选取、摆放、刷新、确认回合自动保存。主菜单「继续上次旅程」恢复对局和随机状态。新开局覆盖自动存档。
+## Saves and Settings
 
-存档位置：`%APPDATA%/Godot/app_userdata/卡斯卡迪亚之旅/autosave.json`。同目录 `settings.json` 保存音量和全屏选择。Esc 打开设置或关闭弹窗。
+Offline games autosave after drafting, placing pieces, refreshing the market, and confirming a turn. **Continue Last Journey** (继续上次旅程) restores both the game and its random state. Starting a new regular game overwrites the autosave.
 
-## 工程结构
+The save file is at `%APPDATA%/Godot/app_userdata/卡斯卡迪亚之旅/autosave.json`. The same folder contains `settings.json`, which stores audio, fullscreen, and accessibility preferences. Press Esc to open settings during a game or close a dialog.
 
-- `scripts/core/`：规则状态、固定组件定义、六角坐标、计分与存档。
-- `scripts/ui/`：菜单、市集、棋盘、计分高亮、音效。
-- `data/tiles.json`：85 张基础地块和 5 组起始三联板块的固定数据。
-- `assets/`：随包字体、原创插画和图标。
-- `tests/`：无界面规则测试、布局回归、带渲染的整局自动验收。
-- `docs/SOURCES.md`：规则、组件事实及素材来源。
+## Project Layout
 
-## 验证与导出
+- `scripts/core/`: Game state, component definitions, hex coordinates, scoring, and saves.
+- `scripts/ui/`: Menus, market, board, scoring highlights, and audio.
+- `data/tiles.json`: Definitions for 85 base habitat tiles and five three-hex starter tiles.
+- `assets/`: Bundled fonts, original illustrations, icons, and audio.
+- `tests/`: Headless rules tests, UI regression tests, and rendered end-to-end playtests.
+- [Sources and credits](docs/SOURCES.md): Rules, component references, and asset sources.
 
-在工程目录运行（将 `godot` 换成本机 Godot 4.7.2 可执行文件路径）：
+## Testing and Export
+
+Run these commands from the project root. Replace `godot` with the path to your Godot 4.7.2 executable if needed.
 
 ```powershell
 godot --headless --editor --path . --import --quit
@@ -52,23 +54,25 @@ godot --path . --resolution 1280x720 -- --playtest
 godot --headless --path . --export-release "Windows Desktop" build/windows/Cascadia.exe
 ```
 
-带渲染的验收完成首回合练习、单人 20 回合及四人 80 回合，检查存档恢复、玩家切换、布局和终局，输出截图到 `build/screenshots`。它会暂存并恢复原自动存档。导出的 EXE 也可附加 `-- --playtest` 运行相同验收，截图保存在 EXE 旁的 `screenshots` 文件夹。规则测试另覆盖 1、2、3、4 人整局。详细验收记录见 `docs/TESTING.md`。
+The rendered playtest completes the first-turn practice, 20 solo turns, and 80 turns in a four-player game. It checks save restoration, player switching, layout, and endgame scoring, and writes screenshots to `build/screenshots`. It backs up and restores any existing autosave. You can also run the exported executable with `-- --playtest`; screenshots then appear in a `screenshots` folder next to the executable. The rules tests cover full games for one to four players. See the [test records](docs/TESTING.md) for details.
 
-网络联机使用主机权威同步；普通玩家断线后可在 120 秒内重连，房主断线则结束房间。仍不包含公网中继、AI、扩展、家庭变体、挑战关卡或成就。此工程为非官方桌游规则复刻，原创绘图，未使用原版卡面扫描件。
+LAN play uses host-authoritative synchronization. Guests have up to 120 seconds to reconnect after a disconnect; if the host leaves, the room ends. See the [LAN multiplayer guide](docs/LAN_MULTIPLAYER.md) for setup and troubleshooting. The game does not include public internet relays, AI opponents, expansions, the family variant, challenges, or achievements.
 
-规则书与作者后续澄清有少数差异，本版按已批准的规则书口径实现；具体见 `docs/RULE_INTERPRETATIONS.md`（鲑鱼分叉、麋鹿 D 等）。
+This is an unofficial recreation with original artwork, not scanned board-game cards. Where the printed rules and later designer clarifications differ, this project follows the documented rulebook interpretation. See [rule interpretations](docs/RULE_INTERPRETATIONS.md) for examples such as branching salmon runs and Elk D.
 
-## 游玩便利功能（2026-11-17）
+## Playability Features
 
-- 联机大厅显示座位、名字、准备状态。房主可选择 A–D 或随机计分卡；更改卡片后，客人需要重新准备。未准备齐不能开局。
-- 摆放后，棋盘上方显示试摆分差：动物、生境、当前排名奖励和新增自然标记。与当前已确认版图比较，不提交动作、不推进随机抽取；选取时已消耗的自然标记不重复扣除。
-- 计分卡图例中的圆片可点击移除，再点空格恢复；「重置图例」恢复示例。图例不影响正式对局。
-- 联机等待时显示当前玩家和操作阶段，允许查看其他版图、卡片和 Tab 分数；远端更新不强制切走查看位置。
-- 设置中提供轻量动画、较大文字、棋盘动物名称悬停提示、生境文字标识。设置保存在本机。
-- 本版联机协议为 2。房主和朋友均需使用相同新版，旧版无法加入。
+- The LAN lobby shows seats, names, and readiness. If the host changes the scoring cards, guests must ready up again. Everyone must be ready before the game can start.
+- The placement preview displays the score change for wildlife, habitats, current habitat bonuses, and any new nature tokens. It compares the preview to the committed board without applying the move or advancing random draws. Nature tokens already spent while drafting are not deducted again.
+- Scoring diagrams are interactive: click a token to remove it and an empty space to restore it, or click **Reset Example** (重置图例). Changes affect only the example.
+- While waiting in a LAN match, you can inspect other boards, open scoring cards, or press Tab to check scores. Remote updates do not force you away from the board you are viewing.
+- Settings include light animations, larger text, wildlife names on hover, and habitat text labels. Preferences are saved locally.
+- LAN protocol version 2 requires the host and guests to use compatible builds; older versions cannot join.
 
+## Background Music
 
-## 背景音乐
-启动游戏后播放背景音乐，菜单、对局和结算间连续播放。曲目依播放列表顺序循环，每首播放结束后静默 10 秒再播放下一首，最后一首回到第一首时也有间隔。当前曲目：Beyond Evergreen Sea、雨幕鸦语、Crow Calls over Rain（混音）。
-设置中的「背景音乐音量」独立于「音效音量」，拖至 0 静音；退出后保留选择。默认音乐音量为 35%。
-后续添加音乐：把 OGG 或 MP3 文件放入 assets/audio，在 scripts/ui/music.gd 的 TRACKS 数组中按顺序追加 preload 路径，同时在 TITLES 中追加曲名，用 Godot 导入后重新导出。音频随游戏打包，无需访问原始下载目录。
+Music plays across the menus, the game, and the results screen. The playlist loops with a ten-second pause between tracks, including when it returns to the first track. It includes *Beyond Evergreen Sea*, *雨幕鸦语*, and *Crow Calls over Rain* (Mix).
+
+Music and sound effects have separate volume controls. Music defaults to 35%; set it to zero to mute it. Your settings are saved when you exit.
+
+To add music, place OGG or MP3 files in `assets/audio/`, add their preload paths to `TRACKS` and their names to `TITLES` in `scripts/ui/music.gd`, then import and re-export in Godot. The bundled game does not need access to the original audio files.
