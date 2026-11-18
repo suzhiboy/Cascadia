@@ -31,3 +31,7 @@
 - improvements_test：试摆状态/RNG不变、图例交互、网络视角/弹窗保留、大字布局；0 failures，渲染截图在 build/improvements-*.png。
 - Windows release 四进程：321 次状态更新，每人 20 回合；四端最终 SHA256 相同。日志 build/lan-host.log、build/lan-client1.log 至 client3.log。
 - UI smoke 退出时报告 2 个 ObjectDB 实例未释放警告；无脚本错误，未把该警告计为通过或隐藏。
+
+2026-11-18 首回合练习验证：
+- `tests/tutorial_test.gd`：覆盖错误落点、旋转、撤回、确认、计分、关闭动画与大字布局，以及完成或中途退出后正式存档保持不变。0 失败。
+- 实际 Windows release（1280×720）：首回合练习、单人 20 回合、四人同机 80 回合，0 失败。引导截图见 `build/tutorial-final/screenshots/practice-*.png`。

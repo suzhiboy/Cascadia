@@ -10,6 +10,7 @@
 
 ## 开始游玩
 
+- 第一次玩可从主菜单进入「首回合练习」：跟着高亮选组、旋转并连接湿地、安置鲑鱼，再查看这一回合的得分。可随时退出或重玩，不会覆盖正式存档；提示淡入受设置中的「轻量动画」控制。
 - 点击「开始新的旅程」，选择单人或 2–4 人同机轮流，填写名字。
 - 点击「局域网联机」可创建或加入同一局域网的 2 人房间；默认连接主机的 `35721` 端口。
 - 五种动物各选 A–D 卡，也可使用全部 A 卡或随机卡。
@@ -46,11 +47,12 @@
 godot --headless --editor --path . --import --quit
 godot --headless --path . --script tests/run_tests.gd
 godot --headless --path . --script tests/ui_smoke.gd --quit-after 60
+godot --headless --path . --script tests/tutorial_test.gd
 godot --path . --resolution 1280x720 -- --playtest
 godot --headless --path . --export-release "Windows Desktop" build/windows/Cascadia.exe
 ```
 
-带渲染的验收通过 UI 信号完成单人 20 回合及四人 80 回合，检查存档恢复、玩家切换、布局和终局，输出截图到 `build/screenshots`。它会暂存并恢复原自动存档。导出的 EXE 也可附加 `-- --playtest` 运行相同验收，截图保存在 EXE 旁的 `screenshots` 文件夹。规则测试另覆盖 1、2、3、4 人整局。详细验收记录见 `docs/TESTING.md`。
+带渲染的验收完成首回合练习、单人 20 回合及四人 80 回合，检查存档恢复、玩家切换、布局和终局，输出截图到 `build/screenshots`。它会暂存并恢复原自动存档。导出的 EXE 也可附加 `-- --playtest` 运行相同验收，截图保存在 EXE 旁的 `screenshots` 文件夹。规则测试另覆盖 1、2、3、4 人整局。详细验收记录见 `docs/TESTING.md`。
 
 网络联机使用主机权威同步；普通玩家断线后可在 120 秒内重连，房主断线则结束房间。仍不包含公网中继、AI、扩展、家庭变体、挑战关卡或成就。此工程为非官方桌游规则复刻，原创绘图，未使用原版卡面扫描件。
 

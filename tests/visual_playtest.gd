@@ -46,6 +46,36 @@ func layout() -> void:
 		var rect = control.get_global_rect()
 		verify(rect.end.x <= 1920.5 and rect.end.y <= 1080.5,"Layout stays inside design viewport: "+str(rect))
 
+func click_practice_hex() -> void:
+	var event = InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = true
+	event.position = scene.board.screen_position(Vector2i(1,0))
+	scene.board._gui_input(event)
+	await settle()
+
+func practice() -> void:
+	await press("首回合练习")
+	layout()
+	await capture("practice-select")
+	scene._market_pick(0,false)
+	await settle()
+	await press("确认选取")
+	await capture("practice-rotate")
+	await press("E ↷")
+	await click_practice_hex()
+	await capture("practice-animal")
+	await click_practice_hex()
+	layout()
+	await press("完成回合")
+	await press("查看练习得分")
+	await capture("practice-score")
+	verify(scene.game.players[0].turns == 1,"Practice finishes exactly one turn")
+	await press("返回主菜单")
+	verify(FileAccess.file_exists("user://autosave.json") == had_save,"Practice preserves save availability")
+	if had_save:
+		verify(FileAccess.get_file_as_string("user://autosave.json") == saved,"Practice preserves real save bytes")
+
 func turn(index: int) -> void:
 	scene._market_pick(index%4,false)
 	await settle()
@@ -72,6 +102,7 @@ func run() -> void:
 	scene = get_parent()
 	await settle()
 	await capture("menu")
+	await practice()
 	await press("开始新的旅程")
 	await capture("setup")
 	await press("进入山林")
@@ -130,5 +161,5 @@ func run() -> void:
 		file.close()
 	else:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://autosave.json"))
-	print("VISUAL PLAYTEST: ",failures," failures; solo 20 + hotseat 80 turns")
+	print("VISUAL PLAYTEST: ",failures," failures; practice + solo 20 + hotseat 80 turns")
 	get_tree().quit(0 if failures == 0 else 1)

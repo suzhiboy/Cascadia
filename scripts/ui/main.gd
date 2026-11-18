@@ -9,6 +9,7 @@ const P = preload("res://scripts/ui/palette.gd")
 const BoardView = preload("res://scripts/ui/board.gd")
 const MarketTile = preload("res://scripts/ui/market_tile.gd")
 const Feedback = preload("res://scripts/ui/feedback.gd")
+const Practice = preload("res://scripts/ui/first_turn_practice.gd")
 const Music = preload("res://scripts/ui/music.gd")
 const Sound = preload("res://scripts/ui/sound.gd")
 const LanSessionClass = preload("res://scripts/network/lan_session.gd")
@@ -45,6 +46,9 @@ var _feedback_rng = ""
 var _feedback_toast: Label
 var _refresh_until = 0
 var _market_tokens: Array = []
+var _practicing = false
+var _last_practice_step = -1
+var _practice_start_score: Dictionary
 var lan_session
 var lan_modal_body: VBoxContainer
 var lan_discovery
@@ -87,7 +91,7 @@ func _notification(what: int) -> void:
 func _exit_game() -> void:
 	if lan_session != null and lan_session.started:
 		lan_session.shutdown()
-	elif game != null:
+	elif game != null and not _practicing:
 		game.save_game()
 	get_tree().quit()
 
@@ -95,7 +99,7 @@ func _exit_game() -> void:
 func _input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed or event.echo or event.keycode != KEY_TAB:
 		return
-	if game == null or not is_instance_valid(board):
+	if game == null or _practicing or not is_instance_valid(board):
 		return
 	if is_instance_valid(modal):
 		if modal.get_meta("live_scores",false):
@@ -231,6 +235,9 @@ func _art(animal: String) -> TextureRect:
 	return image
 
 func show_menu() -> void:
+	if _practicing:
+		_practicing = false
+		game = null
 	if is_instance_valid(_feedback_toast): _feedback_toast.queue_free()
 	_refresh_until = 0
 	_reset_screen()
@@ -255,6 +262,7 @@ func show_menu() -> void:
 	content.add_child(_wrap("一片山林，一条河流。\n让每一种生命，找到它的位置。",25))
 	_spacer(content)
 	content.add_child(_button("开始新的旅程",show_setup,true))
+	content.add_child(_styled(_button("首回合练习",_start_practice),"ActiveButton"))
 	content.add_child(_button("局域网联机",show_lan_lobby))
 	var resume = _button("继续上次旅程",_continue_game)
 	resume.disabled = not FileAccess.file_exists("user://autosave.json")
@@ -555,9 +563,50 @@ func _player_field(color: Color) -> StyleBoxFlat:
 	style.border_color = color.darkened(.1)
 	return style
 
-func start_game(config: Dictionary) -> void:
+func _start_practice() -> void:
+	lan_discovery.stop()
+	lan_session.shutdown()
+	lan_modal_body = null
+	_practicing = true
+	_last_practice_step = -1
+	start_game({"count":1,"names":["练习旅行者"]},Practice.SEED)
+	_practice_start_score = S.game_scores(game)[0]
+
+func _practice_step() -> Practice.Step:
+	return Practice.step(game,selection_tile)
+
+func _practice_banner() -> PanelContainer:
+	var step = _practice_step()
+	var lesson = Practice.LESSONS[step]
+	var row = _hbox(18)
+	var progress = "完成" if step == Practice.Step.REVIEW else "%d / 6" % (step+1)
+	row.add_child(_heading("首回合练习  ·  "+progress,22,P.GOLD_DEEP))
+	var text = _vbox(3)
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.add_child(_heading(lesson[0],24,P.DARK))
+	text.add_child(_wrap(lesson[1],21,P.INK))
+	row.add_child(text)
+	var panel = _chip(_margin(row,6),"CardPanel")
+	if _last_practice_step != step:
+		panel.ready.connect(func():Feedback.reveal(panel,.18))
+		_last_practice_step = step
+	return panel
+
+func _practice_results() -> void:
+	var score = S.game_scores(game)[0]
+	var body = _open_modal("首回合练习完成",800,520)
+	body.add_child(_heading("这个回合为版图增加了 %d 分" % (score.total-_practice_start_score.total),27,P.GOLD_DEEP))
+	body.add_child(_wrap("湿地  ·  最大相连区域从 %d 格变为 %d 格，每格 1 分。" % [
+		_practice_start_score.habitats.wetland.points,score.habitats.wetland.points],22))
+	body.add_child(_wrap("鲑鱼 A  ·  一只独立的鲑鱼算一段洄游路线，得 %d 分。" % score.wildlife.salmon.points,22))
+	body.add_child(_wrap("练习到此结束，不写入正式存档。正式对局有 20 回合，你可以自由选择组件和落点。",19,P.MUTED))
+	_spacer(body)
+	body.add_child(_button("返回主菜单",show_menu,true))
+	Feedback.reveal(modal.get_child(1))
+
+func start_game(config: Dictionary, seed_value: int = -1) -> void:
 	game = G.new()
-	game.start(config)
+	game.start(config,seed_value)
 	view_player = 0
 	reports.clear()
 	highlight.clear()
@@ -593,7 +642,7 @@ func _reset_selection() -> void:
 	mode = "tile"
 
 func _save() -> void:
-	if lan_session != null and lan_session.started:
+	if _practicing or (lan_session != null and lan_session.started):
 		return
 	if game.save_game() != OK:
 		status = "自动存档写入失败，请检查磁盘空间。"
@@ -661,9 +710,12 @@ func _render_game() -> void:
 	_spacer(header)
 	header.add_child(_styled(_button("规则",show_help),"GhostButton"))
 	header.add_child(_styled(_button("设置",show_settings),"GhostButton"))
-	header.add_child(_styled(_button("主菜单",func():
-		_save()
-		show_menu()),"GhostButton"))
+	if _practicing:
+		header.add_child(_styled(_button("退出练习",show_menu),"GhostButton"))
+	else:
+		header.add_child(_styled(_button("主菜单",func():
+			_save()
+			show_menu()),"GhostButton"))
 	root.add_child(header)
 	var body = _hbox(18)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -682,12 +734,15 @@ func _render_game() -> void:
 	var divider = VSeparator.new()
 	divider.add_theme_stylebox_override("separator",_rule(Color(P.CREAM.r,P.CREAM.g,P.CREAM.b,.25)))
 	caption.add_child(divider)
-	caption.add_child(_label("回合",19,P.SAGE))
-	caption.add_child(_heading("%d / 20" % int(viewed.turns),21,P.CREAM,640))
-	var trail = Ornament.make("progress",Vector2(190,16),P.GOLD_LIGHT,P.CREAM)
-	trail.value = int(viewed.turns)
-	caption.add_child(trail)
+	if not _practicing:
+		caption.add_child(_label("回合",19,P.SAGE))
+		caption.add_child(_heading("%d / 20" % int(viewed.turns),21,P.CREAM,640))
+		var trail = Ornament.make("progress",Vector2(190,16),P.GOLD_LIGHT,P.CREAM)
+		trail.value = int(viewed.turns)
+		caption.add_child(trail)
 	center.add_child(caption)
+	if _practicing:
+		center.add_child(_practice_banner())
 	if lan_session != null and lan_session.started:
 		var phase = "正在选取" if game.pending.is_empty() else ("等待确认" if game.ready_to_commit() else "正在摆放")
 		center.add_child(_label("轮到 "+game.players[game.active].name+" · "+phase+" · 可自由查看版图与计分卡",17,P.CREAM))
@@ -710,15 +765,26 @@ func _render_game() -> void:
 		board.ghost_tile = int(game.pending.tile) if mode == "tile" else 0
 		board.ghost_rotation = int(game.pending.rotation)
 		board.ghost_animal = str(game.pending.animal) if mode == "animal" else ""
+	if _practicing:
+		var practice_step = _practice_step()
+		board.interactive = practice_step in [Practice.Step.ROTATE,Practice.Step.TILE,Practice.Step.ANIMAL]
+		board.frontier = [Practice.TARGET] if practice_step in [Practice.Step.ROTATE,Practice.Step.TILE] else []
+		board.emphasize_frontier = true
+		board.legal_animals = [Practice.TARGET] if practice_step == Practice.Step.ANIMAL else []
 	board.cell_clicked.connect(_board_click)
 	center.add_child(board)
 	if preserve_camera:
 		board.pan = board_pan
 		board.zoom = board_zoom
+	elif _practicing:
+		board.pan = Vector2(0,-52)
+		board.zoom = 1.1
 	else:
 		board.call_deferred("center_board")
 	var navigation = _hbox(8)
-	for hint in [["滚轮","缩放"],["中键","拖动"],["Q","E","旋转"],["Tab","得分"]]:
+	var hints = [["滚轮","缩放"],["中键","拖动"],["Q","E","旋转"]]
+	if not _practicing: hints.append(["Tab","得分"])
+	for hint in hints:
 		for i in range(hint.size()-1):
 			navigation.add_child(_keycap(hint[i]))
 		navigation.add_child(_label(hint[-1],16,P.SAGE))
@@ -733,7 +799,7 @@ func _render_game() -> void:
 	if Time.get_ticks_msec() < _refresh_until:
 		for token in _market_tokens:
 			Feedback.reveal(token,float(_refresh_until-Time.get_ticks_msec())/1000.0)
-	if not feedback_event.is_empty():
+	if not _practicing and not feedback_event.is_empty():
 		_show_feedback(feedback_event)
 
 func _show_feedback(text: String) -> void:
@@ -779,17 +845,19 @@ func _build_market(parent: Control) -> void:
 	for i in range(4):
 		var row = _hbox(8)
 		var paired = selection_tile == i and selection_animal == i
-		var badge = Ornament.make("hex",Vector2(24,26),P.GOLD_DEEP if paired else Color(P.DARK.r,P.DARK.g,P.DARK.b,.75),P.CREAM,str(i+1))
+		var practice_target = _practicing and _practice_step() == Practice.Step.SELECT and i == Practice.MARKET_GROUP
+		var row_locked = locked or (_practicing and (i != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW))
+		var badge = Ornament.make("hex",Vector2(24,26),P.GOLD_DEEP if paired or practice_target else Color(P.DARK.r,P.DARK.g,P.DARK.b,.75),P.CREAM,str(i+1))
 		row.add_child(badge)
 		var tile_button = _button("",func():_market_pick(i,false))
 		tile_button.custom_minimum_size = Vector2(140,102)
 		tile_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tile_button.disabled = locked
-		if selection_tile == i:
+		tile_button.disabled = row_locked
+		if selection_tile == i or practice_target:
 			tile_button.theme_type_variation = "ActiveButton"
 		var picture = MarketTile.new()
 		picture.tile_id = int(game.market_tiles[i])
-		if locked: picture.modulate.a = .5
+		if row_locked: picture.modulate.a = .5
 		tile_button.add_child(picture)
 		picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		if picture.tile_id > 0:
@@ -798,22 +866,24 @@ func _build_market(parent: Control) -> void:
 		row.add_child(tile_button)
 		var animal_button = _button("",func():_market_pick(i,true))
 		animal_button.custom_minimum_size = Vector2(90,102)
-		animal_button.disabled = locked
+		animal_button.disabled = row_locked
 		if i in refresh_indices:
 			animal_button.theme_type_variation = "MarkedButton"
-		elif selection_animal == i:
+		elif selection_animal == i or practice_target:
 			animal_button.theme_type_variation = "ActiveButton"
 		var token = MarketTile.new()
 		token.show_token = true
 		token.animal = game.market_animals[i]
 		_market_tokens.append(token)
-		if locked: token.modulate.a = .5
+		if row_locked: token.modulate.a = .5
 		animal_button.add_child(token)
 		token.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		animal_button.tooltip_text = T.ANIMAL_NAMES.get(token.animal,"")
 		row.add_child(animal_button)
 		content.add_child(row)
-	if game.config.count == 1:
+	if _practicing:
+		content.add_child(_wrap("教学市集 · 练习不影响正式存档",16,P.MUTED))
+	elif game.config.count == 1:
 		content.add_child(_wrap("单人：最下方剩余地块与动物将在回合结束时离场。",16,P.MUTED))
 	else:
 		content.add_child(_label("剩余地块  %d" % game.deck.size(),17,P.MUTED))
@@ -827,10 +897,10 @@ func _build_market(parent: Control) -> void:
 	take.disabled = (refresh_indices.is_empty() if refreshing else selection_tile < 0 or selection_animal < 0) or not game.pending.is_empty() or game.finished
 	content.add_child(take)
 	var free = _styled(_button("更换三枚同种动物",func():_action(_request_action("refresh",{"indices":game.triplicate(),"spend_nature":false}))),"QuietButton")
-	free.disabled = game.triplicate().is_empty()
+	free.disabled = _practicing or game.triplicate().is_empty()
 	content.add_child(free)
 	var nature = _styled(_button("使用自然标记  ·  %d" % int(game.players[game.active].nature),show_nature),"QuietButton")
-	nature.disabled = game.players[game.active].nature < 1 or not game.pending.is_empty() or game.finished
+	nature.disabled = _practicing or game.players[game.active].nature < 1 or not game.pending.is_empty() or game.finished
 	content.add_child(nature)
 
 func _build_cards(parent: Control) -> void:
@@ -913,7 +983,9 @@ func _build_actions(parent: Control) -> void:
 	var information = _vbox(4)
 	information.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	information.alignment = BoxContainer.ALIGNMENT_CENTER
-	if game.finished:
+	if _practicing and _practice_step() == Practice.Step.REVIEW:
+		information.add_child(_heading("首回合已确认",24,P.DARK))
+	elif game.finished:
 		information.add_child(_heading("旅程完成  ·  %d 分" % reports[view_player].total,24,P.DARK))
 	elif view_player != game.active:
 		information.add_child(_heading("正在查看其他旅行者的版图",24,P.DARK))
@@ -922,7 +994,9 @@ func _build_actions(parent: Control) -> void:
 	status_label = _wrap(status,17,P.MUTED)
 	information.add_child(status_label)
 	row.add_child(information)
-	if game.finished:
+	if _practicing and _practice_step() == Practice.Step.REVIEW:
+		row.add_child(_button("查看练习得分",_practice_results,true))
+	elif game.finished:
 		row.add_child(_button("查看计分",show_results))
 		row.add_child(_button("再来一局",show_setup,true))
 	elif view_player != game.active:
@@ -942,16 +1016,23 @@ func _build_actions(parent: Control) -> void:
 		hand.add_child(pending_animal)
 		row.add_child(_chip(hand))
 		row.add_child(VSeparator.new())
-		var tile_mode = _button("放地块",func():mode="tile";_render_game())
-		var animal_mode = _button("放动物",func():mode="animal";_render_game())
-		(tile_mode if mode == "tile" else animal_mode).theme_type_variation = "ActiveButton"
-		row.add_child(tile_mode)
-		row.add_child(animal_mode)
-		row.add_child(_button("↶ Q",func():_rotate(-1)))
-		row.add_child(_button("E ↷",func():_rotate(1)))
+		if not _practicing:
+			var tile_mode = _button("放地块",func():mode="tile";_render_game())
+			var animal_mode = _button("放动物",func():mode="animal";_render_game())
+			(tile_mode if mode == "tile" else animal_mode).theme_type_variation = "ActiveButton"
+			row.add_child(tile_mode)
+			row.add_child(animal_mode)
+		var rotate_left = _button("↶ Q",func():_rotate(-1))
+		var practice_rotate = _practicing and _practice_step() == Practice.Step.ROTATE
+		var rotate_right = _button("E ↷",func():_rotate(1),practice_rotate)
+		rotate_left.disabled = _practicing and game.pending.tile_pos != null
+		rotate_right.disabled = rotate_left.disabled
+		row.add_child(rotate_left)
+		row.add_child(rotate_right)
 		row.add_child(VSeparator.new())
 		var release_button = _button("放归动物",func():
 			_action(_request_action("discard_animal")))
+		release_button.disabled = _practicing
 		row.add_child(_styled(release_button,"QuietButton"))
 		var undo_button = _button("撤回摆放",func():
 			_request_action("clear_preview")
@@ -970,6 +1051,7 @@ func _build_actions(parent: Control) -> void:
 			child.custom_minimum_size.y = 54
 
 func _market_pick(index: int, is_animal: bool) -> void:
+	if _practicing and (index != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW): return
 	if lan_session != null and lan_session.started and not lan_session.can_control_player(game.active): return
 	if game.finished or not game.pending.is_empty(): return
 	if view_player != game.active:
@@ -992,11 +1074,21 @@ func _market_pick(index: int, is_animal: bool) -> void:
 func _draft() -> void:
 	var error = _request_action("draft",{"tile_index":selection_tile,"animal_index":selection_animal})
 	if error.is_empty():
+		if _practicing: game.rotate_pending(-1)
 		_reset_selection()
-		status = "点击虚线空格放地块；也可先切换到「放动物」。"
+		status = "试着旋转一次，看看地块的朝向怎样变化。" if _practicing else "点击虚线空格放地块；也可先切换到「放动物」。"
 	_action(error)
 
 func _board_click(cell: Vector2i) -> void:
+	if _practicing:
+		var practice_step = _practice_step()
+		if practice_step == Practice.Step.ROTATE:
+			_message("先转到湿地对齐，再点击金色空位。")
+			return
+		if practice_step not in [Practice.Step.TILE,Practice.Step.ANIMAL]: return
+		if cell != Practice.TARGET:
+			_message("请点亮框标出的练习落点。")
+			return
 	if game.pending.is_empty():
 		_message("请先从左侧市集选取一组地块与动物。")
 		return
@@ -1006,16 +1098,19 @@ func _board_click(cell: Vector2i) -> void:
 		if error.is_empty():
 			mode = "animal"
 			status = "点击带白圈的栖息地安置动物，也可选择放归。"
+			if _practicing: status = "湿地接上了！把鲑鱼放到新地块上。"
 	else:
 		error = _request_action("place_animal",{"q":cell.x,"r":cell.y})
 		if error.is_empty():
 			mode = "tile" if game.pending.tile_pos == null else "animal"
 			status = "地块与动物均可继续调整。满意后点击「完成回合」。" if game.ready_to_commit() else "动物已选择栖息地，接着摆放地块。"
+			if _practicing: status = "鲑鱼已安置。可以确认这一回合，也可以撤回重试。"
 	_action(error)
 
 func _rotate(amount: int) -> void:
 	if game == null or not is_instance_valid(board) or game.finished or game.pending.is_empty() or view_player != game.active:
 		return
+	if _practicing and game.pending.tile_pos != null: return
 	_request_action("rotate_pending",{"amount":amount})
 	_action("")
 	board.rotation_offset = -amount*PI/3.0 if settings.animations else 0.0
@@ -1060,6 +1155,8 @@ func _commit() -> void:
 	board = null
 	preserve_camera = false
 	status = game.players[game.active].name+"，轮到你了。选择下一组地块与动物。"
+	if _practicing:
+		status = "这一回合已落定，练习数据不会保存。"
 	if game.finished:
 		reports = S.game_scores(game)
 		status = "点击计分项目，可在版图上查看得分依据。"

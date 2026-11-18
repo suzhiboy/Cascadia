@@ -8,6 +8,7 @@ var animations = true
 var show_names = true
 var cells: Dictionary = {}
 var frontier: Array = []
+var emphasize_frontier = false
 var legal_animals: Array = []
 var highlight: Array = []
 var preview_key = ""
@@ -172,6 +173,8 @@ func _draw() -> void:
 		if selected and ghost_tile > 0:
 			draw_colored_polygon(Painter.polygon(c+Vector2(0,4),radius-8),Color(.1,.14,.08,.2))
 		_dashed_hex(c,radius-4,Color(.33,.43,.33,.5) if not selected else P.GOLD_DEEP,1.8 if not selected else 3.0)
+		if emphasize_frontier:
+			Painter.outline(self,c,radius-4,P.GOLD_DEEP,3.5)
 		if not selected:
 			draw_line(c-Vector2(6,0),c+Vector2(6,0),Color(.33,.43,.33,.45),2.0,true)
 			draw_line(c-Vector2(0,6),c+Vector2(0,6),Color(.33,.43,.33,.45),2.0,true)
