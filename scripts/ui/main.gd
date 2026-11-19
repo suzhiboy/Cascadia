@@ -65,6 +65,8 @@ func _ready() -> void:
 	_apply_audio()
 	music.play_next()
 	show_menu()
+	if OS.has_feature("windows") and not OS.has_feature("editor") and DisplayServer.get_name() != "headless":
+		screen.add_child(preload("res://scripts/update/check.gd").new())
 	lan_session = LanSessionClass.new()
 	lan_session.name = "LanSession"
 	add_child(lan_session)
