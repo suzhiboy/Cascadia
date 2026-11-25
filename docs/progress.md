@@ -23,3 +23,9 @@ Out-of-scope review exclusions (networking, AI, expansions, family mode, challen
 
 Rules authority: AEG base rulebook. Card values and illustrated formations cross-checked against photographed physical cards. Playtest deck is a data reference, not a rules implementation.
 Original raster art generated with the built-in imagegen tool. Both selected originals copied into assets/art.
+
+## 2026-11-25 · 阶段 0
+
+- 删除与计分说明争用高度的弹性空白，在两种窗口尺寸下检查全部 20 张卡的图例是否完整落入滚动区。修复前 40/40 截断，修复后 40/40 通过。
+- Windows 文件与产品版本统一为 1.1.0.0，并校验前三段与项目版本一致。两个旧值均触发失败，修复后两项通过。
+- Godot 4.7.2 导入、734 项规则检查、全部独立测试、720p 渲染练习与单人 20 / 四人 80 回合通过。四进程联机终局散列一致。部分进程退出时引擎仍报告 ObjectDB 与资源占用。

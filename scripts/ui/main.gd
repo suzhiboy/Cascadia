@@ -1198,7 +1198,6 @@ func show_card(animal: String, card: String) -> void:
 	content.add_child(_chip(diagram,"CardPanel"))
 	content.add_child(_button("重置图例",diagram.reset_example))
 	content.add_child(_wrap("点击圆片移除，再点空格恢复，观察分数变化。共边才算相邻；图例只计算本张动物卡，不影响对局。",18,P.MUTED))
-	_spacer(body)
 	if game != null and game.finished:
 		body.add_child(_button("查看本项得分 · %d 分" % reports[view_player].wildlife[animal].points,func():_highlight_score(view_player,animal,true),true))
 
