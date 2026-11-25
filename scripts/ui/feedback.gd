@@ -17,17 +17,17 @@ static func count_score(label: Label, points: int) -> void:
 	tween.tween_method(func(value: float): label.text = str(roundi(value)),0.0,float(points),0.45)
 	tween.tween_callback(func(): label.text = str(points))
 
-static func toast(label: Label) -> void:
-	if not enabled:
-		label.get_tree().create_timer(0.8).timeout.connect(func():
-			if is_instance_valid(label): label.queue_free())
-		return
-	label.modulate.a = 0.0
-	var y = label.position.y
+static func toast(label: Label, finished: Callable) -> Tween:
 	var tween = label.create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(label,"modulate:a",1.0,0.16)
-	tween.tween_property(label,"position:y",y-10.0,0.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.chain().tween_interval(0.45)
-	tween.chain().tween_property(label,"modulate:a",0.0,0.25)
-	tween.chain().tween_callback(label.queue_free)
+	if not enabled:
+		label.modulate.a = 1.0
+		tween.tween_interval(.8)
+	else:
+		label.modulate.a = 0.0
+		tween.set_parallel(true)
+		tween.tween_property(label,"modulate:a",1.0,.16)
+		tween.tween_property(label,"position:y",label.position.y-10.0,.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.chain().tween_interval(.45)
+		tween.chain().tween_property(label,"modulate:a",0.0,.25)
+	tween.chain().tween_callback(finished)
+	return tween

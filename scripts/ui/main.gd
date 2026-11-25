@@ -2,12 +2,22 @@ extends Control
 
 const G = preload("res://scripts/core/game_state.gd")
 const T = preload("res://scripts/core/tile_definition.gd")
-const H = preload("res://scripts/core/hex.gd")
 const S = preload("res://scripts/core/scorer.gd")
-const Cards = preload("res://scripts/core/scoring_card_definition.gd")
 const P = preload("res://scripts/ui/palette.gd")
-const BoardView = preload("res://scripts/ui/board.gd")
-const MarketTile = preload("res://scripts/ui/market_tile.gd")
+const HeaderBar = preload("res://scripts/ui/panels/header_bar.gd")
+const MarketPanel = preload("res://scripts/ui/panels/market_panel.gd")
+const BoardPanel = preload("res://scripts/ui/panels/board_panel.gd")
+const CardsPanel = preload("res://scripts/ui/panels/cards_panel.gd")
+const ActionBar = preload("res://scripts/ui/panels/action_bar.gd")
+const Modal = preload("res://scripts/ui/modals/modal.gd")
+const ResultsModal = preload("res://scripts/ui/modals/results_modal.gd")
+const CardModal = preload("res://scripts/ui/modals/card_modal.gd")
+const NatureModal = preload("res://scripts/ui/modals/nature_modal.gd")
+const PracticeModal = preload("res://scripts/ui/modals/practice_modal.gd")
+const HelpModal = preload("res://scripts/ui/modals/help_modal.gd")
+const SettingsModal = preload("res://scripts/ui/modals/settings_modal.gd")
+const SetupModal = preload("res://scripts/ui/modals/setup_modal.gd")
+const LobbyModal = preload("res://scripts/ui/modals/lobby_modal.gd")
 const Feedback = preload("res://scripts/ui/feedback.gd")
 const Practice = preload("res://scripts/ui/first_turn_practice.gd")
 const Music = preload("res://scripts/ui/music.gd")
@@ -36,17 +46,21 @@ var highlight: Array = []
 var reports: Array = []
 var status = "选取一组地块与动物，开始构筑你的生态世界。"
 var settings = {"volume":0.6,"music_volume":0.35,"fullscreen":false,"animations":true,"large_text":false,"animal_names":true,"habitat_labels":true}
-var board_pan = Vector2.ZERO
-var board_zoom = 1.0
-var preserve_camera = false
+var header_bar
+var market_panel
+var board_panel
+var cards_panel
+var action_bar
+var _screen_game
+var _large_text = false
 var _feedback_game_id = 0
 var _feedback_turns = 0
 var _feedback_rng = ""
 var _feedback_toast: Label
-var _refresh_until = 0
+var _toast_label: Label
+var _toast_tween: Tween
 var _market_tokens: Array = []
 var _practicing = false
-var _last_practice_step = -1
 var _practice_start_score: Dictionary
 var lan_session
 var lan_modal_body: VBoxContainer
@@ -128,6 +142,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _label(text: String, font_size: int = 21, color: Color = P.INK) -> Label:
 	var label = Label.new()
 	label.text = text
+	label.set_meta("base_font_size",font_size)
 	label.add_theme_font_size_override("font_size",font_size+ (2 if settings.large_text else 0))
 	label.add_theme_color_override("font_color",color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -202,6 +217,9 @@ func _spacer(parent: Control) -> void:
 
 func _reset_screen() -> void:
 	_close_modal()
+	_screen_game = null
+	_feedback_toast = null
+	_market_tokens = []
 	if is_instance_valid(screen):
 		remove_child(screen)
 		screen.queue_free()
@@ -234,8 +252,6 @@ func show_menu() -> void:
 	if _practicing:
 		_practicing = false
 		game = null
-	if is_instance_valid(_feedback_toast): _feedback_toast.queue_free()
-	_refresh_until = 0
 	_reset_screen()
 	_background(screen)
 	var panel = PanelContainer.new()
@@ -282,39 +298,21 @@ func show_menu() -> void:
 	footer.position = Vector2(1330,1005)
 	screen.add_child(footer)
 
-func _open_modal(title: String, width: float = 850, height: float = 740) -> VBoxContainer:
+func _open_modal(title: String, width: float = 850, height: float = 740, dialog = null) -> VBoxContainer:
 	_close_modal()
-	modal = Control.new()
+	modal = dialog if dialog != null else Modal.new()
 	modal.name = "Modal"
 	add_child(modal)
 	modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var shade = ColorRect.new()
-	shade.color = Color(.03,.1,.07,.72)
-	modal.add_child(shade)
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var panel = PanelContainer.new()
-	panel.theme_type_variation = "ModalPanel"
-	modal.add_child(panel)
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	panel.offset_left = -width*.5
-	panel.offset_right = width*.5
-	panel.offset_top = -height*.5
-	panel.offset_bottom = height*.5
-	var body = _vbox(18)
-	panel.add_child(_margin(body,30))
-	var header = _hbox(12)
-	header.add_child(Ornament.make("hex",Vector2(18,20),P.GOLD))
-	header.add_child(_heading(title,30,P.DARK))
-	_spacer(header)
-	header.add_child(_styled(_button("关闭",_close_modal),"QuietButton"))
-	body.add_child(header)
-	return body
+	return modal.frame(self,title,width,height)
 
 func _close_modal() -> void:
-	var apply_size = is_instance_valid(modal) and modal.get_meta("comfort",false)
-	if is_instance_valid(modal):
-		remove_child(modal)
-		modal.queue_free()
+	if not is_instance_valid(modal): return
+	var apply_size = modal.get_meta("comfort",false)
+	lan_modal_body = null
+	lan_room_list = null
+	remove_child(modal)
+	modal.queue_free()
 	modal = null
 	if apply_size: _refresh_comfort_screen.call_deferred()
 
@@ -324,170 +322,13 @@ func _refresh_comfort_screen() -> void:
 	else: show_menu()
 
 func show_setup() -> void:
-	var body = _open_modal("一起出发",930,840)
-	body.add_child(_wrap("选择同行人数与本局计分卡。初次游玩推荐使用全部 A 卡。",22,P.MUTED))
-	var count = OptionButton.new()
-	for text in ["单人 · 独行之旅","2 人 · 同机轮流","3 人 · 同机轮流","4 人 · 同机轮流"]:
-		count.add_item(text)
-	count.custom_minimum_size.y = 55
-	body.add_child(count)
-	var names = []
-	var name_grid = GridContainer.new()
-	name_grid.columns = 2
-	name_grid.add_theme_constant_override("h_separation",16)
-	name_grid.add_theme_constant_override("v_separation",10)
-	body.add_child(name_grid)
-	for i in range(4):
-		var input = LineEdit.new()
-		input.placeholder_text = "旅行者 %d" % (i+1)
-		input.max_length = 12
-		input.custom_minimum_size = Vector2(390,50)
-		input.visible = i == 0
-		input.add_theme_stylebox_override("normal",_player_field(P.PLAYERS[i]))
-		name_grid.add_child(input)
-		names.append(input)
-	count.item_selected.connect(func(index):
-		for i in range(4):
-			names[i].visible = i <= index)
-	body.add_child(_heading("本局野生动物计分卡",23))
-	var choices = {}
-	var cards_row = _hbox(14)
-	for animal in T.ANIMALS:
-		var column = _vbox(4)
-		var frame = _chip(column,"CardPanel")
-		frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var art = _art(animal)
-		art.custom_minimum_size = Vector2(110,108)
-		column.add_child(art)
-		var label = _heading(T.ANIMAL_NAMES[animal],20,P.INK,620)
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		column.add_child(label)
-		var choice = OptionButton.new()
-		for text in ["A","B","C","D","随机"]:
-			choice.add_item(text)
-		column.add_child(choice)
-		choices[animal] = choice
-		cards_row.add_child(frame)
-	body.add_child(cards_row)
-	var presets = _hbox()
-	presets.add_child(_styled(_button("全部 A 卡",func():
-		for choice in choices.values(): choice.select(0)),"QuietButton"))
-	presets.add_child(_styled(_button("全部随机",func():
-		for choice in choices.values(): choice.select(4)),"QuietButton"))
-	body.add_child(presets)
-	_spacer(body)
-	body.add_child(_button("登岛调查",func():
-		var config = {"count":count.selected+1,"names":[],"cards":{}}
-		for input in names: config.names.append(input.text)
-		for animal in T.ANIMALS: config.cards[animal] = ["A","B","C","D","random"][choices[animal].selected]
-		start_game(config),true))
+	SetupModal.new().open(self)
 
 func show_lan_lobby() -> void:
-	lan_modal_body = _open_modal("局域网联机",900,980)
-	lan_modal_body.add_child(_wrap("房主创建 2–4 人房间；可从局域网列表加入，也可输入主机 IP。联机局使用独立状态，不覆盖离线存档。",20,P.MUTED))
-	lan_room_list = _vbox(6)
-	lan_room_list.add_child(_label("正在搜索局域网房间……",17,P.MUTED))
-	lan_modal_body.add_child(lan_room_list)
-	lan_discovery.start_scan()
-	var host_name = LineEdit.new()
-	host_name.placeholder_text = "房主名字"
-	host_name.text = "房主"
-	host_name.custom_minimum_size.y = 50
-	lan_modal_body.add_child(host_name)
-	var count = OptionButton.new()
-	count.custom_minimum_size.y = 50
-	for i in range(2,5):
-		count.add_item("%d 人联机" % i)
-	lan_modal_body.add_child(count)
-	var host_row = _hbox(10)
-	var host_button = _button("创建房间",func():
-		var error = lan_session.host_lobby({"count":count.selected+2,"host_name":host_name.text,"cards":{},"port":LanProtocol.DEFAULT_GAME_PORT})
-		if error != OK:
-			status = "创建房间失败：端口 %d 不可用。" % LanProtocol.DEFAULT_GAME_PORT
-		else:
-			status = "房间已创建，等待另一位旅行者加入。"
-			_render_lan_lobby(), true)
-	host_row.add_child(host_button)
-	lan_modal_body.add_child(host_row)
-	lan_modal_body.add_child(HSeparator.new())
-	var address = LineEdit.new()
-	address.placeholder_text = "主机 IP，例如 192.168.1.20"
-	address.text = ""
-	address.custom_minimum_size.y = 50
-	lan_modal_body.add_child(address)
-	var join_name = LineEdit.new()
-	join_name.placeholder_text = "你的名字"
-	join_name.text = "旅行者"
-	join_name.custom_minimum_size.y = 50
-	lan_modal_body.add_child(join_name)
-	var seat = OptionButton.new()
-	seat.custom_minimum_size.y = 50
-	for i in range(2,5):
-		seat.add_item("申请第 %d 个座位" % i)
-	lan_modal_body.add_child(seat)
-	lan_modal_body.add_child(_button("加入房间",func():
-		var error = lan_session.join_lobby(address.text.strip_edges(),LanProtocol.DEFAULT_GAME_PORT,join_name.text,seat.selected+1)
-		status = "正在连接房主……" if error == OK else "无法连接到房间。"
-		_render_lan_lobby()))
-	lan_modal_body.add_child(_wrap("默认端口 35721。Windows 首次联网时，请允许应用访问专用网络。",16,P.MUTED))
+	LobbyModal.new().open(self)
 
 func _render_lan_lobby() -> void:
-	if not is_instance_valid(lan_modal_body):
-		return
-	for child in lan_modal_body.get_children():
-		if child != lan_modal_body.get_child(0) and child != lan_modal_body.get_child(1):
-			lan_modal_body.remove_child(child)
-			child.queue_free()
-	lan_modal_body.add_child(_wrap(status,20,P.RUST))
-	var lobby = lan_session._lobby
-	if lobby.has("slots"):
-		for slot in lobby.slots:
-			lan_modal_body.add_child(_label("座位 %d · %s · %s" % [int(slot.seat)+1,str(slot.name) if not str(slot.name).is_empty() else "空位","已准备" if slot.ready else ("未准备" if slot.connected else "未连接")],20))
-		var name_row = _hbox(8)
-		var name_input = LineEdit.new()
-		name_input.max_length = 12
-		name_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_input.text = lobby.slots[lan_session.local_seat()].name
-		name_row.add_child(name_input)
-		name_row.add_child(_button("修改名字",func():lan_session.set_local_name(name_input.text)))
-		lan_modal_body.add_child(name_row)
-		if not lan_session.is_host():
-			var ready = bool(lobby.slots[lan_session.local_seat()].ready)
-			lan_modal_body.add_child(_button("取消准备" if ready else "准备好了",func():lan_session.set_ready(not ready),true))
-		var card_row = _hbox(8)
-		for animal in T.ANIMALS:
-			var column = _vbox(5)
-			column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			column.add_child(_label(T.ANIMAL_NAMES[animal],18))
-			var choice = OptionButton.new()
-			var values = ["A","B","C","D","random"]
-			for value in values: choice.add_item("随机" if value == "random" else value)
-			choice.select(maxi(0,values.find(str(lobby.cards.get(animal,"A")))))
-			choice.disabled = not lan_session.is_host()
-			choice.item_selected.connect(func(index):
-				var cards = lan_session._lobby.cards.duplicate()
-				cards[animal] = values[index]
-				lan_session.host_set_cards(cards))
-			column.add_child(choice)
-			card_row.add_child(column)
-		lan_modal_body.add_child(card_row)
-	if lan_session.is_host():
-		var addresses = []
-		for ip in IP.get_local_addresses():
-			if str(ip).contains(".") and not str(ip).begins_with("127."):
-				addresses.append(str(ip))
-		lan_modal_body.add_child(_wrap("房主 IPv4："+ " / ".join(addresses)+"\n端口 35721 · 请朋友选择热点网卡对应地址。",18,P.MUTED))
-		var start_button = _button("开始联机对局",func():
-			var error = lan_session.host_start_game()
-			if not error.is_empty():
-				status = error
-				_render_lan_lobby())
-		start_button.disabled = not lobby.slots.all(func(slot):return slot.connected and slot.ready and not str(slot.name).is_empty())
-		lan_modal_body.add_child(start_button)
-	lan_modal_body.add_child(_button("离开房间 / 重试",func():
-		lan_session.shutdown()
-		lan_discovery.stop()
-		show_lan_lobby()))
+	if is_instance_valid(modal) and modal is LobbyModal: modal.render_lobby()
 
 func _on_lan_lobby_changed(data: Dictionary) -> void:
 	if lan_session.is_host() and lan_discovery != null:
@@ -519,12 +360,7 @@ func _on_lan_connection_changed(kind: String, _details: Dictionary) -> void:
 
 func _on_lan_state_changed(snapshot: Dictionary, _revision: int) -> void:
 	var first = not is_instance_valid(board)
-	var held_modal = null
-	if not first and is_instance_valid(modal):
-		held_modal = modal
-		remove_child(modal)
-		modal = null
-	if game == null: game = G.new()
+	if first or game == null: game = G.new()
 	game.restore(snapshot)
 	if first:
 		_close_modal()
@@ -535,11 +371,6 @@ func _on_lan_state_changed(snapshot: Dictionary, _revision: int) -> void:
 	if game.finished: reports = S.game_scores(game)
 	status = "轮到 "+game.players[game.active].name+" · "+("请选择地块与动物。" if game.pending.is_empty() else "正在摆放，可等待或查看其他版图。")
 	_render_game()
-	if is_instance_valid(held_modal):
-		add_child(held_modal)
-		modal = held_modal
-		if modal.get_meta("live_scores",false): show_results()
-
 
 func _on_lan_closed(reason: String) -> void:
 	lan_discovery.stop()
@@ -564,50 +395,21 @@ func _start_practice() -> void:
 	lan_session.shutdown()
 	lan_modal_body = null
 	_practicing = true
-	_last_practice_step = -1
 	start_game({"count":1,"names":["练习旅行者"]},Practice.SEED)
 	_practice_start_score = S.game_scores(game)[0]
 
 func _practice_step() -> Practice.Step:
 	return Practice.step(game,selection_tile)
 
-func _practice_banner() -> PanelContainer:
-	var step = _practice_step()
-	var lesson = Practice.LESSONS[step]
-	var row = _hbox(18)
-	var progress = "完成" if step == Practice.Step.REVIEW else "%d / 6" % (step+1)
-	row.add_child(_heading("首回合练习  ·  "+progress,22,P.GOLD_DEEP))
-	var text = _vbox(3)
-	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text.add_child(_heading(lesson[0],24,P.DARK))
-	text.add_child(_wrap(lesson[1],21,P.INK))
-	row.add_child(text)
-	var panel = _chip(_margin(row,6),"CardPanel")
-	if _last_practice_step != step:
-		panel.ready.connect(func():Feedback.reveal(panel,.18))
-		_last_practice_step = step
-	return panel
-
 func _practice_results() -> void:
-	var score = S.game_scores(game)[0]
-	var body = _open_modal("首回合练习完成",800,520)
-	body.add_child(_heading("这个回合为版图增加了 %d 分" % (score.total-_practice_start_score.total),27,P.GOLD_DEEP))
-	body.add_child(_wrap("泥滩  ·  最大相连区域从 %d 格变为 %d 格，每格 1 分。" % [
-		_practice_start_score.habitats.mudflat.points,score.habitats.mudflat.points],22))
-	body.add_child(_wrap("弹涂鱼 A  ·  在这片泥滩记录到一只弹涂鱼，得 %d 分。" % score.wildlife.goby.points,22))
-	body.add_child(_wrap("练习到此结束，不写入正式存档。正式对局有 20 回合，你可以自由选择组件和落点。",19,P.MUTED))
-	_spacer(body)
-	body.add_child(_button("返回主菜单",show_menu,true))
-	Feedback.reveal(modal.get_child(1))
+	PracticeModal.new().open(self)
 
 func start_game(config: Dictionary, seed_value: int = -1) -> void:
 	game = G.new()
 	game.start(config,seed_value)
 	view_player = 0
-	reports.clear()
+	reports = []
 	highlight.clear()
-	board = null
-	preserve_camera = false
 	_reset_selection()
 	status = "选取一组地块与动物，开始构筑你的生态世界。"
 	_save()
@@ -625,7 +427,6 @@ func _continue_game() -> void:
 	_reset_selection()
 	mode = "animal" if not game.pending.is_empty() and game.pending.tile_pos != null else "tile"
 	status = "旅程已恢复，继续上次的选择。"
-	preserve_camera = false
 	reports = S.game_scores(game) if game.finished else []
 	_render_game()
 
@@ -643,12 +444,6 @@ func _save() -> void:
 	if game.save_game() != OK:
 		status = "自动存档写入失败，请检查磁盘空间。"
 
-func _remember_camera() -> void:
-	if is_instance_valid(board):
-		board_pan = board.pan
-		board_zoom = board.zoom
-		preserve_camera = true
-
 func _render_game() -> void:
 	var completed_turns = 0
 	for player in game.players: completed_turns += int(player.turns)
@@ -658,13 +453,21 @@ func _render_game() -> void:
 			feedback_event = "旅程完成" if game.finished else "回合完成"
 		elif str(game.rng.state) != _feedback_rng:
 			feedback_event = "动物已刷新"
-			_refresh_until = Time.get_ticks_msec()+260
 	_feedback_game_id = game.get_instance_id()
 	_feedback_turns = completed_turns
 	_feedback_rng = str(game.rng.state)
-	_market_tokens.clear()
-	_remember_camera()
+
+	if _screen_game != game or not is_instance_valid(board):
+		_build_game_screen()
+	refresh()
+	if feedback_event == "动物已刷新":
+		for token in _market_tokens: Feedback.reveal(token,.26)
+	if not _practicing and not feedback_event.is_empty(): _show_feedback(feedback_event)
+
+func _build_game_screen() -> void:
 	_reset_screen()
+	_screen_game = game
+	_large_text = settings.large_text
 	var background = ColorRect.new()
 	background.color = P.DARK
 	screen.add_child(background)
@@ -680,136 +483,67 @@ func _render_game() -> void:
 	var outer = _margin(root,24)
 	screen.add_child(outer)
 	outer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var header = _hbox(14)
-	var brand = _hbox(12)
-	brand.custom_minimum_size.x = 300
-	brand.add_child(Ornament.make("logo",Vector2(44,48)))
-	var wordmark = _vbox(0)
-	var name_label = _label("TIDETRACE ISLES",24,P.CREAM)
-	name_label.add_theme_font_override("font",P.font(640,4))
-	wordmark.add_child(name_label)
-	wordmark.add_child(_label("潮痕群岛",15,P.GOLD_LIGHT))
-	brand.add_child(wordmark)
-	header.add_child(brand)
-	for i in range(game.players.size()):
-		var player = game.players[i]
-		var caption = ("● " if i == game.active and not game.finished else "")+player.name
-		var tab = _button(caption,func():_view(i))
-		tab.custom_minimum_size = Vector2(210,50)
-		tab.clip_text = true
-		tab.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		P.apply_tab(tab,P.PLAYERS[i%P.PLAYERS.size()],i == view_player)
-		if i == view_player:
-			tab.add_theme_font_override("font",P.font(640))
-		tab.tooltip_text = "查看 %s 的生态版图" % player.name
-		header.add_child(tab)
-	_spacer(header)
-	header.add_child(_styled(_button("规则",show_help),"GhostButton"))
-	header.add_child(_styled(_button("设置",show_settings),"GhostButton"))
-	if _practicing:
-		header.add_child(_styled(_button("退出练习",show_menu),"GhostButton"))
-	else:
-		header.add_child(_styled(_button("主菜单",func():
-			_save()
-			show_menu()),"GhostButton"))
-	root.add_child(header)
+	header_bar = HeaderBar.new()
+	root.add_child(header_bar)
+	header_bar.build(self)
 	var body = _hbox(18)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(body)
-	_build_market(body)
-	var center = _vbox(10)
-	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	body.add_child(center)
-	var viewed = game.players[view_player]
-	var caption = _hbox(10)
-	caption.add_child(Ornament.make("hex",Vector2(20,22),P.PLAYERS[view_player%P.PLAYERS.size()]))
-	caption.add_child(_heading(viewed.name+" 的生态版图",25,P.CREAM,640))
-	_spacer(caption)
-	caption.add_child(Ornament.make("shell",Vector2(24,26),P.CREAM,P.MOSS))
-	caption.add_child(_label("自然标记 %d" % int(viewed.nature),19,P.CREAM))
-	var divider = VSeparator.new()
-	divider.add_theme_stylebox_override("separator",_rule(Color(P.CREAM.r,P.CREAM.g,P.CREAM.b,.25)))
-	caption.add_child(divider)
-	if not _practicing:
-		caption.add_child(_label("回合",19,P.SAGE))
-		caption.add_child(_heading("%d / 20" % int(viewed.turns),21,P.CREAM,640))
-		var trail = Ornament.make("progress",Vector2(190,16),P.GOLD_LIGHT,P.CREAM)
-		trail.value = int(viewed.turns)
-		caption.add_child(trail)
-	center.add_child(caption)
-	if _practicing:
-		center.add_child(_practice_banner())
-	if lan_session != null and lan_session.started:
-		var phase = "正在选取" if game.pending.is_empty() else ("等待确认" if game.ready_to_commit() else "正在摆放")
-		center.add_child(_label("轮到 "+game.players[game.active].name+" · "+phase+" · 可自由查看版图与计分卡",17,P.CREAM))
-	if view_player == game.active and not game.pending.is_empty():
-		center.add_child(_wrap(load("res://scripts/ui/score_preview.gd").describe(game),17,P.GOLD_LIGHT))
-	board = BoardView.new()
-	board.animations = settings.animations
-	board.show_names = settings.animal_names
-	board.cells = game.preview_board() if view_player == game.active else game.players[view_player].board
-	board.interactive = view_player == game.active and not game.finished
-	if lan_session != null and lan_session.started:
-		board.interactive = board.interactive and lan_session.can_control_player(game.active)
-	board.highlight = highlight
-	if board.interactive and not game.pending.is_empty():
-		board.frontier = game.frontier() if mode == "tile" else []
-		board.legal_animals = game.legal_animal_cells() if mode == "animal" else []
-		if game.pending.tile_pos != null:
-			board.preview_key = H.key(Vector2i(game.pending.tile_pos[0],game.pending.tile_pos[1]))
-		# Presentation only: a translucent copy of the pending piece follows the cursor.
-		board.ghost_tile = int(game.pending.tile) if mode == "tile" else 0
-		board.ghost_rotation = int(game.pending.rotation)
-		board.ghost_animal = str(game.pending.animal) if mode == "animal" else ""
-	if _practicing:
-		var practice_step = _practice_step()
-		board.interactive = practice_step in [Practice.Step.ROTATE,Practice.Step.TILE,Practice.Step.ANIMAL]
-		board.frontier = [Practice.TARGET] if practice_step in [Practice.Step.ROTATE,Practice.Step.TILE] else []
-		board.emphasize_frontier = true
-		board.legal_animals = [Practice.TARGET] if practice_step == Practice.Step.ANIMAL else []
-	board.cell_clicked.connect(_board_click)
-	center.add_child(board)
-	if preserve_camera:
-		board.pan = board_pan
-		board.zoom = board_zoom
-	elif _practicing:
-		board.pan = Vector2(0,-52)
-		board.zoom = 1.1
-	else:
-		board.call_deferred("center_board")
-	var navigation = _hbox(8)
-	var hints = [["滚轮","缩放"],["中键","拖动"],["Q","E","旋转"]]
-	if not _practicing: hints.append(["Tab","得分"])
-	for hint in hints:
-		for i in range(hint.size()-1):
-			navigation.add_child(_keycap(hint[i]))
-		navigation.add_child(_label(hint[-1],16,P.SAGE))
-		var gap = Control.new()
-		gap.custom_minimum_size.x = 10
-		navigation.add_child(gap)
-	_spacer(navigation)
-	navigation.add_child(_styled(_button("居中版图",func():board.center_board()),"GhostButton"))
-	center.add_child(navigation)
-	_build_cards(body)
-	_build_actions(root)
-	if Time.get_ticks_msec() < _refresh_until:
-		for token in _market_tokens:
-			Feedback.reveal(token,float(_refresh_until-Time.get_ticks_msec())/1000.0)
-	if not _practicing and not feedback_event.is_empty():
-		_show_feedback(feedback_event)
+	market_panel = MarketPanel.new()
+	body.add_child(market_panel)
+	market_panel.build(self)
+	_market_tokens = market_panel.tokens
+	board_panel = BoardPanel.new()
+	body.add_child(board_panel)
+	board_panel.build(self)
+	board = board_panel.board
+	cards_panel = CardsPanel.new()
+	body.add_child(cards_panel)
+	cards_panel.build(self)
+	action_bar = ActionBar.new()
+	root.add_child(action_bar)
+	action_bar.build(self)
+	status_label = action_bar.status
+	_toast_label = _heading("",26,P.GOLD_LIGHT,650)
+	_toast_label.add_theme_color_override("font_shadow_color",P.DARK)
+	_toast_label.add_theme_constant_override("shadow_outline_size",5)
+	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toast_label.size = Vector2(620,45)
+	_toast_label.hide()
+	screen.add_child(_toast_label)
+
+func _view_state() -> Dictionary:
+	var lan = lan_session != null and lan_session.started
+	return {"game":game,"view":view_player,"mode":mode,"tile":selection_tile,"animal":selection_animal,
+		"independent":independent,"refreshing":refreshing,"indices":refresh_indices,"highlight":highlight,
+		"reports":reports,"status":status,"practice":_practicing,"step":_practice_step() if _practicing else -1,
+		"lan":lan,"can_act":not lan or lan_session.can_control_player(game.active)}
+
+func refresh() -> void:
+	var state = _view_state()
+	for panel in [header_bar,market_panel,board_panel,cards_panel,action_bar]:
+		panel.update(state)
+	if is_instance_valid(modal): modal.update(state)
+	if _large_text != settings.large_text:
+		_large_text = settings.large_text
+		for label in screen.find_children("*","Label",true,false):
+			if label.has_meta("base_font_size"):
+				label.add_theme_font_size_override("font_size",label.get_meta("base_font_size")+(2 if _large_text else 0))
+
+func _set_mode(next: String) -> void:
+	mode = next
+	_render_game()
 
 func _show_feedback(text: String) -> void:
-	if is_instance_valid(_feedback_toast):
-		_feedback_toast.free()
-	_feedback_toast = _heading("✦  "+text,26,P.GOLD_LIGHT,650)
-	_feedback_toast.add_theme_color_override("font_shadow_color",P.DARK)
-	_feedback_toast.add_theme_constant_override("shadow_outline_size",5)
-	_feedback_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_feedback_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_feedback_toast)
-	_feedback_toast.position = Vector2(650,105)
-	_feedback_toast.size = Vector2(620,45)
-	Feedback.toast(_feedback_toast)
+	if _toast_tween: _toast_tween.kill()
+	_feedback_toast = _toast_label
+	_toast_label.text = "✦  "+text
+	_toast_label.position = Vector2(650,105)
+	_toast_label.show()
+	_toast_tween = Feedback.toast(_toast_label,func():
+		_toast_label.hide()
+		_feedback_toast = null)
 
 func _rule(color: Color) -> StyleBoxLine:
 	var line = StyleBoxLine.new()
@@ -822,229 +556,7 @@ func _rule(color: Color) -> StyleBoxLine:
 func _view(index: int) -> void:
 	view_player = index
 	highlight.clear()
-	board = null
-	preserve_camera = false
 	_render_game()
-
-func _build_market(parent: Control) -> void:
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size.x = 310
-	parent.add_child(panel)
-	var content = _vbox(10)
-	panel.add_child(_margin(content,8))
-	content.add_child(_heading("海岸市集",27,P.DARK))
-	content.add_child(_label("选一块栖息地 · 邀一位新邻居",16,P.MUTED))
-	if independent or refreshing:
-		var notice = _wrap("自由搭配：分别点选地块与动物" if independent else "更换动物：点选要换掉的动物",16,P.RUST)
-		content.add_child(_chip(notice))
-	var locked = game.finished or not game.pending.is_empty()
-	for i in range(4):
-		var row = _hbox(8)
-		var paired = selection_tile == i and selection_animal == i
-		var practice_target = _practicing and _practice_step() == Practice.Step.SELECT and i == Practice.MARKET_GROUP
-		var row_locked = locked or (_practicing and (i != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW))
-		var badge = Ornament.make("hex",Vector2(24,26),P.GOLD_DEEP if paired or practice_target else Color(P.DARK.r,P.DARK.g,P.DARK.b,.75),P.CREAM,str(i+1))
-		row.add_child(badge)
-		var tile_button = _button("",func():_market_pick(i,false))
-		tile_button.custom_minimum_size = Vector2(140,102)
-		tile_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tile_button.disabled = row_locked
-		if selection_tile == i or practice_target:
-			tile_button.theme_type_variation = "ActiveButton"
-		var picture = MarketTile.new()
-		picture.tile_id = int(game.market_tiles[i])
-		if row_locked: picture.modulate.a = .5
-		tile_button.add_child(picture)
-		picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		if picture.tile_id > 0:
-			var tile = T.get_tile(picture.tile_id)
-			tile_button.tooltip_text = " · ".join(tile.habitats.map(func(h):return T.HABITAT_NAMES[h]))+"\n可安置："+"、".join(tile.wildlife.map(func(a):return T.ANIMAL_NAMES[a]))
-		row.add_child(tile_button)
-		var animal_button = _button("",func():_market_pick(i,true))
-		animal_button.custom_minimum_size = Vector2(90,102)
-		animal_button.disabled = row_locked
-		if i in refresh_indices:
-			animal_button.theme_type_variation = "MarkedButton"
-		elif selection_animal == i or practice_target:
-			animal_button.theme_type_variation = "ActiveButton"
-		var token = MarketTile.new()
-		token.show_token = true
-		token.animal = game.market_animals[i]
-		_market_tokens.append(token)
-		if row_locked: token.modulate.a = .5
-		animal_button.add_child(token)
-		token.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		animal_button.tooltip_text = T.ANIMAL_NAMES.get(token.animal,"")
-		row.add_child(animal_button)
-		content.add_child(row)
-	if _practicing:
-		content.add_child(_wrap("教学市集 · 练习不影响正式存档",16,P.MUTED))
-	elif game.config.count == 1:
-		content.add_child(_wrap("单人：最下方剩余地块与动物将在回合结束时离场。",16,P.MUTED))
-	else:
-		content.add_child(_label("剩余地块  %d" % game.deck.size(),17,P.MUTED))
-	_spacer(content)
-	var take = _button("确认更换动物" if refreshing else ("自由搭配 · 确认" if independent else "确认选取"),func():
-		if refreshing:
-			var error = _request_action("refresh",{"indices":refresh_indices,"spend_nature":true})
-			if error.is_empty(): _reset_selection()
-			_action(error)
-		else: _draft(),true)
-	take.disabled = (refresh_indices.is_empty() if refreshing else selection_tile < 0 or selection_animal < 0) or not game.pending.is_empty() or game.finished
-	content.add_child(take)
-	var free = _styled(_button("更换三枚同种动物",func():_action(_request_action("refresh",{"indices":game.triplicate(),"spend_nature":false}))),"QuietButton")
-	free.disabled = _practicing or game.triplicate().is_empty()
-	content.add_child(free)
-	var nature = _styled(_button("使用自然标记  ·  %d" % int(game.players[game.active].nature),show_nature),"QuietButton")
-	nature.disabled = _practicing or game.players[game.active].nature < 1 or not game.pending.is_empty() or game.finished
-	content.add_child(nature)
-
-func _build_cards(parent: Control) -> void:
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size.x = 330
-	parent.add_child(panel)
-	var content = _vbox(10)
-	panel.add_child(_margin(content,8))
-	content.add_child(_heading("野生动物手记",27,P.DARK))
-	content.add_child(_label("点击卡片，查看完整计分规则",16,P.MUTED))
-	for animal in T.ANIMALS:
-		var card = game.config.cards[animal]
-		var button = _styled(_button("",func():show_card(animal,card)),"CardButton")
-		button.custom_minimum_size = Vector2(285,115)
-		button.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var row = _hbox(6)
-		var margin = _margin(row,10)
-		margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		button.add_child(margin)
-		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var art = _art(animal)
-		art.custom_minimum_size.x = 101
-		row.add_child(art)
-		var info = _vbox(2)
-		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.alignment = BoxContainer.ALIGNMENT_CENTER
-		var title = _hbox(8)
-		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		title.add_child(_heading(T.ANIMAL_NAMES[animal],22,P.INK,650))
-		var letter = _chip(_heading(card,15,P.CREAM,700))
-		letter.add_theme_stylebox_override("panel",P.chip(P.ANIMALS[animal].darkened(.15),P.ANIMALS[animal].darkened(.3),6,7,0))
-		title.add_child(letter)
-		info.add_child(title)
-		info.add_child(_label(Cards.title(animal,card),16,P.MUTED))
-		if game.finished:
-			info.add_child(_heading("%d 分" % reports[view_player].wildlife[animal].points,22,P.GOLD_DEEP,700))
-		row.add_child(info)
-		content.add_child(button)
-	if game.finished:
-		content.add_child(_button("查看完整计分",show_results,true))
-	else:
-		content.add_child(_wrap("栖息地连成片，动物各有所爱。\n计分在旅程结束后进行。",16,P.MUTED))
-
-# Turn steps: pick, place habitat, place wildlife, confirm (habitat and wildlife in any order).
-
-func _stepper() -> HBoxContainer:
-	var row = _hbox(6)
-	var picked = not game.pending.is_empty()
-	var done = [picked,picked and game.pending.tile_pos != null,picked and (game.pending.animal_pos != null or game.pending.discarded),false]
-	var current = 0
-	if picked:
-		current = 3 if game.ready_to_commit() else (1 if mode == "tile" else 2)
-	var names = ["选取","地块","动物","确认"]
-	for i in range(4):
-		var chip = _hbox(6)
-		var is_current = i == current
-		var finished_step = done[i] and not is_current
-		var fill = P.DARK if is_current else (P.MOSS if finished_step else Color(0,0,0,0))
-		var mark_fill = P.GOLD if is_current else (P.CREAM if finished_step else Color(P.MUTED.r,P.MUTED.g,P.MUTED.b,.35))
-		var mark_ink = P.DARK if is_current else (P.MOSS if finished_step else P.PAPER)
-		var mark = Ornament.make("check" if finished_step else "hex",Vector2(20,22),mark_fill,mark_ink,str(i+1))
-		mark.font_size = 13
-		chip.add_child(mark)
-		chip.add_child(_heading(names[i],17,P.CREAM if is_current or finished_step else P.MUTED,650 if is_current else 520))
-		var holder = _chip(chip)
-		holder.add_theme_stylebox_override("panel",P.chip(fill,P.DARK if is_current else (P.MOSS if finished_step else P.LINE),14,10,3))
-		row.add_child(holder)
-		if i < 3:
-			row.add_child(_label("›",18,Color(P.MUTED.r,P.MUTED.g,P.MUTED.b,.6)))
-	return row
-
-func _build_actions(parent: Control) -> void:
-	var panel = PanelContainer.new()
-	panel.theme_type_variation = "BarPanel"
-	parent.add_child(panel)
-	var row = _hbox(12)
-	panel.add_child(row)
-	var information = _vbox(4)
-	information.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	information.alignment = BoxContainer.ALIGNMENT_CENTER
-	if _practicing and _practice_step() == Practice.Step.REVIEW:
-		information.add_child(_heading("首回合已确认",24,P.DARK))
-	elif game.finished:
-		information.add_child(_heading("旅程完成  ·  %d 分" % reports[view_player].total,24,P.DARK))
-	elif view_player != game.active:
-		information.add_child(_heading("正在查看其他旅行者的版图",24,P.DARK))
-	else:
-		information.add_child(_stepper())
-	status_label = _wrap(status,17,P.MUTED)
-	information.add_child(status_label)
-	row.add_child(information)
-	if _practicing and _practice_step() == Practice.Step.REVIEW:
-		row.add_child(_button("查看练习得分",_practice_results,true))
-	elif game.finished:
-		row.add_child(_button("查看计分",show_results))
-		row.add_child(_button("再来一局",show_setup,true))
-	elif view_player != game.active:
-		row.add_child(_button("返回当前玩家",func():_view(game.active),true))
-	elif not game.pending.is_empty():
-		var hand = _hbox(2)
-		var pending_tile = MarketTile.new()
-		pending_tile.tile_id = int(game.pending.tile)
-		pending_tile.tile_rotation = int(game.pending.rotation)
-		pending_tile.custom_minimum_size = Vector2(95,90)
-		hand.add_child(pending_tile)
-		var pending_animal = MarketTile.new()
-		pending_animal.show_token = true
-		pending_animal.animal = game.pending.animal
-		pending_animal.custom_minimum_size = Vector2(55,70)
-		pending_animal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		hand.add_child(pending_animal)
-		row.add_child(_chip(hand))
-		row.add_child(VSeparator.new())
-		if not _practicing:
-			var tile_mode = _button("放地块",func():mode="tile";_render_game())
-			var animal_mode = _button("放动物",func():mode="animal";_render_game())
-			(tile_mode if mode == "tile" else animal_mode).theme_type_variation = "ActiveButton"
-			row.add_child(tile_mode)
-			row.add_child(animal_mode)
-		var rotate_left = _button("↶ Q",func():_rotate(-1))
-		var practice_rotate = _practicing and _practice_step() == Practice.Step.ROTATE
-		var rotate_right = _button("E ↷",func():_rotate(1),practice_rotate)
-		rotate_left.disabled = _practicing and game.pending.tile_pos != null
-		rotate_right.disabled = rotate_left.disabled
-		row.add_child(rotate_left)
-		row.add_child(rotate_right)
-		row.add_child(VSeparator.new())
-		var release_button = _button("放归动物",func():
-			_action(_request_action("discard_animal")))
-		release_button.disabled = _practicing
-		row.add_child(_styled(release_button,"QuietButton"))
-		var undo_button = _button("撤回摆放",func():
-			_request_action("clear_preview")
-			mode="tile"
-			_action(""))
-		row.add_child(_styled(undo_button,"QuietButton"))
-		row.add_child(VSeparator.new())
-		var confirm = _button("完成回合",_commit,true)
-		confirm.custom_minimum_size.x = 150
-		confirm.disabled = not game.ready_to_commit()
-		row.add_child(confirm)
-	# Keep bar buttons at their natural height instead of stretching to the bar.
-	for child in row.get_children():
-		if child is Button:
-			child.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			child.custom_minimum_size.y = 54
 
 func _market_pick(index: int, is_animal: bool) -> void:
 	if _practicing and (index != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW): return
@@ -1052,8 +564,6 @@ func _market_pick(index: int, is_animal: bool) -> void:
 	if game.finished or not game.pending.is_empty(): return
 	if view_player != game.active:
 		view_player = game.active
-		board = null
-		preserve_camera = false
 	if refreshing:
 		if is_animal:
 			if index in refresh_indices: refresh_indices.erase(index)
@@ -1148,8 +658,6 @@ func _commit() -> void:
 	_reset_selection()
 	highlight.clear()
 	view_player = game.active
-	board = null
-	preserve_camera = false
 	status = game.players[game.active].name+"，轮到你了。选择下一组地块与动物。"
 	if _practicing:
 		status = "这一回合已落定，练习数据不会保存。"
@@ -1160,42 +668,13 @@ func _commit() -> void:
 	if game.finished: show_results()
 
 func show_nature() -> void:
-	var body = _open_modal("自然标记",770,480)
-	var intro = _hbox(14)
-	intro.add_child(Ornament.make("shell",Vector2(40,44),P.MOSS,P.CREAM))
-	intro.add_child(_wrap("每枚自然标记可帮助你选择更合适的伙伴。未使用的标记在终局各值 1 分。",23))
-	body.add_child(intro)
-	body.add_child(_button("自由搭配 · 任选一块地与一枚动物",func():
-		_reset_selection()
-		independent=true
-		status="分别点击一个地块与一枚动物。跨组选取消耗 1 枚自然标记。"
-		_render_game(),true))
-	body.add_child(_button("更换动物 · 选择任意数量",func():
-		_reset_selection()
-		refreshing=true
-		status="点击市集中想更换的动物，再点击「确认更换动物」。"
-		_render_game()))
-	body.add_child(_wrap("更换会揭示新动物，确认后无法撤回。可在同一回合多次使用自然标记。",18,P.MUTED))
+	NatureModal.new().open(self)
 
 func show_card(animal: String, card: String) -> void:
-	var body = _open_modal(T.ANIMAL_NAMES[animal]+" · "+card+"  "+Cards.title(animal,card),820,710)
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_child(scroll)
-	var content = _vbox(14)
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(content)
-	content.add_child(_wrap(Cards.description(animal,card),23))
-	var diagram = load("res://scripts/ui/rule_diagram.gd").new()
-	diagram.animal = animal
-	diagram.card = card
-	content.add_child(_chip(diagram,"CardPanel"))
-	content.add_child(_button("重置图例",diagram.reset_example))
-	content.add_child(_wrap("点击圆片移除，再点空格恢复，观察分数变化。共边才算相邻；图例只计算本张动物卡，不影响对局。",18,P.MUTED))
-	if game != null and game.finished:
-		body.add_child(_button("查看本项得分 · %d 分" % reports[view_player].wildlife[animal].points,func():_highlight_score(view_player,animal,true),true))
+	CardModal.new().open(self,animal,card)
 
 func _highlight_score(player: int, category: String, is_wildlife: bool) -> void:
+	_close_modal()
 	view_player = player
 	highlight.clear()
 	var points = 0
@@ -1210,175 +689,16 @@ func _highlight_score(player: int, category: String, is_wildlife: bool) -> void:
 		var part = reports[player].habitats[category]
 		highlight = part.cells.duplicate()
 		status = "%s：最大相连区域 %d 分，奖励 %d 分。" % [T.HABITAT_NAMES[category],part.points,part.bonus]
-	board = null
-	preserve_camera = false
 	_render_game()
 
 func show_results() -> void:
-	reports = S.game_scores(game)
-	var live = not game.finished
-	var body = _open_modal("实时得分 · Tab 返回" if live else "旅程的收获",1150,950)
-	modal.set_meta("live_scores",true)
-	var winners_list = S.winners(game,reports)
-	var names = winners_list.map(func(i):return game.players[i].name)
-	var heading = " · ".join(names)+("  并列获胜" if names.size()>1 else "  获胜")
-	if game.players.size() == 1:
-		var total = reports[0].total
-		heading = "你的生态世界 · %d 分" % total
-	if live:
-		heading = "当前已落定版图 · 分数预估"
-	var banner = _wrap(heading,27,P.GOLD_DEEP)
-	banner.add_theme_font_override("font",P.font(680))
-	body.add_child(banner)
-	body.add_child(_wrap("不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。" if live else "点击动物或生境得分，查看版图上的计分依据。",18,P.MUTED))
-	var grid = GridContainer.new()
-	grid.columns = game.players.size()+1
-	grid.add_theme_constant_override("h_separation",14)
-	grid.add_theme_constant_override("v_separation",5)
-	grid.add_child(_heading("计分项目",20,P.MUTED,600))
-	for i in range(game.players.size()):
-		var player = game.players[i]
-		var label = _heading(player.name,21,P.INK,640)
-		label.clip_text = true
-		label.custom_minimum_size.x = 145
-		label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		label.tooltip_text = player.name
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var stripe = P.chip(Color(0,0,0,0),P.PLAYERS[i%P.PLAYERS.size()].darkened(.15),0,0,2)
-		stripe.set_border_width_all(0)
-		stripe.border_width_bottom = 4
-		label.add_theme_stylebox_override("normal",stripe)
-		grid.add_child(label)
-	for animal in T.ANIMALS:
-		grid.add_child(_label(T.ANIMAL_NAMES[animal]+" "+game.config.cards[animal],20))
-		for i in range(game.players.size()):
-			var button = _button(str(reports[i].wildlife[animal].points),func():_highlight_score(i,animal,true))
-			button.custom_minimum_size.y = 39
-			_compact_score_button(button)
-			grid.add_child(button)
-	for habitat in T.HABITATS:
-		grid.add_child(_label(T.HABITAT_NAMES[habitat],20))
-		for i in range(game.players.size()):
-			var part = reports[i].habitats[habitat]
-			var button = _button("%d + %d" % [part.points,part.bonus],func():_highlight_score(i,habitat,false))
-			button.custom_minimum_size.y = 39
-			_compact_score_button(button)
-			grid.add_child(button)
-	grid.add_child(_label("剩余自然标记",20))
-	for report in reports:
-		var nature = _label(str(report.nature),22)
-		nature.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		grid.add_child(nature)
-	grid.add_child(_heading("总分",26,P.DARK))
-	for i in range(reports.size()):
-		var total = _heading(str(reports[i].total),35,P.GOLD_DEEP if i in winners_list else P.DARK,720)
-		total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		grid.add_child(total)
-		Feedback.count_score(total,int(reports[i].total))
-	body.add_child(grid)
-	_spacer(body)
-	var row = _hbox()
-	row.add_child(_styled(_button("回看生态版图",_close_modal),"QuietButton"))
-	_spacer(row)
-	if not live:
-		row.add_child(_button("再来一局",show_setup,true))
-	body.add_child(row)
-	Feedback.reveal(modal.get_child(1))
-
-func _compact_score_button(button: Button) -> void:
-	button.theme_type_variation = "ScoreButton"
+	ResultsModal.new().open(self)
 
 func show_help() -> void:
-	var body = _open_modal("潮间带调查手册",1000,900)
-	var scroll = ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_child(scroll)
-	var content = _vbox(10)
-	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(content)
-	content.add_child(_heading("看图认识动物计分",24,P.DARK))
-	var links = _hbox(8)
-	for animal in T.ANIMALS:
-		var selected_card = str(game.config.cards[animal]) if game != null else "A"
-		links.add_child(_button(T.ANIMAL_NAMES[animal]+" "+selected_card,func():show_card(animal,selected_card)))
-	content.add_child(links)
-	var field_diagram = load("res://scripts/ui/rule_diagram.gd").new()
-	content.add_child(_chip(field_diagram,"CardPanel"))
-	content.add_child(_wrap("试着在图例中移走一枚动物，再放回原处。上方按钮可翻阅本局采用的五张观察卡。",20))
-	var sections = [
-		["01  选一组，放两次","挑一列，把岛块和动物一起取走。沿任意一条外缘扩建海岸。动物可以先安置，也可等新岛块落定后再安排。"],
-		["02  为动物找到家","寻找印有该物种图案的空地块。每格只容纳一只动物。选择放归会将动物送回袋中。在只有一种图案的地块安置动物，可领取一枚自然标记。"],
-		["03  自然标记与动物过剩","选取前可以花一枚自然标记，把不同列的两件组件配成一组，或重抽指定的动物。仍有标记就能再次使用。市集中若出现三只同种动物，这回合可免费换掉这三只一次。四只同种会自动重抽。"],
-		["04  连接岛岸","转动岛块，让同色生境沿边相接。每种颜色只测量最大的一片，面积每格记一分。动物的得分条件请翻阅右侧观察卡。"],
-		["05  独行与同行","独自调查时，每次交接后两列剩余组件的末项各随潮水离开，新组件由上方补入。多人同行时只填空缺。每位调查员各记录二十回合。"],
-		["06  终局计分","将观察卡分数、生境面积、面积奖励及手中的自然标记相加。独自调查的七格生境奖两分。两人比较同色面积，领先者奖两分，持平各一分。三至四人按名次奖三分、一分；两人同居首位各两分，更多人同居首位各一分，并列第二没有奖励。总分持平先比标记数，再持平便共享胜利。"],
-		["操作与存档","点击地图试摆，Q 和 E 可逐边转向。滚轮调节视野，按住中键平移。确认回合前可撤回摆放。重抽后结果立即生效。下次启动时可从主菜单接续本地调查。"]
-	]
-	for i in range(sections.size()):
-		var section = sections[i]
-		var title = _hbox(10)
-		title.add_child(Ornament.make("hex",Vector2(16,18),P.GOLD))
-		title.add_child(_heading(section[0],24,P.DARK))
-		content.add_child(title)
-		var text = _wrap(section[1],20,P.INK)
-		text.add_theme_constant_override("line_spacing",6)
-		content.add_child(text)
-		if i < sections.size()-1:
-			var gap = Control.new()
-			gap.custom_minimum_size.y = 8
-			content.add_child(gap)
+	HelpModal.new().open(self)
 
 func show_settings() -> void:
-	var body = _open_modal("旅途设置",800,900)
-	modal.set_meta("comfort",true)
-	body.add_child(_heading("音效音量",22,P.DARK,620))
-	var slider = HSlider.new()
-	slider.min_value = 0
-	slider.max_value = 1
-	slider.step = .05
-	slider.value = settings.volume
-	slider.custom_minimum_size.y = 45
-	slider.value_changed.connect(func(value):
-		settings.volume=value
-		_apply_audio()
-		_save_settings())
-	body.add_child(slider)
-	body.add_child(_heading("背景音乐音量",22,P.DARK,620))
-	var music_slider = HSlider.new()
-	music_slider.name = "MusicVolume"
-	music_slider.min_value = 0
-	music_slider.max_value = 1
-	music_slider.step = .01
-	music_slider.value = settings.music_volume
-	music_slider.custom_minimum_size.y = 45
-	music_slider.tooltip_text = "只调节背景音乐；拖至最左侧静音。"
-	music_slider.value_changed.connect(func(value):
-		settings.music_volume = value
-		_apply_audio()
-		_save_settings())
-	body.add_child(music_slider)
-	var toggle = CheckButton.new()
-	toggle.text = "全屏显示"
-	toggle.button_pressed = settings.fullscreen
-	toggle.toggled.connect(func(value):
-		settings.fullscreen=value
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if value else DisplayServer.WINDOW_MODE_WINDOWED)
-		_save_settings())
-	body.add_child(toggle)
-	for option in [["animations","轻量动画"],["large_text","较大文字"],["animal_names","鼠标悬停显示动物名称"],["habitat_labels","生境文字标识（辅助辨色）"]]:
-		var setting_key = str(option[0])
-		var check = CheckButton.new()
-		check.text = option[1]
-		check.button_pressed = settings[setting_key]
-		check.toggled.connect(func(value):
-			settings[setting_key] = value
-			_apply_comfort()
-			_save_settings())
-		body.add_child(check)
-	body.add_child(_wrap("文字大小在关闭设置后应用。离线模式自动存档，联机模式由房主同步。",19,P.MUTED))
-	_spacer(body)
-	body.add_child(_button("返回旅程",_close_modal,true))
+	SettingsModal.new().open(self)
 
 func _load_settings() -> void:
 	if FileAccess.file_exists("user://settings.json"):
