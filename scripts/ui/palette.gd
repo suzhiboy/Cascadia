@@ -1,26 +1,26 @@
 extends RefCounted
 
-# ── Design tokens: "field atlas" — pine frame, parchment surfaces, brass accents ──
-const INK = Color("203e34")
-const MUTED = Color("6c7768")
-const PAPER = Color("f6f0de")
-const CARD = Color("fcf5e8")   # matches the wildlife illustration ground
-const PAPER_DEEP = Color("ebe2c6")
-const LINE = Color("dccfa8")
-const GOLD = Color("c49a50")
-const GOLD_DEEP = Color("9c763a")
-const GOLD_LIGHT = Color("ead39a")
-const DARK = Color("193a30")
-const PINE_DEEP = Color("10291f")
-const PINE_MID = Color("2a5546")
-const MOSS = Color("4f7a5a")
-const CREAM = Color("f3e6c2")
-const SAGE = Color("aebb9f")
-const RUST = Color("a45333")
+# Ink, shell paper, oxidised copper and deep coastal water.
+const INK = Color("183c44")
+const MUTED = Color("5c7071")
+const PAPER = Color("f4efdf")
+const CARD = Color("fbf6e9")   # matches the wildlife illustration ground
+const PAPER_DEEP = Color("e6dfc8")
+const LINE = Color("cec6a8")
+const GOLD = Color("ba8651")
+const GOLD_DEEP = Color("85572d")
+const GOLD_LIGHT = Color("eac99b")
+const DARK = Color("174551")
+const SEA_DEEP = Color("10333e")
+const SEA_MID = Color("28616a")
+const MOSS = Color("39766d")
+const CREAM = Color("f7e9cb")
+const SAGE = Color("a9c3ad")
+const RUST = Color("a04b39")
 const SHADOW = Color(0.03,0.09,0.06,0.28)
-const PLAYERS = [Color("7fb37a"),Color("e0aa4f"),Color("74a5cf"),Color("d98466")]
-const TERRAIN = {"mountain":Color("9aaab0"),"forest":Color("5c8667"),"prairie":Color("d3bb76"),"wetland":Color("93b09d"),"river":Color("6aa6b9")}
-const ANIMALS = {"bear":Color("765744"),"elk":Color("b89a50"),"salmon":Color("c06852"),"hawk":Color("668caa"),"fox":Color("cb8650")}
+const PLAYERS = [Color("80b7a7"),Color("e0aa4f"),Color("74a5cf"),Color("d98269")]
+const TERRAIN = {"reef":Color("87939d"),"marsh":Color("83a778"),"shingle":Color("bdb1c0"),"mudflat":Color("c79e74"),"pool":Color("63aeb2")}
+const ANIMALS = {"crab":Color("b76045"),"limpet":Color("8d7792"),"goby":Color("66885e"),"tern":Color("5d82a0"),"otter":Color("926341")}
 static var fonts: Dictionary = {}
 
 static func font(weight: int = 480, spacing: int = 0) -> FontVariation:
@@ -87,7 +87,7 @@ static func _buttons(theme: Theme, kind: String, styles: Array, colors: Array) -
 	theme.set_color("font_pressed_color",kind,colors[2])
 	theme.set_color("font_disabled_color",kind,colors[3])
 
-# Player tab: translucent on the pine frame, parchment when it is the board on display.
+# Player tab: translucent on the ocean frame, parchment when it is the board on display.
 static func apply_tab(button: Button, color: Color, selected: bool) -> void:
 	var fills = [PAPER,CARD,PAPER_DEEP] if selected else [Color(1,1,1,.07),Color(1,1,1,.14),Color(0,0,0,.14)]
 	var states = ["normal","hover","pressed"]
@@ -154,9 +154,9 @@ static func theme() -> Theme:
 	# Main call to action.
 	theme.set_type_variation("PrimaryButton","Button")
 	_buttons(theme,"PrimaryButton",[
-		raised(DARK,10,Color("0c2018"),3,0.24),
-		raised(PINE_MID,10,GOLD,3,0.26),
-		raised(PINE_DEEP,10,PINE_DEEP,1,0.0),
+		raised(DARK,10,Color("092b34"),3,0.24),
+		raised(SEA_MID,10,GOLD,3,0.26),
+		raised(SEA_DEEP,10,SEA_DEEP,1,0.0),
 		disabled],[CREAM,Color("fff6dc"),CREAM,faded])
 	# Chosen option within a group (current mode, selected market slot).
 	theme.set_type_variation("ActiveButton","Button")
@@ -177,7 +177,7 @@ static func theme() -> Theme:
 		box(Color(GOLD_LIGHT.r,GOLD_LIGHT.g,GOLD_LIGHT.b,0.45),10,GOLD),
 		box(PAPER_DEEP,10,GOLD_DEEP),
 		box(Color(1,1,1,0.1),10,Color(LINE.r,LINE.g,LINE.b,0.5))],[INK,DARK,INK,faded])
-	# Buttons sitting on the dark pine frame.
+	# Buttons sitting on the dark ocean frame.
 	theme.set_type_variation("GhostButton","Button")
 	var ghost_line = Color(CREAM.r,CREAM.g,CREAM.b,0.24)
 	_buttons(theme,"GhostButton",[

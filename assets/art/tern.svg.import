@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bstmi8kiqkgyq"
-path="res://.godot/imported/tile.png-20a155ef7d1c342882143496c88b260e.ctex"
+uid="uid://bhxlh8qxgx603"
+path="res://.godot/imported/tern.svg-2b566d303f02d18c614075439c18c79e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://docs/reference/tile.png"
-dest_files=["res://.godot/imported/tile.png-20a155ef7d1c342882143496c88b260e.ctex"]
+source_file="res://assets/art/tern.svg"
+dest_files=["res://.godot/imported/tern.svg-2b566d303f02d18c614075439c18c79e.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

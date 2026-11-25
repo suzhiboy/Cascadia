@@ -32,19 +32,34 @@ func _initialize() -> void:
 	Catalog = load("res://scripts/core/tile_definition.gd")
 	test_hex()
 	test_scoring()
+	test_diagram_examples()
 	test_turns()
 	test_refresh_and_solo()
-	test_habitats_and_optimum()
+	test_habitat_rotation()
 	test_full_games()
 	test_save_write_failure()
 	print("CHECKS: %d  FAILURES: %d" % [checks, failures])
 	quit(0 if failures == 0 else 1)
 
-func board_for(animal: String, coords: Array) -> Dictionary:
-	var b = {}
-	for c in coords:
-		b[H.key(c)] = {"q":c.x,"r":c.y,"tile":16,"rotation":0,"animal":animal}
-	return b
+# Each entry specifies q,r:habitat[+habitat][:resident]. An asterisk is the focal species.
+func habitat_tile(terrains: Array, resident: String = "") -> int:
+	for tile in Catalog.all().values():
+		if tile.habitats.size() == terrains.size() and terrains.all(func(h): return h in tile.habitats):
+			if resident.is_empty() or resident in tile.wildlife:
+				return tile.id
+	assert(false, "Missing test tile for %s / %s" % [terrains, resident])
+	return -1
+
+func hand_board(layout: String, species: String) -> Dictionary:
+	var board = {}
+	for entry in layout.split(" "):
+		var fields = entry.split(":")
+		var resident = fields[2] if fields.size() > 2 else ""
+		if resident == "*":
+			resident = species
+		var p = H.coord(fields[0])
+		board[fields[0]] = {"q":p.x,"r":p.y,"tile":habitat_tile(Array(fields[1].split("+")),resident),"rotation":0,"animal":resident}
+	return board
 
 func points(b: Dictionary, animal: String, card: String) -> int:
 	return S.wildlife(b, animal, card).points
@@ -55,67 +70,110 @@ func test_hex() -> void:
 		var p = H.DIRS[d]
 		check(H.DIRS[(d + 3) % 6] + p == Vector2i.ZERO, "opposite edge")
 		check(H.from_pixel(H.to_pixel(p, 70.0), 70.0) == p, "pixel coordinate roundtrip")
-	var tile = {"habitats":["forest","river"]}
-	check(H.edge(tile, 0, 3) == "forest", "source artwork first habitat is left half")
-	check(H.edge(tile, 0, 0) == "river", "source artwork second habitat is right half")
-	check(H.edge(tile, 1, 2) == "river", "rotation moves habitat edges clockwise")
-	check(H.edge(tile, 6, 3) == "forest", "six rotations restore tile")
+	var tile = {"habitats":["reef","pool"]}
+	check(H.edge(tile, 0, 3) == "reef", "first habitat is left half")
+	check(H.edge(tile, 0, 0) == "pool", "second habitat is right half")
+	check(H.edge(tile, 1, 2) == "pool", "rotation moves habitat edges clockwise")
+	check(H.edge(tile, 6, 3) == "reef", "six rotations restore tile")
 
 func test_scoring() -> void:
-	var pair = [Vector2i(0,0),Vector2i(1,0)]
-	var triple = pair + [Vector2i(2,0)]
-	var four = triple + [Vector2i(3,0)]
-	check(points(board_for("bear",pair),"bear","A") == 4, "bear A pair")
-	check(points(board_for("bear",triple),"bear","A") == 0, "bear A rejects oversized group")
-	check(points(board_for("bear",triple),"bear","B") == 10, "bear B triple")
-	check(points(board_for("bear",pair),"bear","B") == 0, "bear B rejects pair")
-	var mixed = board_for("bear",[Vector2i(0,0),Vector2i(4,0),Vector2i(5,0),Vector2i(9,0),Vector2i(10,0),Vector2i(11,0)])
-	check(points(mixed,"bear","C") == 18, "bear C once-only diversity bonus")
-	check(points(board_for("bear",four),"bear","D") == 13, "bear D four")
-	check(points(board_for("bear",[Vector2i.ZERO]),"bear","D") == 0, "bear D isolated")
-	check(points(board_for("elk",four),"elk","A") == 13, "elk A line")
-	var diamond = [Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)]
-	check(points(board_for("elk",diamond),"elk","B") == 13, "elk B diamond")
-	check(points(board_for("elk",four),"elk","B") == 10, "elk B straight four splits into pairs")
-	check(points(board_for("elk",diamond),"elk","C") == 10, "elk C connected arbitrary shape")
-	check(points(board_for("elk",H.neighbors(Vector2i.ZERO)),"elk","D") == 21, "elk D complete ring")
-	check(points(board_for("elk",[Vector2i.ZERO]),"elk","D") == 2, "elk D single")
-	check(points(board_for("salmon",four),"salmon","A") == 12, "salmon A four")
-	check(points(board_for("salmon",triple),"salmon","B") == 9, "salmon B three")
-	check(points(board_for("salmon",triple),"salmon","C") == 10, "salmon C three")
-	check(points(board_for("salmon",pair),"salmon","C") == 0, "salmon C short run")
-	var run = board_for("salmon",triple)
-	run["0,-1"] = {"q":0,"r":-1,"animal":"fox","tile":16,"rotation":0}
-	check(points(run,"salmon","D") == 4, "salmon D unique adjacent token")
-	check(points(board_for("salmon",pair),"salmon","D") == 0, "salmon D minimum three")
-	check(points(board_for("salmon",diamond),"salmon","A") == 0, "salmon rejects branching component")
-	var birds = board_for("hawk",[Vector2i(0,0),Vector2i(2,0),Vector2i(4,0)])
-	check(points(birds,"hawk","A") == 8, "hawk A isolated")
-	check(points(birds,"hawk","B") == 9, "hawk B visible isolated")
-	check(points(birds,"hawk","C") == 6, "hawk C nearest visible pair only")
-	check(points(board_for("hawk",pair),"hawk","A") == 0, "hawk A adjacent invalid")
-	check(points(board_for("hawk",pair),"hawk","C") == 0, "hawk C requires one intervening hex")
-	check(points(board_for("hawk",pair),"hawk","D") == 0, "hawk D no intervening animals")
-	birds["1,0"] = {"q":1,"r":0,"animal":"bear","tile":16,"rotation":0}
-	birds["3,0"] = {"q":3,"r":0,"animal":"elk","tile":16,"rotation":0}
-	check(points(birds,"hawk","D") == 4, "hawk D no repeated hawk")
-	var fox = board_for("fox",[Vector2i.ZERO])
-	for i in range(6):
-		var p = H.DIRS[i]
-		fox[H.key(p)] = {"q":p.x,"r":p.y,"animal":["bear","bear","elk","elk","salmon","salmon"][i],"tile":16,"rotation":0}
-	check(points(fox,"fox","A") == 3, "fox A variety")
-	check(points(fox,"fox","B") == 7, "fox B three distinct pairs")
-	check(points(fox,"fox","C") == 2, "fox C most abundant")
-	var fox_pair = board_for("fox",pair)
-	fox_pair["0,-1"] = {"q":0,"r":-1,"animal":"bear","tile":16,"rotation":0}
-	fox_pair["1,-1"] = {"q":1,"r":-1,"animal":"bear","tile":16,"rotation":0}
-	check(points(fox_pair,"fox","D") == 5, "fox D union counts shared neighbor once")
-	check(points(board_for("fox",pair),"fox","D") == 0, "fox D empty surroundings")
+	var cases = [
+		["crab","A","0,0:mudflat:*",3],
+		["crab","A","0,0:reef:*",2],
+		["crab","A","0,0:reef:* 1,0:mudflat",2],
+		["crab","B","0,0:mudflat:*",4],
+		["crab","B","0,0:mudflat:* 1,0:reef",4],
+		["crab","B","0,0:mudflat:* 1,0:reef 0,1:reef -1,1:reef -1,0:reef 0,-1:reef 1,-1:reef",1],
+		["crab","C","0,0:mudflat:* 1,0:mudflat:* 0,1:reef",5],
+		["crab","C","0,0:mudflat:* 1,0:reef:tern",1],
+		["crab","C","0,0:mudflat:* 1,0:reef 0,1:reef -1,1:reef",7],
+		["crab","D","0,0:mudflat:* 1,0:reef 0,1:pool",3],
+		["crab","D","0,0:mudflat:* 1,0:reef 0,1:reef",2],
+		["crab","D","0,0:mudflat:* 1,0:mudflat:* 0,1:reef",3],
+		["limpet","A","0,0:reef:* 1,0:reef",3],
+		["limpet","A","0,0:pool:*",1],
+		["limpet","A","0,0:reef:* 1,0:reef 0,1:reef",3],
+		["limpet","B","0,0:reef:* 1,0:reef -1,0:pool",2],
+		["limpet","B","0,0:reef:* 1,0:reef 0,1:pool",1],
+		["limpet","B","0,0:reef:* 1,0:reef 0,1:reef -1,1:reef -1,0:reef 0,-1:reef 1,-1:reef",4],
+		["limpet","C","0,0:reef:* 1,0:reef",3],
+		["limpet","C","0,0:reef:* 1,0:pool",1],
+		["limpet","C","0,0:reef:* 1,0:reef 0,1:reef",3],
+		["limpet","D","0,0:reef:* 1,0:pool:*",4],
+		["limpet","D","0,0:reef:* 1,0:reef:*",3],
+		["limpet","D","0,0:reef+pool:* 1,0:reef+pool:*",3],
+		["tern","A","0,0:shingle:*",3],
+		["tern","A","0,0:shingle:* 1,0:reef -1,1:reef 0,-1:reef",1],
+		["tern","A","0,0:shingle:* 1,0:reef 0,1:reef -1,1:reef -1,0:reef",3],
+		["tern","B","0,0:shingle:* 1,0:reef 0,1:reef",3],
+		["tern","B","0,0:shingle:* 1,0:reef 2,0:pool",1],
+		["tern","B","0,0:shingle:* 1,0:reef 0,1:reef -1,1:reef",3],
+		["tern","C","0,0:shingle:* 1,0:reef 1,1:mudflat:goby",3],
+		["tern","C","0,0:shingle:* 1,1:mudflat:goby",1],
+		["tern","C","0,0:shingle:* 1,0:mudflat:goby 0,1:mudflat:goby",3],
+		["tern","D","0,0:shingle:* 1,0:reef 2,0:marsh",2],
+		["tern","D","0,0:shingle:* 2,0:marsh",1],
+		["tern","D","0,0:shingle:* 1,0:reef 2,0:marsh 3,0:reef 4,0:shingle:*",3],
+		["goby","A","0,0:mudflat:*",3],
+		["goby","A","0,0:reef:*",1],
+		["goby","A","0,0:mudflat+pool:*",3],
+		["goby","B","0,0:mudflat:* 1,0:reef 0,1:shingle",3],
+		["goby","B","0,0:mudflat+pool:* 1,0:pool",1],
+		["goby","B","0,0:mudflat:* 1,0:reef 0,1:shingle -1,1:marsh",3],
+		["goby","C","0,0:reef:* 1,0:mudflat 0,1:pool",3],
+		["goby","C","0,0:mudflat:* 1,0:mudflat",1],
+		["goby","C","0,0:mudflat+pool:*",3],
+		["goby","D","0,0:reef:* 1,0:mudflat -1,0:pool",4],
+		["goby","D","0,0:reef:* 1,0:mudflat 0,1:pool",2],
+		["goby","D","0,0:reef:* 1,0:mudflat+pool -1,0:mudflat+pool",4],
+		["otter","A","0,0:pool:* 1,0:reef:crab 0,1:reef:limpet",3],
+		["otter","A","0,0:pool:* 1,0:reef:tern",1],
+		["otter","A","0,0:pool:* 1,0:reef:crab 0,1:reef:crab",2],
+		["otter","B","0,0:pool:* 1,-1:reef 1,0:reef 0,1:reef",3],
+		["otter","B","0,0:pool:* 1,0:reef -1,1:reef 0,-1:reef",1],
+		["otter","B","0,0:pool:* 1,0:reef 0,1:reef -1,1:reef -1,0:reef",3],
+		["otter","C","0,0:pool:* 1,0:shingle",5],
+		["otter","C","0,0:pool:* 1,0:shingle:tern",1],
+		["otter","C","0,0:pool:* 1,0:reef 0,1:shingle",5],
+		["otter","D","0,0:pool:* 1,0:pool 2,0:pool 3,0:pool",4],
+		["otter","D","0,0:reef:* 2,0:pool",1],
+		["otter","D","0,0:reef:* 1,0:pool 2,0:reef:*",3]
+	]
+	for item in cases:
+		var board = hand_board(item[2],item[0])
+		var report = S.wildlife(board,item[0],item[1])
+		check(report.points == item[3], "%s %s expected %d, got %d on %s" % [item[0],item[1],item[3],report.points,item[2]])
+		var sum = 0
+		for group in report.groups:
+			sum += group.points
+			check(group.cells.all(func(k): return board.has(k)), "highlighted tile exists")
+		check(sum == report.points, "explanation adds up")
 	check(S.majority([8,8,6,4]) == [2,2,0,0], "tied first majority")
 	check(S.majority([8,6,6,4]) == [3,0,0,0], "tied second majority")
 	check(S.majority([8,8]) == [1,1], "two-player tie")
 	check(S.majority([7]) == [2], "solo corridor threshold")
 	check(S.majority([6]) == [0], "solo below threshold")
+
+func test_diagram_examples() -> void:
+	var diagram = load("res://scripts/ui/rule_diagram.gd").new()
+	for species in Catalog.ANIMALS:
+		diagram.animal = species
+		for letter in ["A","B","C","D"]:
+			diagram.card = letter
+			var scores = []
+			for side in [false,true]:
+				var layout = diagram.example(side)
+				for cell in layout.values():
+					check(cell.animal == "" or cell.animal in Catalog.get_tile(cell.tile).wildlife, "Diagram token fits its habitat")
+				scores.append(points(layout,species,letter))
+			check(scores[0] != scores[1], "Diagram illustrates a scoring change for "+species+letter)
+	check("compact" in diagram,"Rule diagrams provide compact thumbnails")
+	if "compact" in diagram:
+		diagram.compact = true
+		diagram._ready()
+		check(diagram.custom_minimum_size == Vector2(80,60),"Thumbnail fits the 80 by 60 card slot")
+		check(diagram.mouse_filter == Control.MOUSE_FILTER_IGNORE,"Thumbnail leaves clicks to the card")
+	diagram.free()
 
 func test_turns() -> void:
 	var g = G.new()
@@ -159,24 +217,24 @@ func test_turns() -> void:
 
 func test_refresh_and_solo() -> void:
 	# A reachable four-player late-game supply: 21 tokens remain off-board.
-	# Fixed draw order forces four successive all-elk replacements.
+	# Fixed draw order forces four successive all-limpet replacements.
 	var late = OrderedBagState.new()
-	late.market_animals = ["bear","bear","bear","bear"]
-	for _i in range(16): late.bag.append("elk")
-	late.bag.append("fox")
+	late.market_animals = ["crab","crab","crab","crab"]
+	for _i in range(16): late.bag.append("limpet")
+	late.bag.append("otter")
 	late._resolve_four()
 	check(not late.exhausted,"Consecutive forced refresh cannot exhaust the bag")
 	check("" not in late.market_animals,"Forced refresh never creates empty animal")
 	check(late.bag.size()+late.held.size()+late.market_animals.size()==21,"Late refresh preserves 21 tokens")
 	var g = G.new()
 	g.start({"count":1,"names":[],"cards":{}},3)
-	g.market_animals = ["bear","bear","bear","bear"]
-	g.bag = ["elk","elk","elk","elk","elk","elk","elk","elk","hawk","fox","salmon"]
+	g.market_animals = ["crab","crab","crab","crab"]
+	g.bag = ["limpet","limpet","limpet","limpet","limpet","limpet","limpet","limpet","tern","otter","goby"]
 	g._resolve_four()
 	check(g.market_animals.count(g.market_animals[0]) < 4, "forced wipes repeat until market not all identical")
 	check(g.bag.size()+g.market_animals.size()+g.held.size() == 15, "refresh preserves every token")
-	g.market_animals = ["bear","bear","bear","fox"]
-	g.bag = ["elk","hawk","salmon","fox","elk","hawk","salmon","fox"]
+	g.market_animals = ["crab","crab","crab","otter"]
+	g.bag = ["limpet","tern","goby","otter","limpet","tern","goby","otter"]
 	g.held.clear()
 	g.optional_used = false
 	check(g.refresh([0,1,2],false).is_empty(), "free triple wipe")
@@ -185,7 +243,7 @@ func test_refresh_and_solo() -> void:
 	g = G.new()
 	g.start({"count":1,"names":[],"cards":{}},9)
 	g.market_tiles = [16,17,18,19]
-	g.market_animals = ["bear","elk","salmon","fox"]
+	g.market_animals = ["crab","limpet","goby","otter"]
 	g.players[0].nature = 2
 	check(g.draft(1,3).is_empty(), "cross-column draft")
 	check(g.players[0].nature == 1, "cross-column draft spends exactly one")
@@ -193,8 +251,8 @@ func test_refresh_and_solo() -> void:
 	g.discard_animal()
 	g.commit_turn()
 	check(g.market_tiles.slice(2) == [16,18], "solo tile row slides independently")
-	check(g.market_animals.slice(2) == ["bear","elk"], "solo animal row slides independently")
-	check(g.removed_tiles == [19] and g.removed_animals == ["salmon"], "solo removes farthest remaining item in each row")
+	check(g.market_animals.slice(2) == ["crab","limpet"], "solo animal row slides independently")
+	check(g.removed_tiles == [19] and g.removed_animals == ["goby"], "solo removes farthest remaining item in each row")
 	var before = JSON.stringify(g.snapshot())
 	check(not g.refresh([0,0],true).is_empty(), "duplicate refresh index rejected")
 	check(JSON.stringify(g.snapshot()) == before, "invalid refresh does not spend or draw")
@@ -206,16 +264,18 @@ func test_refresh_and_solo() -> void:
 		g.place_tile(g.frontier()[0],0)
 		check(g.ready_to_commit(), "animal-first turn can finish")
 
-func test_habitats_and_optimum() -> void:
-	var b = {"0,0":{"tile":41,"rotation":0,"animal":"","q":0,"r":0},"-1,0":{"tile":41,"rotation":0,"animal":"","q":-1,"r":0}}
-	check(S.habitats(b).mountain.points == 1, "same tile types with wrong edges do not connect")
+func test_habitat_rotation() -> void:
+	var b = hand_board("0,0:reef+pool -1,0:reef+pool","")
+	var habitat = H.edge(Catalog.get_tile(b["0,0"].tile),0,3)
+	check(S.habitats(b)[habitat].points == 1, "opposite terrains do not connect")
 	b["-1,0"].rotation = 3
-	check(S.habitats(b).mountain.points == 2, "rotation connects correct mountain edges")
-	# A greedy 4-line leaves two singles (17); two crossing 3-lines yield 18.
-	var elk = board_for("elk",[Vector2i(0,0),Vector2i(1,0),Vector2i(2,0),Vector2i(3,0),Vector2i(0,1),Vector2i(0,2)])
-	check(points(elk,"elk","A") == 18, "elk uses globally best disjoint lines, not longest first")
+	check(S.habitats(b)[habitat].points == 2, "rotation connects matching edges")
+	var colony = hand_board("0,0:reef+pool:* -1,0:reef+pool","limpet")
+	check(points(colony,"limpet","C") == 1, "home scar requires facing edges")
+	colony["-1,0"].rotation = 3
+	check(points(colony,"limpet","C") == 3, "rotation opens home scar")
 	var empty = {}
-	for animal in ["bear","elk","salmon","hawk","fox"]:
+	for animal in ["crab","limpet","goby","tern","otter"]:
 		for card in ["A","B","C","D"]:
 			check(points(empty,animal,card) == 0, "empty animal scores zero "+animal+card)
 
@@ -247,7 +307,7 @@ func test_full_games() -> void:
 		check(report.size() == count, "all players scored")
 
 func test_save_write_failure() -> void:
-	var path = "user://cascadia-test-save.json"
+	var path = "user://tidetrace-test-save.json"
 	var g = G.new()
 	g.start({"count":1},517)
 	check(g.save_game(path)==OK,"Initial save succeeds")

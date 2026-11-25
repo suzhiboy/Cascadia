@@ -1,6 +1,7 @@
 class_name GameState
 extends RefCounted
 
+const SAVE_VERSION := 2
 const H = preload("res://scripts/core/hex.gd")
 const Tiles = preload("res://scripts/core/tile_definition.gd")
 const Config = preload("res://scripts/core/game_config.gd")
@@ -78,7 +79,7 @@ func _release_held() -> void:
 
 func _resolve_four() -> void:
 	while market_animals.size() == 4 and market_animals.count(market_animals[0]) == 4:
-		# Printed rules hold wiped batches until the sequence ends. If that
+		# Reserve replaced batches until the sequence ends. If that
 		# leaves too few tokens, return earlier batches before withholding this one.
 		if bag.size() < 4:
 			_release_held()
@@ -285,7 +286,7 @@ func apply_action(action: String, args: Dictionary) -> String:
 			return "未知的联机操作。"
 
 func snapshot() -> Dictionary:
-	return {"version":1,"config":config.duplicate(true),"players":players.duplicate(true),"deck":deck.duplicate(),"bag":bag.duplicate(),"market_tiles":market_tiles.duplicate(),"market_animals":market_animals.duplicate(),"removed_tiles":removed_tiles.duplicate(),"removed_animals":removed_animals.duplicate(),"held":held.duplicate(),"pending":pending.duplicate(true),"active":active,"optional_used":optional_used,"finished":finished,"rng_state":str(rng.state)}
+	return {"version":SAVE_VERSION,"config":config.duplicate(true),"players":players.duplicate(true),"deck":deck.duplicate(),"bag":bag.duplicate(),"market_tiles":market_tiles.duplicate(),"market_animals":market_animals.duplicate(),"removed_tiles":removed_tiles.duplicate(),"removed_animals":removed_animals.duplicate(),"held":held.duplicate(),"pending":pending.duplicate(true),"active":active,"optional_used":optional_used,"finished":finished,"rng_state":str(rng.state)}
 
 func restore(data: Dictionary) -> void:
 	for field in ["config","players","deck","bag","market_tiles","market_animals","removed_tiles","removed_animals","held","pending","active","optional_used","finished"]:
@@ -327,7 +328,10 @@ func load_game(path: String = "user://autosave.json") -> bool:
 	if not FileAccess.file_exists(path):
 		return false
 	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not data is Dictionary or data.get("version",0) != 1:
+	if not data is Dictionary:
+		return false
+	if data.get("version", 0) != SAVE_VERSION:
+		last_notice = "存档不兼容"
 		return false
 	for field in ["config","players","deck","bag","market_tiles","market_animals","removed_tiles","removed_animals","held","pending","active","optional_used","finished","rng_state"]:
 		if not data.has(field):

@@ -1,7 +1,8 @@
 extends Control
 
 # Small vector emblems drawn in code so they stay crisp at any UI scale.
-# kind: "logo" | "leaf" | "hex" | "progress" | "check"
+# kind: "logo" | "shell" | "hex" | "progress" | "check"
+const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
 var kind = "hex"
 var color = P.DARK
@@ -37,10 +38,10 @@ func _draw() -> void:
 	match kind:
 		"logo":
 			_logo(center,radius)
-		"leaf":
+		"shell":
 			draw_colored_polygon(hexagon(center+Vector2(0,1.5),radius*.98),Color(0,0,0,.18))
 			draw_colored_polygon(hexagon(center,radius*.96),color)
-			_leaf(center,radius*.62,accent)
+			Painter.shell(self,center,radius*.6,accent,color)
 		"hex":
 			draw_colored_polygon(hexagon(center+Vector2(0,1.5),radius*.98),Color(0,0,0,.14))
 			draw_colored_polygon(hexagon(center,radius*.96),color)
@@ -54,41 +55,19 @@ func _draw() -> void:
 		"progress":
 			_progress()
 
-func _leaf(center: Vector2, length: float, tint: Color) -> void:
-	# A conifer-needle leaf: two arcs meeting at tip and stem, with a midrib.
-	var tip = center+Vector2(length*.55,-length*.55)
-	var stem = center+Vector2(-length*.55,length*.55)
-	var points = PackedVector2Array()
-	for i in range(13):
-		var t = float(i)/12.0
-		var base = stem.lerp(tip,t)
-		points.append(base+Vector2(-1,-1).normalized()*sin(t*PI)*length*.42)
-	for i in range(12,-1,-1):
-		var t = float(i)/12.0
-		var base = stem.lerp(tip,t)
-		points.append(base+Vector2(1,1).normalized()*sin(t*PI)*length*.42)
-	draw_colored_polygon(points,tint)
-	draw_line(stem+(stem-tip)*.12,tip.lerp(stem,.15),color.darkened(.1),maxf(1.0,length*.07),true)
-
 func _logo(center: Vector2, radius: float) -> void:
 	draw_colored_polygon(hexagon(center+Vector2(0,2),radius),Color(0,0,0,.25))
 	draw_colored_polygon(hexagon(center,radius),P.GOLD)
-	var inner = hexagon(center,radius*.84)
-	draw_colored_polygon(inner,P.PINE_MID)
-	# Sky band, snowy peak, a fir and a river line — the four lands of the game in one mark.
-	var r = radius*.84
-	draw_colored_polygon(PackedVector2Array([center+Vector2(-r*.78,r*.2),center+Vector2(-r*.18,-r*.5),center+Vector2(r*.25,r*.02),center+Vector2(r*.5,-r*.22),center+Vector2(r*.85,r*.2)]),P.TERRAIN.mountain)
-	draw_colored_polygon(PackedVector2Array([center+Vector2(-r*.36,-r*.29),center+Vector2(-r*.18,-r*.5),center+Vector2(0,-r*.29)]),P.CREAM)
-	var tree = center+Vector2(r*.36,r*.05)
-	for i in range(3):
-		var y = -r*.42+i*r*.17
-		var w = r*(.13+i*.07)
-		draw_colored_polygon(PackedVector2Array([tree+Vector2(0,y),tree+Vector2(w,y+r*.24),tree+Vector2(-w,y+r*.24)]),P.TERRAIN.forest.darkened(.25))
-	var water = PackedVector2Array()
-	for i in range(9):
-		var t = float(i)/8.0
-		water.append(center+Vector2(lerpf(-r*.8,r*.8,t),r*.48+sin(t*TAU*1.2)*r*.07))
-	draw_polyline(water,P.TERRAIN.river.lightened(.3),maxf(1.5,r*.1),true)
+	draw_colored_polygon(hexagon(center,radius*.87),P.DARK)
+	draw_circle(center+Vector2(.21,-.26)*radius,radius*.19,P.GOLD_LIGHT,true,-1,true)
+	for j in range(2):
+		var wave = PackedVector2Array()
+		for i in range(15):
+			var t = i/14.0
+			wave.append(center+Vector2((t-.5)*1.18,.18+j*.21+sin(t*TAU)*.09)*radius)
+		draw_polyline(wave,P.CREAM,maxf(1,radius*.072),true)
+	var bird = PackedVector2Array([center+Vector2(-.59,-.18)*radius,center+Vector2(-.38,-.19)*radius,center+Vector2(-.18,-.10)*radius,center+Vector2(-.04,-.30)*radius,center+Vector2(.09,-.36)*radius])
+	draw_polyline(bird,P.CREAM,maxf(1,radius*.071),true)
 
 func _progress() -> void:
 	# A 20-step trail: done steps filled, the current one ringed in brass.

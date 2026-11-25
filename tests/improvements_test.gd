@@ -37,27 +37,22 @@ func run() -> void:
 	check(before == ui.game.snapshot(),"Preview preserves state and RNG")
 	ui._render_game()
 	await capture("preview")
-	ui.show_card("bear","A")
+	ui.show_card("crab","A")
 	await process_frame
 	var diagram = find_diagram(ui.modal)
 	check(diagram != null,"Interactive diagram exists")
 	var event = InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.pressed = true
-	# Remove third bear from the comparison: three bears (0) become two bears (4).
-	diagram.queue_redraw()
-	await process_frame
-	await process_frame
-	if not diagram.hit_regions.is_empty():
-		var hit = diagram.hit_regions[-1]
-		event.position = hit.center
-		diagram._gui_input(event)
-		check(diagram.removed[1].size() == 1,"Click removes bear")
-		var example = diagram.example(true)
-		example[hit.key].animal = ""
-		check(ui.S.wildlife(example,"bear","A").points == 4,"Removing third bear restores four points")
-		diagram._gui_input(event)
-		check(diagram.removed[1].is_empty(),"Click restores bear")
+	var example = diagram.example(false)
+	check(ui.S.wildlife(example,"crab","A").points == 3,"Mudflat burrow scores three")
+	event.position = diagram._layout(0,example)["0,0"]
+	diagram._gui_input(event)
+	check(diagram.removed[0].has("0,0"),"Click removes crab")
+	example["0,0"].animal = ""
+	check(ui.S.wildlife(example,"crab","A").points == 0,"Empty burrow loses its score")
+	diagram._gui_input(event)
+	check(diagram.removed[0].is_empty(),"Click restores crab")
 	ui.view_player = 1
 	var old_modal = ui.modal
 	ui._on_lan_state_changed(before,3)

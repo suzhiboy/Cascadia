@@ -10,11 +10,15 @@ config_version=5
 
 [application]
 
-config/name="卡斯卡迪亚之旅"
+config/name="潮痕群岛"
 config/version="1.1.0"
-config/description="在山林之间，构筑你的生态世界。"
+config/description="在退潮的群岛拼接五种生境，记录潮间带动物的生活。"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[updates]
+
+github_repository=""
 
 [autoload]
 

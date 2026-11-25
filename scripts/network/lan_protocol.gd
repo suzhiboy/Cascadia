@@ -1,7 +1,7 @@
 class_name LanProtocol
 extends RefCounted
 
-const PROTOCOL_VERSION := 2
+const PROTOCOL_VERSION := 3
 const DEFAULT_GAME_PORT := 35721
 const DISCOVERY_PORT := 35722
 const RECONNECT_TIMEOUT_SEC := 120.0
@@ -9,12 +9,12 @@ const RECONNECT_TIMEOUT_SEC := 120.0
 static func make_announcement(info: Dictionary) -> Dictionary:
 	var out = info.duplicate(true)
 	out["protocol"] = PROTOCOL_VERSION
-	out["game"] = "cascadia"
+	out["game"] = "tidetrace"
 	return out
 
 static func parse_announcement(packet: PackedByteArray) -> Dictionary:
 	var value = JSON.parse_string(packet.get_string_from_utf8())
-	if not value is Dictionary or int(value.get("protocol", 0)) != PROTOCOL_VERSION or value.get("game", "") != "cascadia":
+	if not value is Dictionary or int(value.get("protocol", 0)) != PROTOCOL_VERSION or value.get("game", "") != "tidetrace":
 		return {}
 	return value
 

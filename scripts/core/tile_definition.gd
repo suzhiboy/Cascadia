@@ -1,10 +1,10 @@
 class_name TileDefinition
 extends RefCounted
 
-const ANIMALS = ["bear","elk","salmon","hawk","fox"]
-const HABITATS = ["mountain","forest","prairie","wetland","river"]
-const ANIMAL_NAMES = {"bear":"棕熊","elk":"麋鹿","salmon":"鲑鱼","hawk":"红尾鵟","fox":"赤狐"}
-const HABITAT_NAMES = {"mountain":"山地","forest":"森林","prairie":"草原","wetland":"湿地","river":"河流"}
+const ANIMALS = ["crab","limpet","goby","tern","otter"]
+const HABITATS = ["reef","marsh","shingle","mudflat","pool"]
+const ANIMAL_NAMES = {"crab":"招潮蟹","limpet":"帽贝","goby":"弹涂鱼","tern":"燕鸥","otter":"水獭"}
+const HABITAT_NAMES = {"reef":"岩礁","marsh":"盐沼","shingle":"砾滩","mudflat":"泥滩","pool":"潮池"}
 static var records: Dictionary = {}
 
 static func all() -> Dictionary:

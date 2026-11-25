@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8pinnx0ci11n"
-path="res://.godot/imported/wildlife.png-7dffa48de497870f37a60f7924dd614d.ctex"
+uid="uid://dshuup0a2yndb"
+path="res://.godot/imported/otter.svg-e77be12e866c7c1959e40f871deeee06.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/wildlife.png"
-dest_files=["res://.godot/imported/wildlife.png-7dffa48de497870f37a60f7924dd614d.ctex"]
+source_file="res://assets/art/otter.svg"
+dest_files=["res://.godot/imported/otter.svg-e77be12e866c7c1959e40f871deeee06.ctex"]
 
 [params]
 
@@ -38,3 +38,6 @@ process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
+svg/scale=1.0
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

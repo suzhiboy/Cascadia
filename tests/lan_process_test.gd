@@ -11,7 +11,7 @@ func _ready() -> void:
 	role = OS.get_cmdline_user_args()[-1]
 	call_deferred("run")
 func run() -> void:
-	count = maxi(2,int(OS.get_environment("CASCADIA_TEST_COUNT")))
+	count = maxi(2,int(OS.get_environment("TIDETRACE_TEST_COUNT")))
 	scene = get_parent()
 	session = scene.lan_session
 	session.lobby_changed.connect(lobby)

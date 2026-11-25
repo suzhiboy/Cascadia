@@ -11,13 +11,13 @@ try {
     $stage = Join-Path $gameDir ('.update-' + [guid]::NewGuid())
     [void][IO.Directory]::CreateDirectory($stage)
     try {
-        foreach ($name in 'Cascadia.exe','Cascadia.pck') {
+        foreach ($name in 'TidetraceIsles.exe','TidetraceIsles.pck') {
             $entry = $archive.GetEntry($name)
             if (!$entry -or !$entry.Length) { throw "Missing $name" }
             [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,(Join-Path $stage $name))
         }
     } finally { $archive.Dispose() }
-    foreach ($name in 'Cascadia.exe','Cascadia.pck') {
+    foreach ($name in 'TidetraceIsles.exe','TidetraceIsles.pck') {
         $target = [IO.Path]::ChangeExtension($GameExe,[IO.Path]::GetExtension($name))
         $backup = Join-Path $stage ($name + '.bak')
         [IO.File]::Replace((Join-Path $stage $name),$target,$backup)
@@ -32,10 +32,10 @@ try {
         $finished = $true
     } catch { $reason += " Backup: $stage" }
     Add-Type -AssemblyName System.Windows.Forms
-    [void][Windows.Forms.MessageBox]::Show($reason,'Cascadia update failed')
+    [void][Windows.Forms.MessageBox]::Show($reason,'TidetraceIsles update failed')
 } finally {
     if ($finished -and $stage -and (Test-Path -LiteralPath $stage)) {
-        foreach ($name in 'Cascadia.exe','Cascadia.pck','Cascadia.exe.bak','Cascadia.pck.bak') {
+        foreach ($name in 'TidetraceIsles.exe','TidetraceIsles.pck','TidetraceIsles.exe.bak','TidetraceIsles.pck.bak') {
             [IO.File]::Delete((Join-Path $stage $name))
         }
         [IO.Directory]::Delete($stage)

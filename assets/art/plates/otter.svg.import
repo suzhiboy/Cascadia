@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dkqs5i6dq8w"
-path="res://.godot/imported/elk.svg-1b4dac27c45bf0c60a542eea65241619.ctex"
+uid="uid://btdyuxhw85e1u"
+path="res://.godot/imported/otter.svg-ec161b712a0932dfb05f6f6f8221c138.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/elk.svg"
-dest_files=["res://.godot/imported/elk.svg-1b4dac27c45bf0c60a542eea65241619.ctex"]
+source_file="res://assets/art/plates/otter.svg"
+dest_files=["res://.godot/imported/otter.svg-ec161b712a0932dfb05f6f6f8221c138.ctex"]
 
 [params]
 

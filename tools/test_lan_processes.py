@@ -4,7 +4,7 @@ from pathlib import Path
 exe = sys.argv[1]
 cmd = [exe, "--headless", "--", "--lan-test"]
 count = int(sys.argv[2]) if len(sys.argv)>2 else 2
-env = dict(os.environ, CASCADIA_TEST_COUNT=str(count))
+env = dict(os.environ, TIDETRACE_TEST_COUNT=str(count))
 jobs = []
 for role in ["host"] + ["client"+str(i) for i in range(1,count)]:
     f = open("build/lan-" + role + ".log", "w", encoding="utf-8")

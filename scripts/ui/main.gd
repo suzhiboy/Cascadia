@@ -16,8 +16,7 @@ const LanSessionClass = preload("res://scripts/network/lan_session.gd")
 const LanProtocol = preload("res://scripts/network/lan_protocol.gd")
 const LanDiscoveryClass = preload("res://scripts/network/lan_discovery.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
-const BACKGROUND = preload("res://assets/art/wilderness.png")
-const WILDLIFE = preload("res://assets/art/wildlife.png")
+const BACKGROUND = preload("res://assets/art/tidal_islands.svg")
 
 var game
 var board
@@ -225,12 +224,7 @@ func _background(parent: Control, opacity: float = 1.0) -> void:
 
 func _art(animal: String) -> TextureRect:
 	var image = TextureRect.new()
-	var atlas = AtlasTexture.new()
-	atlas.atlas = WILDLIFE
-	var index = T.ANIMALS.find(animal)
-	var width = float(WILDLIFE.get_width())/5.0
-	atlas.region = Rect2(index*width,70,width,WILDLIFE.get_height()-160)
-	image.texture = atlas
+	image.texture = load("res://assets/art/plates/%s.svg" % animal)
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -253,15 +247,15 @@ func show_menu() -> void:
 	panel.add_child(_margin(content,48))
 	var crest = _hbox(14)
 	crest.add_child(Ornament.make("logo",Vector2(46,50)))
-	crest.add_child(_label("太 平 洋 西 北 · 自 然 手 记",18,P.MUTED))
+	crest.add_child(_label("潮 间 带 · 观 测 手 记",18,P.MUTED))
 	content.add_child(crest)
-	var title = _label("CASCADIA",66,P.DARK)
+	var title = _label("TIDETRACE ISLES",49,P.DARK)
 	title.add_theme_font_override("font",P.font(640,5))
 	content.add_child(title)
-	content.add_child(_heading("卡斯卡迪亚之旅",36,P.DARK,600))
+	content.add_child(_heading("潮痕群岛",36,P.DARK,600))
 	var divider = HSeparator.new()
 	content.add_child(divider)
-	content.add_child(_wrap("一片山林，一条河流。\n让每一种生命，找到它的位置。",25))
+	content.add_child(_wrap("退潮后，礁石与泥滩渐渐露出。\n沿着潮线，为五种动物留下栖身之处。",25))
 	_spacer(content)
 	content.add_child(_button("开始新的旅程",show_setup,true))
 	content.add_child(_styled(_button("首回合练习",_start_practice),"ActiveButton"))
@@ -281,7 +275,7 @@ func show_menu() -> void:
 	row.add_child(exit_button)
 	content.add_child(row)
 	content.add_child(_label("1–4 位旅行者   /   20 回合   /   离线游玩",18,P.MUTED))
-	var footer = _label("自然之美，始于彼此相连。",19,P.PAPER)
+	var footer = _label("低潮调查 · 群岛生态记录",19,P.PAPER)
 	footer.add_theme_color_override("font_shadow_color",Color(.05,.12,.08,.75))
 	footer.add_theme_constant_override("shadow_offset_y",2)
 	footer.add_theme_constant_override("shadow_outline_size",6)
@@ -382,7 +376,7 @@ func show_setup() -> void:
 		for choice in choices.values(): choice.select(4)),"QuietButton"))
 	body.add_child(presets)
 	_spacer(body)
-	body.add_child(_button("进入山林",func():
+	body.add_child(_button("登岛调查",func():
 		var config = {"count":count.selected+1,"names":[],"cards":{}}
 		for input in names: config.names.append(input.text)
 		for animal in T.ANIMALS: config.cards[animal] = ["A","B","C","D","random"][choices[animal].selected]
@@ -598,9 +592,9 @@ func _practice_results() -> void:
 	var score = S.game_scores(game)[0]
 	var body = _open_modal("首回合练习完成",800,520)
 	body.add_child(_heading("这个回合为版图增加了 %d 分" % (score.total-_practice_start_score.total),27,P.GOLD_DEEP))
-	body.add_child(_wrap("湿地  ·  最大相连区域从 %d 格变为 %d 格，每格 1 分。" % [
-		_practice_start_score.habitats.wetland.points,score.habitats.wetland.points],22))
-	body.add_child(_wrap("鲑鱼 A  ·  一只独立的鲑鱼算一段洄游路线，得 %d 分。" % score.wildlife.salmon.points,22))
+	body.add_child(_wrap("泥滩  ·  最大相连区域从 %d 格变为 %d 格，每格 1 分。" % [
+		_practice_start_score.habitats.mudflat.points,score.habitats.mudflat.points],22))
+	body.add_child(_wrap("弹涂鱼 A  ·  在这片泥滩记录到一只弹涂鱼，得 %d 分。" % score.wildlife.goby.points,22))
 	body.add_child(_wrap("练习到此结束，不写入正式存档。正式对局有 20 回合，你可以自由选择组件和落点。",19,P.MUTED))
 	_spacer(body)
 	body.add_child(_button("返回主菜单",show_menu,true))
@@ -622,7 +616,7 @@ func start_game(config: Dictionary, seed_value: int = -1) -> void:
 func _continue_game() -> void:
 	var resumed = G.new()
 	if not resumed.load_game():
-		var body = _open_modal("无法读取存档",650,310)
+		var body = _open_modal(resumed.last_notice if resumed.last_notice != "" else "无法读取存档",650,310)
 		body.add_child(_wrap("存档无法读取。可以关闭此窗口并开始新的旅程。"))
 		return
 	game = resumed
@@ -691,10 +685,10 @@ func _render_game() -> void:
 	brand.custom_minimum_size.x = 300
 	brand.add_child(Ornament.make("logo",Vector2(44,48)))
 	var wordmark = _vbox(0)
-	var name_label = _label("CASCADIA",24,P.CREAM)
+	var name_label = _label("TIDETRACE ISLES",24,P.CREAM)
 	name_label.add_theme_font_override("font",P.font(640,4))
 	wordmark.add_child(name_label)
-	wordmark.add_child(_label("卡斯卡迪亚之旅",15,P.GOLD_LIGHT))
+	wordmark.add_child(_label("潮痕群岛",15,P.GOLD_LIGHT))
 	brand.add_child(wordmark)
 	header.add_child(brand)
 	for i in range(game.players.size()):
@@ -731,7 +725,7 @@ func _render_game() -> void:
 	caption.add_child(Ornament.make("hex",Vector2(20,22),P.PLAYERS[view_player%P.PLAYERS.size()]))
 	caption.add_child(_heading(viewed.name+" 的生态版图",25,P.CREAM,640))
 	_spacer(caption)
-	caption.add_child(Ornament.make("leaf",Vector2(24,26),P.CREAM,P.MOSS))
+	caption.add_child(Ornament.make("shell",Vector2(24,26),P.CREAM,P.MOSS))
 	caption.add_child(_label("自然标记 %d" % int(viewed.nature),19,P.CREAM))
 	var divider = VSeparator.new()
 	divider.add_theme_stylebox_override("separator",_rule(Color(P.CREAM.r,P.CREAM.g,P.CREAM.b,.25)))
@@ -838,7 +832,7 @@ func _build_market(parent: Control) -> void:
 	parent.add_child(panel)
 	var content = _vbox(10)
 	panel.add_child(_margin(content,8))
-	content.add_child(_heading("山林市集",27,P.DARK))
+	content.add_child(_heading("海岸市集",27,P.DARK))
 	content.add_child(_label("选一块栖息地 · 邀一位新邻居",16,P.MUTED))
 	if independent or refreshing:
 		var notice = _wrap("自由搭配：分别点选地块与动物" if independent else "更换动物：点选要换掉的动物",16,P.RUST)
@@ -1085,7 +1079,7 @@ func _board_click(cell: Vector2i) -> void:
 	if _practicing:
 		var practice_step = _practice_step()
 		if practice_step == Practice.Step.ROTATE:
-			_message("先转到湿地对齐，再点击金色空位。")
+			_message("先转到泥滩对齐，再点击金色空位。")
 			return
 		if practice_step not in [Practice.Step.TILE,Practice.Step.ANIMAL]: return
 		if cell != Practice.TARGET:
@@ -1100,13 +1094,13 @@ func _board_click(cell: Vector2i) -> void:
 		if error.is_empty():
 			mode = "animal"
 			status = "点击带白圈的栖息地安置动物，也可选择放归。"
-			if _practicing: status = "湿地接上了！把鲑鱼放到新地块上。"
+			if _practicing: status = "泥滩接上了！把弹涂鱼放到新地块上。"
 	else:
 		error = _request_action("place_animal",{"q":cell.x,"r":cell.y})
 		if error.is_empty():
 			mode = "tile" if game.pending.tile_pos == null else "animal"
 			status = "地块与动物均可继续调整。满意后点击「完成回合」。" if game.ready_to_commit() else "动物已选择栖息地，接着摆放地块。"
-			if _practicing: status = "鲑鱼已安置。可以确认这一回合，也可以撤回重试。"
+			if _practicing: status = "弹涂鱼已安置。可以确认这一回合，也可以撤回重试。"
 	_action(error)
 
 func _rotate(amount: int) -> void:
@@ -1168,7 +1162,7 @@ func _commit() -> void:
 func show_nature() -> void:
 	var body = _open_modal("自然标记",770,480)
 	var intro = _hbox(14)
-	intro.add_child(Ornament.make("leaf",Vector2(40,44),P.MOSS,P.CREAM))
+	intro.add_child(Ornament.make("shell",Vector2(40,44),P.MOSS,P.CREAM))
 	intro.add_child(_wrap("每枚自然标记可帮助你选择更合适的伙伴。未使用的标记在终局各值 1 分。",23))
 	body.add_child(intro)
 	body.add_child(_button("自由搭配 · 任选一块地与一枚动物",func():
@@ -1296,7 +1290,7 @@ func _compact_score_button(button: Button) -> void:
 	button.theme_type_variation = "ScoreButton"
 
 func show_help() -> void:
-	var body = _open_modal("山林旅行指南",1000,900)
+	var body = _open_modal("潮间带调查手册",1000,900)
 	var scroll = ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(scroll)
@@ -1309,17 +1303,17 @@ func show_help() -> void:
 		var selected_card = str(game.config.cards[animal]) if game != null else "A"
 		links.add_child(_button(T.ANIMAL_NAMES[animal]+" "+selected_card,func():show_card(animal,selected_card)))
 	content.add_child(links)
-	var bear_diagram = load("res://scripts/ui/rule_diagram.gd").new()
-	content.add_child(_chip(bear_diagram,"CardPanel"))
-	content.add_child(_wrap("棕熊 A：两只相依，得 4 分；第三只加入后，整个三只熊群不计分。点击上方动物，查看对应计分图例。",20))
+	var field_diagram = load("res://scripts/ui/rule_diagram.gd").new()
+	content.add_child(_chip(field_diagram,"CardPanel"))
+	content.add_child(_wrap("试着在图例中移走一枚动物，再放回原处。上方按钮可翻阅本局采用的五张观察卡。",20))
 	var sections = [
-		["01  选一组，放两次","从四组市集中选取一个地块和一枚动物。地块须与已有地块共边，地形无需匹配。动物须放在有对应图标、且未入住的地块；可以是新地块，也可以是旧地块。地块与动物可按任意顺序摆放。"],
-		["02  为动物找到家","每个地块最多一枚动物。如果没有合适的栖息地，或你不想放置，可以选择「放归动物」，它会回到袋中。单一动物图标、带叶形标记的关键地块入住后，获得一枚自然标记。"],
-		["03  自然标记与动物过剩","花一枚自然标记可跨组自由搭配，或更换市集任意数量动物。同回合可多次使用。四枚同种动物会自动更换；三枚同种可每回合免费更换一次。"],
-		["04  让山林彼此相连","地块可旋转六个方向。相邻且地形接边一致，才形成连续生境。每种生境的最大相连区域，每格 1 分；动物另按本局五张计分卡计算。点击右侧卡片可看规则。"],
-		["05  独行与同行","单人回合结束：从剩余地块、动物两列各移除最下方一个，其余下移，上方补新组件。多人只补空位，轮流行动。每位旅行者恰好进行 20 回合。"],
-		["06  终局计分","加总五种动物、五种最大生境、奖励与剩余自然标记。单人每种生境达到 7 格奖励 2 分。两人最大生境得 2 分，平手各 1 分。三四人第一得 3 分，第二得 1 分；两人并列第一各 2 分，三人以上并列各 1 分，第二名并列不得分。总分平手比较剩余自然标记，仍相同则共享胜利。"],
-		["操作与存档","点击落子；Q / E 每次旋转 60°；滚轮缩放；中键拖动；「居中版图」找回全景。落子预览可撤回，随机刷新不可撤回。每次确认的操作都会自动保存，主菜单可继续。"]
+		["01  选一组，放两次","挑一列，把岛块和动物一起取走。沿任意一条外缘扩建海岸。动物可以先安置，也可等新岛块落定后再安排。"],
+		["02  为动物找到家","寻找印有该物种图案的空地块。每格只容纳一只动物。选择放归会将动物送回袋中。在只有一种图案的地块安置动物，可领取一枚自然标记。"],
+		["03  自然标记与动物过剩","选取前可以花一枚自然标记，把不同列的两件组件配成一组，或重抽指定的动物。仍有标记就能再次使用。市集中若出现三只同种动物，这回合可免费换掉这三只一次。四只同种会自动重抽。"],
+		["04  连接岛岸","转动岛块，让同色生境沿边相接。每种颜色只测量最大的一片，面积每格记一分。动物的得分条件请翻阅右侧观察卡。"],
+		["05  独行与同行","独自调查时，每次交接后两列剩余组件的末项各随潮水离开，新组件由上方补入。多人同行时只填空缺。每位调查员各记录二十回合。"],
+		["06  终局计分","将观察卡分数、生境面积、面积奖励及手中的自然标记相加。独自调查的七格生境奖两分。两人比较同色面积，领先者奖两分，持平各一分。三至四人按名次奖三分、一分；两人同居首位各两分，更多人同居首位各一分，并列第二没有奖励。总分持平先比标记数，再持平便共享胜利。"],
+		["操作与存档","点击地图试摆，Q 和 E 可逐边转向。滚轮调节视野，按住中键平移。确认回合前可撤回摆放。重抽后结果立即生效。下次启动时可从主菜单接续本地调查。"]
 	]
 	for i in range(sections.size()):
 		var section = sections[i]

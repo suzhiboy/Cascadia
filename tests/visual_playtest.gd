@@ -50,7 +50,7 @@ func click_practice_hex() -> void:
 	var event = InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_LEFT
 	event.pressed = true
-	event.position = scene.board.screen_position(Vector2i(1,0))
+	event.position = scene.board.screen_position(scene.Practice.TARGET)
 	scene.board._gui_input(event)
 	await settle()
 
@@ -105,7 +105,7 @@ func run() -> void:
 	await practice()
 	await press("开始新的旅程")
 	await capture("setup")
-	await press("进入山林")
+	await press("登岛调查")
 	layout()
 	await capture("solo-start")
 	await press("规则")
@@ -125,7 +125,7 @@ func run() -> void:
 		if i == 9: await capture("solo-midgame")
 	verify(scene.game.finished and scene.game.players[0].turns == 20,"Solo reaches scoring")
 	await capture("solo-results")
-	scene._highlight_score(0,"forest",false)
+	scene._highlight_score(0,"marsh",false)
 	await settle()
 	verify(not scene.highlight.is_empty(),"Habitat score highlights cells")
 	await capture("solo-highlight")
@@ -138,7 +138,7 @@ func run() -> void:
 	for i in range(23):
 		verify(Rect2(Vector2.ZERO,scene.board.size).has_point(scene.board.screen_position(Vector2i(i,0))),"Long board remains reachable")
 	await capture("long-board")
-	scene.start_game({"count":4,"names":["第一位名字很长的旅行者甲","第二位名字很长的旅行者乙","第三位名字很长的旅行者丙","第四位名字很长的旅行者丁"],"cards":{"elk":"D","bear":"C","hawk":"D","fox":"D","salmon":"B"}})
+	scene.start_game({"count":4,"names":["第一位名字很长的旅行者甲","第二位名字很长的旅行者乙","第三位名字很长的旅行者丙","第四位名字很长的旅行者丁"],"cards":{"limpet":"D","crab":"C","tern":"D","otter":"D","goby":"B"}})
 	await settle()
 	layout()
 	await capture("four-start")

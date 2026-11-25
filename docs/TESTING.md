@@ -1,37 +1,5 @@
-# 验收记录
+# 验收入口
 
-日期：2026-11-11。Godot 4.7.2 stable，Windows x64，Compatibility / OpenGL 3.3。实测 GPU 为 NVIDIA GeForce RTX 5070 Laptop GPU。
+使用与项目匹配的 Godot 4.7.2，先执行 headless editor import。规则、计分卡、存档和完整回合通过 `tests/run_tests.gd` 验证。界面通过 `tests/ui_smoke.gd` 和各 `*_test.gd` 验证。使用临时用户数据目录可以隔离测试设置与正式存档。
 
-| 验证 | 结果 | 记录 |
-| --- | --- | --- |
-| 无界面规则测试 | 734 项检查，0 失败，退出码 0 | `build/rules.log` |
-| UI 布局及交互回归 | 0 失败，退出码 0 | `build/ui-smoke.log` |
-| 1280×720 带渲染完整对局 | 单人 20 回合 + 四人 80 回合，0 失败 | `build/visual-720.log` |
-| Windows release 实际运行，1920×1080 | 单人 20 回合 + 四人 80 回合，0 失败，退出码 0 | `build/visual-release-1080.log` |
-| Windows release 原生窗口鼠标检查 | 主菜单 → 新旅程设置 → 开局，点击与画面正常 | 本次桌面验收 |
-| Windows x64 导出 | 成功；EXE 与 PCK 分离 | `build/export.log` |
-
-规则检查覆盖固定组件、六方向邻接与旋转、旋转地形连接、合法/非法落子、先放动物、弃置归袋、多次自然标记、连续强制刷新、免费三枚刷新次数、单人跨列淘汰、最后回合、动物数量守恒。1、2、3、4 人完整对局均检查每人 20 回合、最终 23 个棋格和每位玩家的结算。
-
-20 张计分卡均有手算样例和空棋盘案例，并覆盖熊群大小、鲑鱼分叉、鹰视线阻挡和最小间距、狐狸共享邻居、平局奖励。麋鹿反贪心案例验证最长优先的 17 分会被两条三只鹿群的 18 分替代。
-
-存档检查包括待放组件、JSON 数值类型、随机状态与后续抽取一致、连续覆盖保存，以及写入受阻时保留上一份存档。UI 测试会恢复测试前的自动存档。
-
-可视验收通过实际 UI 按钮信号和棋盘点击信号驱动，未使用 AI 玩家。截图检查涵盖菜单、开局设置、规则、音量/全屏设置入口、待放组件、单人中局与结算、计分高亮、23 格长条棋盘、四人长名字、查看他人棋盘与最终结算。
-
-截图：工程运行在 `build/screenshots/`；release 运行在 `build/windows/screenshots/`。便携 ZIP 不包含测试截图或日志。
-
-字体、插画和声音全部来自包内或运行时合成；游戏代码不调用网络 API。实际 release 启动不依赖编辑器或任何资源下载。未改动本机网络设置。
-
-复核由独立上下文代码审查完成。发现的菜单 Q/E 误触、继续对局残留高亮、跨玩家镜头、连续刷新袋子耗尽、存档替换问题均已复现并通过回归。规则书与后续作者说明的差异见 `RULE_INTERPRETATIONS.md`。
-
-
-2026-11-17 便利功能验证：
-- rules: 734 checks, 0 failures；UI smoke: 0 failures；protocol: 0 failures。
-- improvements_test：试摆状态/RNG不变、图例交互、网络视角/弹窗保留、大字布局；0 failures，渲染截图在 build/improvements-*.png。
-- Windows release 四进程：321 次状态更新，每人 20 回合；四端最终 SHA256 相同。日志 build/lan-host.log、build/lan-client1.log 至 client3.log。
-- UI smoke 退出时报告 2 个 ObjectDB 实例未释放警告；无脚本错误，未把该警告计为通过或隐藏。
-
-2026-11-18 首回合练习验证：
-- `tests/tutorial_test.gd`：覆盖错误落点、旋转、撤回、确认、计分、关闭动画与大字布局，以及完成或中途退出后正式存档保持不变。0 失败。
-- 实际 Windows release（1280×720）：首回合练习、单人 20 回合、四人同机 80 回合，0 失败。引导截图见 `build/tutorial-final/screenshots/practice-*.png`。
+`tests/lan_process_test.gd` 是节点脚本，由 `python tools/test_lan_processes.py <Godot路径> 4` 启动四个进程并比较终局散列。`-- --playtest` 从主场景驱动窗口、练习、单人和四人整局，截图仅留在本地 build 目录。各阶段实测结果见 [开发记录](progress.md)。

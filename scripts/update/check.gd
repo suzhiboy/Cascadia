@@ -1,14 +1,16 @@
 extends Node
 
-const REPO = "suzhiboy/Cascadia"
-const PACKAGE = "Cascadia-Windows-x64.zip"
+var repository := str(ProjectSettings.get_setting("updates/github_repository", "")).strip_edges()
+const PACKAGE = "TidetraceIsles-Windows-x64.zip"
 
 func _ready() -> void:
+	if repository.is_empty():
+		return
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.timeout = 8
 	http.body_size_limit = 1048576
-	if http.request("https://api.github.com/repos/%s/releases/latest" % REPO, ["User-Agent: Cascadia-Updater"]) != OK:
+	if http.request("https://api.github.com/repos/%s/releases/latest" % repository, ["User-Agent: TidetraceIsles-Updater"]) != OK:
 		return
 	var reply: Array = await http.request_completed
 	if reply[0] != HTTPRequest.RESULT_SUCCESS or reply[1] != 200:
@@ -20,7 +22,7 @@ func _ready() -> void:
 	var local := str(ProjectSettings.get_setting("application/config/version"))
 	if not newer(tag.trim_prefix("v"), local):
 		return
-	var url := "https://github.com/%s/releases/download/%s/%s" % [REPO, tag, PACKAGE]
+	var url := "https://github.com/%s/releases/download/%s/%s" % [repository, tag, PACKAGE]
 	for asset in release.get("assets", []):
 		if asset.get("browser_download_url") == url:
 			var digest := str(asset.get("digest", "")).trim_prefix("sha256:")
@@ -60,7 +62,7 @@ func _download(url: String, digest: String) -> void:
 	info.get_ok_button().hide()
 	info.unresizable = true
 	info.popup_centered(Vector2i(420, 150))
-	var dir := ProjectSettings.globalize_path("user://").path_join("Cascadia-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec()))
+	var dir := ProjectSettings.globalize_path("user://").path_join("TidetraceIsles-" + str(OS.get_process_id()) + "-" + str(Time.get_ticks_usec()))
 	var success := DirAccess.make_dir_absolute(dir) == OK
 	var zip := dir.path_join("update.zip")
 	var script := dir.path_join("install.ps1")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://q16tqluaey7w"
-path="res://.godot/imported/bear.svg-55064cc18649fa48cabd2cec788dd672.ctex"
+uid="uid://ddmg7ih5iweyi"
+path="res://.godot/imported/goby.svg-a656a70b1c428836d09a7ff63ee4471b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/art/bear.svg"
-dest_files=["res://.godot/imported/bear.svg-55064cc18649fa48cabd2cec788dd672.ctex"]
+source_file="res://assets/art/plates/goby.svg"
+dest_files=["res://.godot/imported/goby.svg-a656a70b1c428836d09a7ff63ee4471b.ctex"]
 
 [params]
 
