@@ -19,8 +19,9 @@ const SAGE = Color("a9c3ad")
 const RUST = Color("a04b39")
 const SHADOW = Color(0.03,0.09,0.06,0.28)
 const PLAYERS = [Color("80b7a7"),Color("e0aa4f"),Color("74a5cf"),Color("d98269")]
-const TERRAIN = {"reef":Color("87939d"),"marsh":Color("83a778"),"shingle":Color("bdb1c0"),"mudflat":Color("c79e74"),"pool":Color("63aeb2")}
-const ANIMALS = {"crab":Color("b76045"),"limpet":Color("8d7792"),"goby":Color("66885e"),"tern":Color("5d82a0"),"otter":Color("926341")}
+# Reef is dark slate and shingle pale stone so the two never read alike; mudflat stays the only warm brown.
+const TERRAIN = {"reef":Color("6d8494"),"marsh":Color("83a778"),"shingle":Color("d8ccb6"),"mudflat":Color("c79e74"),"pool":Color("63aeb2")}
+const ANIMALS = {"crab":Color("b76045"),"limpet":Color("8d7792"),"goby":Color("66885e"),"tern":Color("5d82a0"),"otter":Color("5b4138")}  # dark otter fur stands off the mudflat brown
 static var fonts: Dictionary = {}
 
 static func font(weight: int = 480, spacing: int = 0) -> FontVariation:

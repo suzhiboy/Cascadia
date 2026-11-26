@@ -62,17 +62,29 @@ static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, ro
 	if habitat_labels and radius >= 40:
 		for i in range(definition.habitats.size()):
 			var habitat = definition.habitats[i]
-			var label_pos = center+Vector2((-0.62 if i == 0 else 0.62)*radius,0).rotated(rotation*PI/3.0)+Vector2(-radius*.09,radius*.08)
-			canvas.draw_string(P.font(600),label_pos,GameLocale.text(T.HABITAT_NAMES[habitat]).left(1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(radius*.20),Color("fff9e8"))
+			var label_pos = center+Vector2((-0.66 if i == 0 else 0.66)*radius,0).rotated(rotation*PI/3.0)+Vector2(-radius*.09,radius*.08)
+			# Pale habitats (shingle) take dark ink; the rest keep cream lettering.
+			var ink = Color(.24,.21,.15,.78) if P.TERRAIN[habitat].get_luminance() > .62 else Color("fff9e8")
+			canvas.draw_string(P.font(600),label_pos,GameLocale.text(T.HABITAT_NAMES[habitat]).left(1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(radius*.20),ink)
 	if definition.wildlife.size() == 1:
 		_keystone(canvas,center+Vector2(0,-radius*.66),radius*.13)
 	if animal != "":
 		token(canvas,center,radius*.39,animal)
 	else:
 		var animals = definition.wildlife
-		var spacing = radius*(.52 if market_display else .45)
+		var scale = 1.12 if market_display else 1.0
 		for i in range(animals.size()):
-			token(canvas,center+Vector2((i-(animals.size()-1)*.5)*spacing,0),radius*(.26 if market_display else .205),animals[i],true)
+			token(canvas,center+_slot(animals.size(),i)*radius*scale,radius*scale*_slot_size(animals.size()),animals[i],true)
+
+# Hostable wildlife sit in a row of one or two, or a triangle of three, so the icons can stay large.
+static func _slot(count: int, index: int) -> Vector2:
+	match count:
+		1: return Vector2.ZERO
+		2: return Vector2(-.27 if index == 0 else .27,0)
+		_: return [Vector2(-.26,-.14),Vector2(.26,-.14),Vector2(0,.31)][index]
+
+static func _slot_size(count: int) -> float:
+	return [.29,.29,.25,.225][mini(count,3)]
 
 # A shell fan identifies the bonus printed on a single-species shore.
 static func _keystone(canvas: CanvasItem, center: Vector2, size: float) -> void:
@@ -142,8 +154,8 @@ static func token(canvas: CanvasItem, center: Vector2, radius: float, animal: St
 		# Wildlife a tile can host: cream disc, ring in the animal's colour.
 		canvas.draw_circle(center+Vector2(0,1.4),radius+.6,Color(0.1,0.12,0.08,.28))
 		canvas.draw_circle(center,radius,Color("fbf4df"))
-		canvas.draw_arc(center,radius-maxf(1.0,radius*.09),0,TAU,28,hue.darkened(.05),maxf(1.4,radius*.17),true)
-		canvas.draw_texture_rect(icons[animal],Rect2(center-Vector2.ONE*radius*.66,Vector2.ONE*radius*1.32),false,hue.darkened(.48))
+		canvas.draw_arc(center,radius-maxf(1.0,radius*.08),0,TAU,32,hue.darkened(.05),maxf(1.4,radius*.14),true)
+		canvas.draw_texture_rect(icons[animal],Rect2(center-Vector2.ONE*radius*.76,Vector2.ONE*radius*1.52),false,hue.darkened(.4))
 		return
 	# A placed wildlife token: brass rim, coloured face, cream silhouette.
 	canvas.draw_circle(center+Vector2(radius*.04,radius*.12),radius*1.04,Color(0.08,0.1,0.06,.32))

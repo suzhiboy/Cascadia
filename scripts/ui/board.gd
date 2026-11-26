@@ -4,6 +4,11 @@ signal cell_clicked(cell: Vector2i)
 const H = preload("res://scripts/core/hex.gd")
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
+const CHART_SEA = Color("cfe1d9")
+const SHORE_FOAM = Color("e6f1ea")
+const SHORE_SHALLOW = Color("b9d6cc")
+const SHORE_WET = Color("d3caa4")
+const SHORE_DRY = Color("e7dab4")
 var animations = true
 var show_names = true
 var cells: Dictionary = {}
@@ -188,6 +193,7 @@ func _draw() -> void:
 	_draw_backdrop()
 	var breathe = .5+.5*sin(clock*3.2)
 	draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
+	_draw_shore()
 	_draw_grid()
 	for p in frontier:
 		var c = H.to_pixel(p,radius)
@@ -294,14 +300,23 @@ func _draw_grid() -> void:
 			var b = points[(i+1)%6]
 			draw_line(a.lerp(b,.12),a.lerp(b,.88),ink,1.2,true)
 
-# Parchment field-map backdrop: warm vignette, contour lines, and a small compass rose.
+# The island rises out of shallow water: foam, wet sand and dry sand ring every placed tile.
+# Same-colour opaque discs merge, so neighbouring tiles share one continuous beach.
+func _draw_shore() -> void:
+	if cells.is_empty():
+		return
+	for layer in [[1.62,SHORE_FOAM],[1.45,SHORE_SHALLOW],[1.33,SHORE_WET],[1.22,SHORE_DRY]]:
+		for k in cells:
+			draw_circle(H.to_pixel(H.coord(k),radius),radius*float(layer[0]),layer[1],true,-1,true)
+
+# Survey chart of the shallows: pale sea, depth contours, soundings and a compass rose.
 func _draw_backdrop() -> void:
 	var rect = Rect2(Vector2.ZERO,size)
-	draw_style_box(P.box(Color("e9e2c8"),20,Color("c9bd98")),rect)
+	draw_style_box(P.box(CHART_SEA,20,Color("9fb9b1")),rect)
 	for i in range(10):
 		var t = float(i+1)/10.0
 		var grow = Vector2(size.x*.36*t,size.y*.34*t)
-		var inner = P.box(Color(1,.99,.94,.05),int(lerpf(40,minf(size.x,size.y)*.32,t)))
+		var inner = P.box(Color(.94,.98,.94,.045),int(lerpf(40,minf(size.x,size.y)*.32,t)))
 		inner.set_border_width_all(0)
 		draw_style_box(inner,Rect2(grow,size-grow*2))
 	for i in range(11):
@@ -309,10 +324,14 @@ func _draw_backdrop() -> void:
 		for step in range(72):
 			var x = float(step)*size.x/71.0
 			points.append(Vector2(x,30+i*96+sin(x*.0055+i*.9)*24+sin(x*.013+i*2.1)*7))
-		draw_polyline(points,Color(.42,.38,.24,.07 if i%3 else .11),1.2 if i%3 else 1.6,true)
+		draw_polyline(points,Color(.16,.36,.38,.09 if i%3 else .15),1.2 if i%3 else 1.6,true)
+	# Depth soundings, printed in the chart's small italic-free numerals.
+	for i in range(26):
+		var at = Vector2(Painter._rand(7,i,1)*size.x,Painter._rand(7,i,2)*size.y)
+		draw_string(P.font(500),at,str(2+int(Painter._rand(7,i,3)*17)),HORIZONTAL_ALIGNMENT_LEFT,-1,12,Color(.16,.34,.36,.26))
 	if size.x > 400 and size.y > 300:
 		var rose = Vector2(size.x-74,size.y-74)
-		var ink = Color(.42,.36,.22,.34)
+		var ink = Color(.17,.33,.35,.38)
 		draw_arc(rose,34,0,TAU,48,ink,1.2,true)
 		draw_arc(rose,27,0,TAU,48,Color(ink.r,ink.g,ink.b,.18),1.0,true)
 		for a in range(8):
@@ -322,9 +341,9 @@ func _draw_backdrop() -> void:
 			draw_colored_polygon(PackedVector2Array([rose+dir*reach,rose+side,rose-side]),Color(ink.r,ink.g,ink.b,.55 if a == 0 else .26))
 		draw_string(P.font(700),rose+Vector2(-6,-50),"N",HORIZONTAL_ALIGNMENT_LEFT,-1,15,ink)
 	# Double inner frame, like a printed survey sheet.
-	var frame = P.box(Color(0,0,0,0),14,Color(.55,.47,.28,.3))
+	var frame = P.box(Color(0,0,0,0),14,Color(.2,.38,.38,.32))
 	draw_style_box(frame,rect.grow(-9))
-	var hairline = P.box(Color(0,0,0,0),11,Color(.55,.47,.28,.16))
+	var hairline = P.box(Color(0,0,0,0),11,Color(.2,.38,.38,.18))
 	draw_style_box(hairline,rect.grow(-14))
 
 func _dashed_hex(center: Vector2, hex_radius: float, color: Color, width: float) -> void:

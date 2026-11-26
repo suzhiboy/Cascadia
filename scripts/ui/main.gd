@@ -555,7 +555,7 @@ func _build_game_screen() -> void:
 	# Decoration lives inside the background node so the child order of screen is unchanged.
 	_background(background,.55)
 	var tint = ColorRect.new()
-	tint.color = Color(P.DARK.r,P.DARK.g,P.DARK.b,.86)
+	tint.color = Color(P.DARK.r,P.DARK.g,P.DARK.b,.78)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	background.add_child(tint)
 	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
