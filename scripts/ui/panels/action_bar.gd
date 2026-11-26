@@ -101,15 +101,17 @@ func update(state: Dictionary) -> void:
 	View.apply(results,&"visible",not in_review and game.finished)
 	View.apply(again,&"visible",results.visible)
 	View.apply(back,&"visible",not in_review and not game.finished and spectating)
-	View.apply(caption,&"visible",review.visible or results.visible or back.visible)
+	View.apply(caption,&"visible",review.visible or results.visible or back.visible or state.ai)
 	View.apply(stepper,&"visible",not caption.visible)
 	View.apply(status,&"text",state.status)
 	if status.get_theme_color("font_color") != P.MUTED:
 		status.add_theme_color_override("font_color",P.MUTED)
-	if caption.visible:
+	if state.ai and not spectating:
+		View.apply(caption,&"text",game.players[game.active].name+" · 电脑回合")
+	elif caption.visible:
 		View.apply(caption,&"text","首回合已确认" if in_review else ("旅程完成  ·  %d 分" % state.reports[state.view].total if game.finished else "正在查看其他旅行者的版图"))
 	var picked = not game.pending.is_empty()
-	View.apply(hand,&"visible",stepper.visible and picked)
+	View.apply(hand,&"visible",stepper.visible and picked and state.can_act)
 	var ready = picked and game.ready_to_commit()
 	if stepper.visible:
 		var done = [picked,picked and game.pending.tile_pos != null,picked and (game.pending.animal_pos != null or game.pending.discarded),false]

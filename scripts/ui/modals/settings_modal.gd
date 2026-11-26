@@ -37,7 +37,7 @@ func open(controller) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if value else DisplayServer.WINDOW_MODE_WINDOWED)
 		ui._save_settings())
 	body.add_child(toggle)
-	for option in [["animations","轻量动画"],["large_text","较大文字"],["animal_names","鼠标悬停显示动物名称"],["habitat_labels","生境文字标识（辅助辨色）"]]:
+	for option in [["fast_ai","快进电脑回合"],["animations","轻量动画"],["large_text","较大文字"],["animal_names","鼠标悬停显示动物名称"],["habitat_labels","生境文字标识（辅助辨色）"]]:
 		var setting_key = str(option[0])
 		var check = CheckButton.new()
 		check.text = option[1]

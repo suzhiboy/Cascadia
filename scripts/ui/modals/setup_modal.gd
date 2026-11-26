@@ -9,23 +9,32 @@ func open(controller) -> void:
 	count.custom_minimum_size.y = 55
 	body.add_child(count)
 	var names = []
+	var seats = []
 	var name_grid = GridContainer.new()
 	name_grid.columns = 2
 	name_grid.add_theme_constant_override("h_separation",16)
 	name_grid.add_theme_constant_override("v_separation",10)
 	body.add_child(name_grid)
 	for i in range(4):
+		var row = ui._hbox(6)
+		row.visible = i == 0
+		name_grid.add_child(row)
+		var seat = OptionButton.new()
+		seat.name = "Seat%d" % (i+1)
+		for title in ["真人","电脑 · 简单","电脑 · 标准"]: seat.add_item(title)
+		seat.custom_minimum_size.x = 149
+		seats.append(seat)
 		var input = LineEdit.new()
 		input.placeholder_text = "旅行者 %d" % (i+1)
 		input.max_length = 12
-		input.custom_minimum_size = Vector2(390,50)
-		input.visible = i == 0
+		input.custom_minimum_size = Vector2(190,50)
 		input.add_theme_stylebox_override("normal",ui._player_field(P.PLAYERS[i]))
-		name_grid.add_child(input)
+		row.add_child(input)
+		row.add_child(seat)
 		names.append(input)
 	count.item_selected.connect(func(index):
 		for i in range(4):
-			names[i].visible = i <= index)
+			names[i].get_parent().visible = i <= index)
 	body.add_child(ui._heading("本局野生动物计分卡",23))
 	var choices = {}
 	var cards_row = ui._hbox(14)
@@ -54,7 +63,11 @@ func open(controller) -> void:
 	body.add_child(presets)
 	ui._spacer(body)
 	body.add_child(ui._button("登岛调查",func():
-		var config = {"count":count.selected+1,"names":[],"cards":{}}
-		for input in names: config.names.append(input.text)
+		var config = {"count":count.selected+1,"names":[],"seats":[],"cards":{}}
+		for i in range(count.selected+1):
+			var kind = ["human","ai_easy","ai_standard"][seats[i].selected]
+			config.seats.append(kind)
+			var display = names[i].text.strip_edges()
+			config.names.append("电脑 %d" % (i+1) if display.is_empty() and kind != "human" else display)
 		for animal in T.ANIMALS: config.cards[animal] = ["A","B","C","D","random"][choices[animal].selected]
 		ui.start_game(config),true))

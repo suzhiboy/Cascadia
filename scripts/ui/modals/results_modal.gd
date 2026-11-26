@@ -86,6 +86,11 @@ func update(state: Dictionary) -> void:
 	View.apply(title_label,&"text","实时得分 · Tab 返回" if live else "旅程的收获")
 	var heading = " · ".join(names)+("  并列获胜" if names.size()>1 else "  获胜")
 	if reports.size() == 1: heading = "你的生态世界 · %d 分" % reports[0].total
+	if not live and not str(game.config.get("daily","")).is_empty():
+		var date = game.config.daily
+		var best = ui.records.read().daily.get(date)
+		heading = "每日挑战 %s · %d 分" % [date,int(reports[0].total)]
+		if best != null: heading += "  /  本日最高 %d 分" % int(best)
 	View.apply(banner,&"text","当前已落定版图 · 分数预估" if live else heading)
 	View.apply(explanation,&"text","不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。" if live else "点击动物或生境得分，查看版图上的计分依据。")
 	View.apply(replay,&"visible",not live)

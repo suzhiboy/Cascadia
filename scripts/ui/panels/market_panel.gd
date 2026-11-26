@@ -172,7 +172,7 @@ func update(state: Dictionary) -> void:
 		for i in range(4):
 			if last_tiles[i] != 0: last_tile = i
 			if last_animals[i] != "": last_token = i
-	var locked = game.finished or not game.pending.is_empty()
+	var locked = not state.can_act or game.finished or not game.pending.is_empty()
 	for i in range(rows.size()):
 		var row = rows[i]
 		var practice_target = state.step == Practice.Step.SELECT and i == Practice.MARKET_GROUP
@@ -209,7 +209,7 @@ func update(state: Dictionary) -> void:
 	View.apply(footer,&"text","教学市集 · 练习不影响正式存档" if state.practice else ("单人：最下方剩余地块与动物将在回合结束时离场。" if game.config.count == 1 else "剩余地块  %d" % game.deck.size()))
 	View.apply(take,&"text","确认更换动物" if state.refreshing else ("自由搭配 · 确认" if state.independent else "确认选取"))
 	View.apply(take,&"disabled",locked or (state.indices.is_empty() if state.refreshing else state.tile < 0 or state.animal < 0))
-	View.apply(free_refresh,&"disabled",state.practice or game.triplicate().is_empty())
+	View.apply(free_refresh,&"disabled",not state.can_act or state.practice or game.triplicate().is_empty())
 	var balance = int(game.players[game.active].nature)
 	View.apply(nature,&"text","使用自然标记  ·  %d" % balance)
 	View.apply(nature,&"disabled",state.practice or locked or balance < 1)

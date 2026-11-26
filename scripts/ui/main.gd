@@ -28,6 +28,15 @@ const LanDiscoveryClass = preload("res://scripts/network/lan_discovery.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
 const BACKGROUND = preload("res://assets/art/tidal_islands.svg")
 
+const RecordsModal = preload("res://scripts/ui/modals/records_modal.gd")
+var records = preload("res://scripts/core/field_records.gd").new()
+
+const AI = preload("res://scripts/ai/greedy_ai.gd")
+
+var ai_timer = Timer.new()
+var ai_steps = []
+var ai_turn = []
+var ai_executing = false
 var game
 var board
 var screen: Control
@@ -45,7 +54,7 @@ var refresh_indices: Array = []
 var highlight: Array = []
 var reports: Array = []
 var status = "选取一组地块与动物，开始构筑你的生态世界。"
-var settings = {"volume":0.6,"music_volume":0.35,"fullscreen":false,"animations":true,"large_text":false,"animal_names":true,"habitat_labels":true}
+var settings = {"volume":0.6,"music_volume":0.35,"fullscreen":false,"animations":true,"large_text":false,"animal_names":true,"habitat_labels":true,"fast_ai":false}
 var header_bar
 var market_panel
 var board_panel
@@ -69,6 +78,9 @@ var lan_discovery
 var lan_room_list: VBoxContainer
 
 func _ready() -> void:
+	ai_timer.one_shot = true
+	ai_timer.timeout.connect(_play_ai_step)
+	add_child(ai_timer)
 	theme = P.theme()
 	DisplayServer.window_set_min_size(Vector2i(1280,720))
 	_load_settings()
@@ -218,6 +230,9 @@ func _spacer(parent: Control) -> void:
 	parent.add_child(control)
 
 func _reset_screen() -> void:
+	ai_timer.stop()
+	ai_steps.clear()
+	ai_turn.clear()
 	_close_modal()
 	_screen_game = null
 	_feedback_toast = null
@@ -275,8 +290,16 @@ func show_menu() -> void:
 	content.add_child(divider)
 	content.add_child(_wrap("退潮后，礁石与泥滩渐渐露出。\n沿着潮线，为五种动物留下栖身之处。",25))
 	_spacer(content)
-	content.add_child(_button("开始新的旅程",show_setup,true))
-	content.add_child(_styled(_button("首回合练习",_start_practice),"ActiveButton"))
+	var journeys = _hbox(12)
+	for button in [_button("开始新的旅程",show_setup,true),_button("每日挑战",_show_daily)]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		journeys.add_child(button)
+	content.add_child(journeys)
+	var notes = _hbox(12)
+	for button in [_styled(_button("首回合练习",_start_practice),"ActiveButton"),_button("调查记录",_show_records)]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		notes.add_child(button)
+	content.add_child(notes)
 	content.add_child(_button("局域网联机",show_lan_lobby))
 	var resume = _button("继续上次旅程",_continue_game)
 	resume.disabled = not FileAccess.file_exists("user://autosave.json")
@@ -317,11 +340,18 @@ func _close_modal() -> void:
 	modal.queue_free()
 	modal = null
 	if apply_size: _refresh_comfort_screen.call_deferred()
+	_schedule_ai()
 
 func _refresh_comfort_screen() -> void:
 	if is_instance_valid(modal): return
 	if is_instance_valid(board): _render_game()
 	else: show_menu()
+
+func _show_daily(date: String = "") -> void:
+	RecordsModal.new().open_daily(self,Time.get_date_string_from_system() if date.is_empty() else date)
+
+func _show_records() -> void:
+	RecordsModal.new().open_stats(self)
 
 func show_setup() -> void:
 	SetupModal.new().open(self)
@@ -408,7 +438,9 @@ func _practice_results() -> void:
 
 func start_game(config: Dictionary, seed_value: int = -1) -> void:
 	game = G.new()
-	game.start(config,seed_value)
+	var options = config.duplicate(true)
+	options.survey_id = Crypto.new().generate_random_bytes(16).hex_encode()
+	game.start(options,seed_value)
 	view_player = 0
 	reports = []
 	highlight.clear()
@@ -430,6 +462,7 @@ func _continue_game() -> void:
 	mode = "animal" if not game.pending.is_empty() and game.pending.tile_pos != null else "tile"
 	status = "旅程已恢复，继续上次的选择。"
 	reports = S.game_scores(game) if game.finished else []
+	if game.finished: _record_result()
 	_render_game()
 
 func _reset_selection() -> void:
@@ -463,6 +496,51 @@ func _render_game() -> void:
 		_build_game_screen()
 	refresh()
 	if not _practicing and not feedback_event.is_empty(): _show_feedback(feedback_event)
+
+	_schedule_ai()
+
+func _ai_level() -> String:
+	if game == null or game.finished or _practicing or (lan_session != null and lan_session.started): return ""
+	var seats = game.config.get("seats",[])
+	if game.active >= seats.size() or seats[game.active] == "human": return ""
+	return str(seats[game.active])
+
+func _schedule_ai() -> void:
+	if not is_instance_valid(board) or is_instance_valid(modal) or _ai_level().is_empty(): return
+	var turn = [game.get_instance_id(),game.active,game.players[game.active].turns]
+	if ai_turn != turn:
+		ai_turn = turn
+		ai_steps.clear()
+	if ai_timer.is_stopped():
+		ai_timer.start(.01 if settings.fast_ai else .48)
+
+func _play_ai_step() -> void:
+	var level = _ai_level()
+	if not is_instance_valid(board) or is_instance_valid(modal) or level.is_empty(): return
+	if ai_steps.is_empty(): ai_steps = AI.actions(game,AI.plan(game,level))
+	if ai_steps.is_empty(): return
+	var entry = ai_steps.pop_front()
+	ai_executing = true
+	if entry.action == "commit_turn":
+		_commit()
+	else:
+		var error = _request_action(entry.action,entry.args)
+		if error.is_empty():
+			var name = str(game.players[game.active].name)
+			match entry.action:
+				"draft":
+					status = name+" 领取了地块与"+T.ANIMAL_NAMES[game.pending.animal]+"。"
+					mode = "tile"
+				"place_tile":
+					status = name+" 拼接了新的海岸地块。"
+					mode = "animal"
+				"place_animal": status = name+" 安置了"+T.ANIMAL_NAMES[game.pending.animal]+"。"
+				"discard_animal": status = name+" 放归了"+T.ANIMAL_NAMES[game.pending.animal]+"。"
+			_action("")
+		else:
+			ai_steps.clear()
+			_message(error)
+	ai_executing = false
 
 func _build_game_screen() -> void:
 	_reset_screen()
@@ -521,7 +599,7 @@ func _view_state() -> Dictionary:
 	return {"game":game,"view":view_player,"mode":mode,"tile":selection_tile,"animal":selection_animal,
 		"independent":independent,"refreshing":refreshing,"indices":refresh_indices,"highlight":highlight,
 		"reports":reports,"status":status,"practice":_practicing,"step":_practice_step() if _practicing else -1,
-		"lan":lan,"can_act":not lan or lan_session.can_control_player(game.active)}
+		"lan":lan,"ai":not _ai_level().is_empty(),"can_act":_ai_level().is_empty() and (not lan or lan_session.can_control_player(game.active))}
 
 func refresh() -> void:
 	var state = _view_state()
@@ -536,6 +614,7 @@ func refresh() -> void:
 				label.add_theme_font_size_override("font_size",label.get_meta("base_font_size")+(2 if _large_text else 0))
 
 func _set_mode(next: String) -> void:
+	if not _ai_level().is_empty(): return
 	mode = next
 	_render_game()
 
@@ -563,6 +642,7 @@ func _view(index: int) -> void:
 	_render_game()
 
 func _market_pick(index: int, is_animal: bool) -> void:
+	if not _ai_level().is_empty(): return
 	if _practicing and (index != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW): return
 	if lan_session != null and lan_session.started and not lan_session.can_control_player(game.active): return
 	if game.finished or not game.pending.is_empty(): return
@@ -590,6 +670,7 @@ func _draft() -> void:
 	_action(error)
 
 func _board_click(cell: Vector2i) -> void:
+	if not _ai_level().is_empty(): return
 	if _practicing:
 		var practice_step = _practice_step()
 		if practice_step == Practice.Step.ROTATE:
@@ -618,6 +699,7 @@ func _board_click(cell: Vector2i) -> void:
 	_action(error)
 
 func _rotate(amount: int) -> void:
+	if not _ai_level().is_empty(): return
 	if game == null or not is_instance_valid(board) or game.finished or game.pending.is_empty() or view_player != game.active:
 		return
 	if _practicing and game.pending.tile_pos != null: return
@@ -633,6 +715,7 @@ func _action(error: String) -> void:
 	_render_game()
 
 func _request_action(action: String, args: Dictionary = {}) -> String:
+	if not ai_executing and not _ai_level().is_empty(): return "电脑正在行动。"
 	if lan_session != null and lan_session.started:
 		if not lan_session.can_control_player(game.active):
 			return "请等待轮到自己且连接恢复后再操作。"
@@ -657,6 +740,7 @@ func _commit() -> void:
 		var error = _request_action("commit_turn")
 		if not error.is_empty(): _message(error)
 		return
+	var was_watching = view_player == game.active
 	var error = _request_action("commit_turn")
 	if not error.is_empty():
 		_message(error)
@@ -664,17 +748,24 @@ func _commit() -> void:
 	_save()
 	_reset_selection()
 	highlight.clear()
-	view_player = game.active
+	if was_watching or _ai_level().is_empty(): view_player = game.active
 	status = game.players[game.active].name+"，轮到你了。选择下一组地块与动物。"
 	if _practicing:
 		status = "这一回合已落定，练习数据不会保存。"
 	if game.finished:
 		reports = S.game_scores(game)
 		status = "点击计分项目，可在版图上查看得分依据。"
+		_record_result()
 	_render_game()
 	if game.finished: show_results()
 
+func _record_result() -> void:
+	if _practicing or (lan_session != null and lan_session.started): return
+	if records.record(game,reports) != OK:
+		status = "调查记录写入失败，重新打开存档后会重试。"
+
 func show_nature() -> void:
+	if not _ai_level().is_empty(): return
 	NatureModal.new().open(self)
 
 func show_card(animal: String, card: String) -> void:

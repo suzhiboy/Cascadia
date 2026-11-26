@@ -12,6 +12,10 @@ Choose a market pair, then place the tile and settle or release its animal in ei
 
 Field observations, connected habitats, area bonuses and unused nature tokens determine the final score. [Deck design](docs/TILES.md), [cards and simulation](docs/BALANCE.md), and [asset credits](docs/SOURCES.md) document the edition.
 
+## Daily surveys and computer seats
+
+Replay a date-seeded solo survey to improve your local best. Starting a daily survey uses the regular offline autosave slot. Field records show completed offline games, best scores by player count, card averages and daily bests. Local seats may be human, easy AI or standard AI. The speed setting shortens the pauses between computer actions.
+
 ## Build and verify
 
 Import with the matching editor and install its export templates. Use the export panel or `godot --headless --export-release "Windows Desktop" build/windows/TidetraceIsles.exe`. The optional project setting `updates/github_repository` accepts the publisher's GitHub owner/repo. An empty value disables update requests.

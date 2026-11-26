@@ -311,18 +311,7 @@ func restore(data: Dictionary) -> void:
 	rng.state = int(data.rng_state)
 
 func save_game(path: String = "user://autosave.json") -> Error:
-	var temporary = path+".tmp"
-	var file = FileAccess.open(temporary,FileAccess.WRITE)
-	if file == null:
-		return FileAccess.get_open_error()
-	var written = file.store_string(JSON.stringify(snapshot()))
-	file.flush()
-	var error = file.get_error()
-	file.close()
-	if not written or error != OK:
-		DirAccess.remove_absolute(temporary)
-		return ERR_FILE_CANT_WRITE
-	return DirAccess.rename_absolute(temporary,path)
+	return preload("res://scripts/core/json_file.gd").write(path, snapshot())
 
 func load_game(path: String = "user://autosave.json") -> bool:
 	if not FileAccess.file_exists(path):
