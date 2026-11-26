@@ -334,7 +334,8 @@ func _background(parent: Control, opacity: float = 1.0) -> void:
 
 func _art(animal: String) -> TextureRect:
 	var image = TextureRect.new()
-	image.texture = load("res://assets/art/plates/%s.svg" % animal)
+	image.texture = load("res://assets/art/plates/%s.png" % animal)
+	image.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
