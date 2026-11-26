@@ -25,17 +25,21 @@ func _initialize() -> void:
 		for count in [1,2,3,4]:
 			var played = GameState.new()
 			played.start({"count":count,"cards":{"otter":"D","crab":"C","goby":"D","tern":"D","limpet":"B"}},76)
+			if count == 2:
+				played.start({"count":count,"cards":{"otter":"A","crab":"C","goby":"C","tern":"C","limpet":"D"}},76)
 			var turns = 0
 			while not played.finished and turns < count*20:
 				if not play(played,"ai_standard" if turns%2 else "ai_easy"): break
 				turns += 1
 			check(played.finished and turns == count*20,"All %d seats can play to completion" % count)
 		print("AI max decision ",slowest_usec/1000.0," ms; cross-pairs ",cross_pairs)
-		check(slowest_usec < 200000,"Each measured full decision completes in under 200 ms")
+		check(slowest_usec < 50000,"Each measured full decision completes in under 50 ms")
 	print("AI: ",failures," failures")
 	quit(1 if failures else 0)
 
 func play(game: GameState, level: String) -> bool:
+	var seat = game.active
+	var marker_count = game.players[seat].nature
 	var t = Time.get_ticks_usec()
 	var plan = scorer.plan(game,level)
 	slowest_usec = maxi(slowest_usec,Time.get_ticks_usec()-t)
@@ -52,4 +56,5 @@ func play(game: GameState, level: String) -> bool:
 			resumed.restore(game.snapshot())
 			var continuation = scorer.actions(resumed,scorer.plan(resumed,level))
 			check(continuation.size() == 2 and continuation.back().action == "commit_turn","Placed tile resumes at animal and commit")
+	check(Scorer.game_scores(game)[seat].total == plan.points+marker_count,"Cached card gains agree with the committed full score")
 	return true

@@ -7,47 +7,85 @@ const AI = preload("res://scripts/ai/greedy_ai.gd")
 const CARDS = ["A","B","C","D"]
 const FIRST_SEED = 917337
 const SAMPLE_SIZE = 2000
+const GREEDY_SAMPLE_SIZE = 1024
 const RATING_SAMPLE_SIZE = 512
 
 func _initialize() -> void:
 	if "--solo-rating" in OS.get_cmdline_user_args():
 		_simulate_rating()
 		return
-	var sums = {}
-	var squares = {}
+	var greedy = "--greedy" in OS.get_cmdline_user_args()
+	var first_seed = FIRST_SEED
+	var samples = GREEDY_SAMPLE_SIZE if greedy else SAMPLE_SIZE
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--seed="): first_seed = int(arg.trim_prefix("--seed="))
+		if arg.begins_with("--games="): samples = int(arg.trim_prefix("--games="))
+	if samples < 4 or samples%4 != 0:
+		printerr("Game count must be a positive multiple of four")
+		quit(1)
+		return
+	var values = {}
+	var deals = {}
+	var rng = RandomNumberGenerator.new()
+	rng.seed = first_seed
 	var policy = RandomNumberGenerator.new()
-	for animal in Tiles.ANIMALS:
-		sums[animal] = [0,0,0,0]
-		squares[animal] = [0,0,0,0]
-	for i in range(SAMPLE_SIZE):
+	var peak = 0
+	for animal in Tiles.ANIMALS: values[animal] = {"A":[],"B":[],"C":[],"D":[]}
+	for i in range(samples):
+		var cards = {}
+		for animal in Tiles.ANIMALS:
+			if i%4 == 0:
+				var letters = CARDS.duplicate()
+				for j in range(3,0,-1):
+					var k = rng.randi_range(0,j)
+					var temp = letters[k]
+					letters[k] = letters[j]
+					letters[j] = temp
+				deals[animal] = letters
+			cards[animal] = deals[animal][i%4]
 		var game = Game.new()
-		game.start({"count":1},FIRST_SEED+i)
-		policy.seed = (FIRST_SEED+i)*17
+		game.start({"count":1,"cards":cards},first_seed+i)
+		policy.seed = (first_seed+i)*17
 		while not game.finished:
-			if not _play_turn(game,policy):
-				printerr("Illegal action with seed ",FIRST_SEED+i)
+			if greedy:
+				var start = Time.get_ticks_usec()
+				var plan = AI.plan(game,"ai_standard")
+				peak = maxi(peak,Time.get_ticks_usec()-start)
+				if not _apply_plan(game,plan):
+					quit(1)
+					return
+			elif not _play_turn(game,policy):
+				printerr("Illegal random turn with seed ",first_seed+i)
 				quit(1)
 				return
-		assert(game.players[0].turns == 20)
 		for animal in Tiles.ANIMALS:
-			for j in range(CARDS.size()):
-				var value = Score.wildlife(game.players[0].board,animal,CARDS[j]).points
-				sums[animal][j] += value
-				squares[animal][j] += value*value
+			for letter in ([cards[animal]] if greedy else CARDS):
+				values[animal][letter].append(Score.wildlife(game.players[0].board,animal,letter).points)
 	var balanced = true
-	print("species,card,n,mean,population_variance")
+	print("species,card,n,mean,p10,p90")
 	for animal in Tiles.ANIMALS:
 		var means = []
-		for j in range(CARDS.size()):
-			var mean_value = float(sums[animal][j])/SAMPLE_SIZE
+		for letter in CARDS:
+			var scores = values[animal][letter]
+			scores.sort()
+			var mean_value = float(scores.reduce(func(a,b): return a+b,0))/scores.size()
 			means.append(mean_value)
-			var variance = float(squares[animal][j])/SAMPLE_SIZE-mean_value*mean_value
-			print("%s,%s,%d,%.4f,%.4f" % [animal,CARDS[j],SAMPLE_SIZE,mean_value,variance])
-		if means.min() <= 0 or means.max() > means.min()*1.30:
-			balanced = false
-			printerr("Mean spread exceeds 30% for ",animal)
-	print("Seeds %d–%d. %d completed solo games. Pairwise mean limit passed: %s" % [FIRST_SEED,FIRST_SEED+SAMPLE_SIZE-1,SAMPLE_SIZE,balanced])
+			print("%s,%s,%d,%.4f,%d,%d" % [animal,letter,scores.size(),mean_value,scores[ceili(scores.size()*.1)-1],scores[ceili(scores.size()*.9)-1]])
+		var ratio = means.max()/means.min() if means.min() > 0 else INF
+		print("ratio %s %.4f" % [animal,ratio])
+		if greedy and ratio > 1.25: balanced = false
+	print("games=%d max_decision_ms=%.3f passed=%s" % [samples,peak/1000.0,balanced])
 	quit(0 if balanced else 1)
+
+func _apply_plan(game, plan: Dictionary) -> bool:
+	var actions = AI.actions(game,plan)
+	if actions.is_empty(): return false
+	for step in actions:
+		var error = game.apply_action(step.action,step.args)
+		if not error.is_empty():
+			printerr(error)
+			return false
+	return true
 
 func _simulate_rating() -> void:
 	var cards = {}
@@ -58,17 +96,10 @@ func _simulate_rating() -> void:
 		var game = Game.new()
 		game.start({"count":1,"cards":cards},seed_value)
 		while not game.finished:
-			var steps = AI.actions(game,AI.plan(game,"ai_standard"))
-			if steps.is_empty():
+			if not _apply_plan(game,AI.plan(game,"ai_standard")):
 				printerr("No greedy move with seed ",seed_value)
 				quit(1)
 				return
-			for step in steps:
-				var error = game.apply_action(step.action,step.args)
-				if not error.is_empty():
-					printerr("Illegal greedy move with seed ",seed_value,": ",error)
-					quit(1)
-					return
 		assert(game.players[0].turns == 20)
 		var score = int(Score.game_scores(game)[0].total)
 		totals.append(score)

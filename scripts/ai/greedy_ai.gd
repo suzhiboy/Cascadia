@@ -28,6 +28,12 @@ static func plan(game: GameState, level: String) -> Dictionary:
 			var key = H.key(pos)
 			board[key] = {"q":pos.x,"r":pos.y,"tile":id,"rotation":spot.rotation,"animal":""}
 			var land_points = _land_points(board,rivals)
+			var base = {}
+			var wildlife = 0
+			for species in Tiles.ANIMALS:
+				base[species] = Score.wildlife(board,species,game.config.cards[species]).points
+				wildlife += base[species]
+			var gains = {}
 			var animal_options = [int(pending.animal_index)] if not pending.is_empty() else range(game.market_animals.size())
 			for a in animal_options:
 				var cost = int(t != a and pending.is_empty())
@@ -41,14 +47,17 @@ static func plan(game: GameState, level: String) -> Dictionary:
 					for k in board:
 						if board[k].animal == "" and species in Tiles.get_tile(board[k].tile).wildlife:
 							targets.append(k)
-					targets.append("") # A legal release can preserve another animal's feeding ground.
+					targets.append("") # Releasing the animal is always a legal option.
 				for target in targets:
-					var bonus = 0
-					if target != "":
+					var placement = [species,target]
+					if target != "" and not gains.has(placement):
 						board[target].animal = species
-						bonus = int(Tiles.keystone(board[target].tile))
-					var points = land_points + bonus - cost + _animal_points(board,game.config.cards)
-					if target != "": board[target].animal = ""
+						var gain = Score.wildlife(board,species,game.config.cards[species]).points-base[species]
+						if game.config.cards.otter == "A" and species in ["goby","limpet","crab"]:
+							gain += Score.wildlife(board,"otter","A").points-base.otter
+						gains[placement] = gain+int(Tiles.keystone(board[target].tile))
+						board[target].animal = ""
+					var points = land_points+wildlife+gains.get(placement,0)-cost
 					ranked.append({"tile_index":t,"animal_index":a,"q":pos.x,"r":pos.y,"rotation":spot.rotation,"animal_key":target,"points":points,"cost":cost,"order":ranked.size()})
 			board.erase(key)
 	ranked.sort_custom(func(a,b):
@@ -114,12 +123,6 @@ static func _land_points(board: Dictionary, rivals: Array) -> int:
 		for rival in rivals: sizes.append(rival[h].points)
 		total += int(land[h].points)+int(Score.majority(sizes)[0])
 	return total
-
-static func _animal_points(board: Dictionary, cards: Dictionary) -> int:
-	var points = 0
-	for species in Tiles.ANIMALS:
-		points += int(Score.wildlife(board,species,cards[species]).points)
-	return points
 
 static func actions(game: GameState, choice: Dictionary) -> Array:
 	if choice.is_empty(): return []

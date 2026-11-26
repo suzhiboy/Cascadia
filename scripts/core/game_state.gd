@@ -1,7 +1,7 @@
 class_name GameState
 extends RefCounted
 
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 const H = preload("res://scripts/core/hex.gd")
 const Tiles = preload("res://scripts/core/tile_definition.gd")
 const Config = preload("res://scripts/core/game_config.gd")

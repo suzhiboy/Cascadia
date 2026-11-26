@@ -552,7 +552,8 @@ func _continue_game() -> void:
 	var resumed = G.new()
 	if not resumed.load_game():
 		var body = _open_modal(GameLocale.text(resumed.last_notice) if resumed.last_notice != "" else GameLocale.text("无法读取存档"),650,310)
-		body.add_child(_wrap(GameLocale.text("存档无法读取。可以关闭此窗口并开始新的旅程。")))
+		var message = "观察卡的计分规则已更新。请开始新的旅程；本次读取保留了原存档。" if resumed.last_notice == "存档不兼容" else "存档无法读取。可以关闭此窗口并开始新的旅程。"
+		body.add_child(_wrap(GameLocale.text(message)))
 		return
 	game = resumed
 	view_player = game.active

@@ -79,14 +79,14 @@ msgstr "Each fiddler crab starts with 1 point. Count the unbuilt spaces next to 
 msgid "留出空位"
 msgstr "Leave open space"
 
-msgid "滩面食盘"
-msgstr "Shared Feeding Grounds"
+msgid "三角蟹阵"
+msgstr "Triangle Burrows"
 
-msgid "每只招潮蟹得 1 分。挨在一起的招潮蟹算一群。紧挨蟹群的空地块每格加 3 分，同一群每格只算一次。一群有几只蟹，最多就数它们两倍的空地块。"
-msgstr "Score 1 point per fiddler crab. Crabs on touching tiles form a group. Add 3 per unoccupied tile touching the group, counting each tile once per group. Count up to two such tiles per crab in the group."
+msgid "共边的招潮蟹算一群。每群只数一个最好的形状：单只、相邻两只、三只彼此相邻的小三角，分别得 {scores} 分。群里其余每只得 {extra} 分。"
+msgstr "Score each connected group of crabs separately. Use its best shape once: a single crab, a touching pair, or three crabs all touching one another score {scores} points respectively. Each remaining crab in that group adds {extra}."
 
-msgid "给蟹群留空地"
-msgstr "Empty tiles by crabs"
+msgid "三只围成小三角"
+msgstr "Form a triangle"
 
 msgid "潮线采样"
 msgstr "Tide-Line Survey"
@@ -109,8 +109,8 @@ msgstr "Look for reef"
 msgid "两岸消浪"
 msgstr "Wave Shelter"
 
-msgid "每只帽贝先得 1 分。看穿过它的三条直线。每条线上，紧挨它、正对的两侧都有地块，就加 1 分。"
-msgstr "Each limpet starts with 1 point. Look along the three straight lines through it. Add 1 for each line with a tile immediately on both sides."
+msgid "每只帽贝先得 2 分。沿穿过它的三条直线看，只要紧挨它、正对的两侧都有地块，就再加 1 分。"
+msgstr "Each limpet scores 2. Add 1 once if there are tiles immediately on both sides of it along any straight line."
 
 msgid "两侧正对都有地"
 msgstr "Tiles on both sides"
@@ -118,47 +118,47 @@ msgstr "Tiles on both sides"
 msgid "归壳潮痕"
 msgstr "Home Scar"
 
-msgid "每只帽贝先得 1 分。看脚下地块和紧邻地块相接的边。只要有一对边的地貌相同，就加 2 分。对上几处都只加一次。"
-msgstr "Each limpet starts with 1 point. Check where its tile touches a neighbor. If both sides of any join have the same terrain, add 2 points once."
+msgid "每只帽贝先得 1 分。数脚下地块和邻地相接的边，只有两边地貌相同才算。对上至少一处加 1 分，对上三处或更多再加 1 分。"
+msgstr "Each limpet scores 1. Count the joins where its tile and the neighboring tile show the same terrain along the touching edges. Add 1 for at least one match, and 1 more for three or more matches."
 
 msgid "相接边地貌相同"
 msgstr "Match touching edges"
 
-msgid "壳层标本"
-msgstr "Shell Collection"
+msgid "岩脊贝列"
+msgstr "Ridge Lines"
 
-msgid "每只帽贝得 1 分。再看所有帽贝脚下的地貌，每种不同的地貌组合加 1 分。比如岩礁和岩礁＋潮池各算一种，同一组合转个方向还是同一种。"
-msgstr "Score 1 point per limpet, plus 1 per different set of terrains under the limpets. Reef and reef plus tide pool are two different sets. Rotating a tile keeps its set the same."
+msgid "共边的帽贝算一群。每群数最长的一条直线，中间不能断。线长 1 至 4 格分别得 {scores} 分，之后每多一格加 {step} 分。线外每只得 {extra} 分，同一群只算一条线。"
+msgstr "In each connected group of limpets, score its longest unbroken straight line once. Lines of 1 to 4 score {scores} points. Each further limpet in the line adds {step}. Each limpet off the line adds {extra}."
 
-msgid "收集不同地貌组合"
-msgstr "Collect terrain mixes"
+msgid "连成直线"
+msgstr "Build a straight line"
 
 msgid "迎风起飞"
 msgstr "Into the Wind"
 
-msgid "每只燕鸥先得 1 分。绕着它看一圈，如果有两个连着的未铺空位，就加 2 分。只加一次。"
-msgstr "Each tern starts with 1 point. Look around it. If two consecutive spaces are unbuilt, add 2 points once."
+msgid "每只燕鸥先得 1 分。绕着它数连续的未铺空位，看最长的一段。连续两个加 1 分，连续三个或更多加 2 分。"
+msgstr "Each tern scores 1. Look for the longest run of unbuilt spaces immediately around it. Add 1 for a run of two or 2 for a run of at least three."
 
 msgid "留两个连着的空位"
 msgstr "Two open spaces in a row"
 
-msgid "掠岸航道"
-msgstr "Coastal Flyway"
+msgid "展翅分岔"
+msgstr "Forked Wings"
 
-msgid "每只燕鸥先得 1 分。沿每个方向直着看两格：第一格有地块，第二格没铺，这个方向就加 1 分，最多加 2 分。"
-msgstr "Each tern starts with 1 point. Look two spaces straight out in each direction. Add 1 if the first has a tile and the second is unbuilt, up to 2 extra points."
+msgid "每只燕鸥先得 1 分。沿着它的六条边看，若两个方向各有相邻地块，而且两方向之间刚好隔一条边，就组成一个叉口。每个叉口加 1 分，最多算两个。"
+msgstr "Each tern starts with 1 point. Two neighboring tiles form a fork if their directions from the tern are 120 degrees apart. Each distinct fork adds 1, up to two forks."
 
-msgid "跨一块地就出海"
-msgstr "Fly one tile out to sea"
+msgid "向两侧展翅"
+msgstr "Make a fork"
 
-msgid "衔鱼归巢"
-msgstr "Fish for the Nest"
+msgid "跳岛鸟群"
+msgstr "Stepping-Stone Flocks"
 
-msgid "每只燕鸥先得 1 分。从它出发，只走已铺地块，每次跨一条边。两步以内碰到弹涂鱼就加 2 分，几只燕鸥可以找同一条鱼。"
-msgstr "Each tern starts with 1 point. Move across placed tiles, one edge at a time. If a mudskipper is at most two steps away, add 2 points once. Several terns can use the same fish."
+msgid "两只燕鸥若在同一直线上，中间恰好隔一块已铺地，就能结伴。沿这些连接找到整群，每只只数一次。每群 1 至 4 只分别得 {scores} 分，之后每多一只加 {step} 分。"
+msgstr "Two terns link if they lie on a straight line with exactly one placed tile between them. Follow these links to find each flock and count each bird once. Flocks of 1 to 4 score {scores} points. Each further bird adds {step}."
 
-msgid "两步内找到鱼"
-msgstr "Fish within two steps"
+msgid "隔一格结伴"
+msgstr "Link across one tile"
 
 msgid "迁徙落脚点"
 msgstr "Migration Stops"
@@ -181,26 +181,26 @@ msgstr "Mudflat or tide pool"
 msgid "跨滩换位"
 msgstr "A Change of Ground"
 
-msgid "每只弹涂鱼先得 1 分。紧挨它的地块如果和脚下完全没有相同的地貌，就加 1 分。每块这样的地各算一次，最多加 2 分。"
-msgstr "Each mudskipper starts with 1 point. Add 1 for each neighboring tile with no terrain in common with its own, up to 2 extra points."
+msgid "每只弹涂鱼先得 2 分。只要旁边有一块地与脚下完全没有相同地貌，就再加 1 分。"
+msgstr "Each mudskipper scores 2. Add 1 once if any neighboring tile shares no terrain with its own tile."
 
 msgid "邻地地貌全不同"
 msgstr "Neighbors with no match"
 
-msgid "干湿轮替"
-msgstr "Wet and Dry"
+msgid "聚潮鱼群"
+msgstr "Schooling Tide"
 
-msgid "每只弹涂鱼先得 1 分。看脚下和紧挨的地块，只要泥滩和潮池两种都找得到，就加 2 分。它们可以在同一块地上。"
-msgstr "Each mudskipper starts with 1 point. If there is both mudflat and tide pool under or next to it, add 2 points once. Both can be on the same tile."
+msgid "共边的弹涂鱼组成一群，可以拐弯或分叉。每群单独数，1 至 4 只分别得 {scores} 分，之后每多一只加 {step} 分。"
+msgstr "Mudskippers on touching tiles form a school that can bend or branch. Score each school separately. Groups of 1 to 4 score {scores} points. Each further fish adds {step}."
 
-msgid "泥滩和潮池都要"
-msgstr "Both mudflat and pool"
+msgid "鱼群连成片"
+msgstr "Connect a school"
 
 msgid "横穿潮沟"
 msgstr "Across the Channel"
 
-msgid "每只弹涂鱼先得 2 分。看穿过它的三条直线。如果紧挨它、正对的两侧，一边有泥滩、另一边有潮池，这条线就加 2 分。每条线只算一次。"
-msgstr "Each mudskipper starts with 2 points. Look along the three straight lines through it. Add 2 for each line with mudflat on one neighboring tile and tide pool on the opposite tile. Count each line once."
+msgid "每只弹涂鱼先得 2 分。看穿过它的三条直线，两头紧挨的地块要一边有泥滩、另一边有潮池。第一条符合的线加 2 分，之后每条加 1 分。"
+msgstr "Each mudskipper scores 2. Check the three lines through it for mudflat on one neighboring tile and tide pool on the opposite one. The first qualifying line adds 2 and each further line adds 1."
 
 msgid "泥滩潮池正对"
 msgstr "Mudflat opposite pool"
@@ -223,20 +223,20 @@ msgstr "Each otter starts with 1 point. Look around it. If three consecutive spa
 msgid "三块地围一侧"
 msgstr "Three tiles around one side"
 
-msgid "上岸晾毛"
-msgstr "Drying Ashore"
+msgid "结伴浮游"
+msgstr "Rafting Pairs"
 
-msgid "每只水獭先得 1 分。旁边只要有一块没有动物的砾滩或岩礁，就加 4 分。每只水獭只加一次，几只可以用同一块地。"
-msgstr "Each otter starts with 1 point. Add 4 once if an unoccupied tile next to it has shingle or reef. Several otters can use the same tile."
+msgid "两只水獭共边，且都没有挨着第三只水獭，就算一对。全岛有 1 至 4 对分别得 {scores} 分，之后每多一对加 {step} 分。没配成对的水獭每只得 {extra} 分。"
+msgstr "Two touching otters form a pair only if neither touches a third otter. Score all pairs together. For 1 to 4 pairs score {scores} points. Each further pair adds {step}. Each unpaired otter scores {extra}."
 
-msgid "留块空砾滩或岩礁"
-msgstr "Leave shingle or reef empty"
+msgid "两两结对"
+msgstr "Make separate pairs"
 
 msgid "水域巡护"
 msgstr "Pool Patrol"
 
-msgid "每只水獭得 1 分。只要它脚下或旁边有一块带潮池的地，就能给整片潮池加分。两块地相接的边都是潮池才算同一片。每片每块地加 1 分，最多加 3 分。同一片有几只水獭都只算一次。"
-msgstr "Score 1 point per otter. A pool on or next to its tile lets it score that whole pool. Tiles are part of the same pool only if both touching edges are tide pool. Add 1 per tile in that pool, up to 3. Count each pool once, even if multiple otters reach it."
+msgid "每只水獭得 1 分。它脚下或旁边有潮池，就巡护整片。相接边都是潮池才连成一片。每片先加 1 分，再按地块每块加 1 分，最多数三块。几只水獭巡同一片只算一次。"
+msgstr "Score 1 per otter. A tide pool on or beside it is patrolled. Matching pool edges join tiles into a pool. Each patrolled pool adds 1, plus 1 per tile up to three tiles. Count each pool once across all otters."
 
 msgid "给连片潮池加分"
 msgstr "Score connected pools"
@@ -1141,8 +1141,8 @@ msgstr "Today's best"
 msgid "按人数统计"
 msgstr "By player count"
 
-msgid "计分卡平均分"
-msgstr "Average card scores"
+msgid "本版计分卡平均分"
+msgstr "Card averages under the current rules"
 
 msgid "暂无记录"
 msgstr "No records yet"
@@ -1320,3 +1320,6 @@ msgstr "Terrain: the ground printed on a tile. Two tiles are part of the same ha
 
 msgid "点击动物可以移走它，点原处放回。图里的分数只算这张卡。"
 msgstr "Click an animal to remove it and click the same spot to put it back. The example scores only this card."
+
+msgid "观察卡的计分规则已更新。请开始新的旅程；本次读取保留了原存档。"
+msgstr "The scoring cards have changed. Start a new survey to use the updated rules. Your previous save was preserved."

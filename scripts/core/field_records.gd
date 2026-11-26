@@ -1,7 +1,7 @@
 extends RefCounted
 
 const JsonFile = preload("res://scripts/core/json_file.gd")
-const VERSION := 2
+const VERSION := 3
 var path: String
 
 func _init(storage_path: String = "user://field_records.json") -> void:
@@ -21,9 +21,8 @@ func read() -> Dictionary:
 		return empty()
 	var version = data.get("version",1)
 	if version == 1:
-		data.version = VERSION
 		data.last = {}
-	elif version != VERSION:
+	elif version != 2 and version != VERSION:
 		return empty()
 	for key in ["best", "last", "daily", "cards", "recorded"]:
 		if not data.get(key) is Dictionary:
@@ -37,6 +36,11 @@ func read() -> Dictionary:
 			return empty()
 		if value.count < 1:
 			return empty()
+	if version < VERSION:
+		for key in data.cards.keys():
+			data.cards["legacy/"+key] = data.cards[key]
+			data.cards.erase(key)
+		data.version = VERSION
 	return data
 
 static func _number(value) -> bool:

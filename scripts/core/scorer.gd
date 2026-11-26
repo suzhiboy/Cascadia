@@ -35,7 +35,7 @@ static func _run_edges(ring: Array, length: int, on_board: bool) -> Array:
 	return edges
 
 # Optional terrain restricts passage to edges of the same habitat on both tiles.
-static func _components(board: Dictionary, keys: Array, terrain: String = "") -> Array:
+static func _components(board: Dictionary, keys: Array, terrain: String = "", flight: bool = false) -> Array:
 	var remaining = {}
 	for key in keys:
 		remaining[key] = true
@@ -50,6 +50,9 @@ static func _components(board: Dictionary, keys: Array, terrain: String = "") ->
 			var p = H.coord(key)
 			for d in range(6):
 				var neighbor = H.key(p + H.DIRS[d])
+				if flight:
+					if not board.has(neighbor): continue
+					neighbor = H.key(p+2*H.DIRS[d])
 				if not remaining.has(neighbor):
 					continue
 				if terrain != "" and (_edge(board,key,d) != terrain or _edge(board,neighbor,(d+3)%6) != terrain):
@@ -73,32 +76,54 @@ static func _crab_fringe(board: Dictionary, colony: Array) -> Dictionary:
 				_mark_edge(edges,neighbor,(d+3)%6)
 	return edges
 
-static func _crab_colonies(board: Dictionary, keys: Array, card: String, result: Dictionary) -> void:
+static func _crab_colonies(board: Dictionary, keys: Array, result: Dictionary) -> void:
 	for colony in _components(board,keys):
 		var resources = {}
 		var fringe = _crab_fringe(board,colony)
 		for neighbor in fringe:
-			if card == "C" and board[neighbor].animal == "":
-				resources[neighbor] = true
-			elif card == "D":
-				for side in fringe[neighbor]:
-					resources[_edge(board,neighbor,side)] = true
-		var resource_points = 3 if card == "C" else 1
-		B.add(result,colony,colony.size()+resource_points*mini(resources.size(),2*colony.size()),Cards.title("crab",card))
+			for side in fringe[neighbor]:
+				resources[_edge(board,neighbor,side)] = true
+		B.add(result,colony,colony.size()+mini(resources.size(),2*colony.size()),Cards.title("crab","D"))
 
-static func _limpet_samples(board: Dictionary, keys: Array, result: Dictionary) -> void:
-	var samples = {}
-	for key in keys:
-		var terrain = _terrain(board,key).duplicate()
-		terrain.sort()
-		samples["+".join(terrain)] = true
-	B.add(result,keys,keys.size()+samples.size(),Cards.title("limpet","D"))
+# All tied shapes qualify for inspection, but only the longest one scores per colony.
+static func _best_shapes(group: Array, shape: String) -> Array:
+	var best = [[group[0]]]
+	for key in group:
+		var p = H.coord(key)
+		for side in range(6 if shape == "triangle" else 3):
+			var step = H.DIRS[side]
+			var neighbor = H.key(p+step)
+			if neighbor not in group: continue
+			var path = [key,neighbor]
+			if shape == "triangle":
+				var third = H.key(p+H.DIRS[(side+1)%6])
+				if third in group: path.append(third)
+			else:
+				if H.key(p-step) in group: continue
+				while H.key(p+path.size()*step) in group:
+					path.append(H.key(p+path.size()*step))
+			if path.size() > best[0].size(): best.clear()
+			if best.is_empty() or path.size() == best[0].size(): best.append(path)
+	return best
+
+static func _score_pattern(board: Dictionary, keys: Array, rule: Dictionary, label: String, result: Dictionary) -> void:
+	var pairs = []
+	for group in _components(board,keys,"",rule.shape == "flight"):
+		if rule.shape == "pairs":
+			if group.size() == 2: pairs.append_array(group)
+			else: B.add(result,group,rule.extra*group.size(),label)
+		else:
+			var size = group.size()
+			if rule.shape in ["line","triangle"]: size = _best_shapes(group,rule.shape)[0].size()
+			B.add(result,group,Cards.pattern_points(rule,size)+rule.extra*(group.size()-size),label)
+	if not pairs.is_empty():
+		B.add(result,pairs,Cards.pattern_points(rule,pairs.size() >> 1),label)
 
 static func _tern_landings(board: Dictionary, keys: Array, result: Dictionary) -> void:
 	var destinations = {}
 	for key in keys:
 		var p = H.coord(key)
-		for side in _tern_paths(board,key,_ring(board,key),true):
+		for side in _tern_paths(board,key,_ring(board,key)):
 			destinations[H.key(p+2*H.DIRS[side])] = true
 	B.add(result,keys,keys.size()+mini(destinations.size(),2*keys.size()),Cards.title("tern","D"))
 
@@ -112,16 +137,7 @@ static func _otter_patrol(board: Dictionary, keys: Array, result: Dictionary) ->
 				visited[neighbor] = true
 	for pool in _habitat_components(board,"pool"):
 		if pool.any(func(key): return visited.has(key)):
-			B.add(result,pool,mini(3,pool.size()),"巡护潮池")
-
-static func _tern_sees_fish(board: Dictionary, neighbors: Array) -> bool:
-	for neighbor in neighbors:
-		if board[neighbor].animal == "goby":
-			return true
-		for other in _ring(board,neighbor):
-			if other != "" and board[other].animal == "goby":
-				return true
-	return false
+			B.add(result,pool,1+mini(3,pool.size()),"巡护潮池")
 
 static func _open_edges(ring: Array) -> Array:
 	return range(6).filter(func(d): return ring[d] == "")
@@ -140,15 +156,20 @@ static func _opposite_edges(board: Dictionary, ring: Array, crossing: bool) -> A
 static func _matching_edges(board: Dictionary, key: String, ring: Array) -> Array:
 	return range(6).filter(func(d): return ring[d] != "" and _edge(board,key,d) == _edge(board,ring[d],(d+3)%6))
 
-static func _tern_paths(board: Dictionary, key: String, ring: Array, landing: bool) -> Array:
+static func _wing_forks(ring: Array) -> Array:
+	var forks = []
+	for d in range(6):
+		var other = (d+2)%6
+		if ring[d] != "" and ring[other] != "": forks.append([d,other])
+	return forks
+
+static func _tern_paths(board: Dictionary, key: String, ring: Array) -> Array:
 	var p = H.coord(key)
 	var edges = []
 	for d in range(6):
 		if ring[d] == "": continue
 		var target = H.key(p+2*H.DIRS[d])
-		if not board.has(target):
-			if not landing: edges.append(d)
-		elif landing:
+		if board.has(target):
 			var terrains = _terrain(board,target)
 			if "shingle" in terrains or "marsh" in terrains: edges.append(d)
 	return edges
@@ -193,12 +214,31 @@ static func wildlife_edges(board: Dictionary, key: String, card: String) -> Dict
 		"ternA", "otterB":
 			var occupied = animal == "otter"
 			for d in _run_edges(ring,3 if occupied else 2,occupied): _mark_edge(marks,key,d)
-		"ternB", "ternD":
-			var landing = card == "D"
-			for d in _tern_paths(board,key,ring,landing):
+		"ternB":
+			for fork in _wing_forks(ring):
+				for side in fork: _mark_edge(marks,key,side)
+		"ternD":
+			for d in _tern_paths(board,key,ring):
 				_mark_edge(marks,key,d)
 				_mark_edge(marks,ring[d],d)
-				if landing: _mark_edge(marks,H.key(H.coord(key)+2*H.DIRS[d]),(d+3)%6)
+				_mark_edge(marks,H.key(H.coord(key)+2*H.DIRS[d]),(d+3)%6)
+		"ternC":
+			for d in range(6):
+				var target = H.key(H.coord(key)+2*H.DIRS[d])
+				if ring[d] != "" and board.get(target,{}).get("animal","") == animal:
+					_mark_edge(marks,key,d)
+					_mark_edge(marks,ring[d],d)
+					_mark_edge(marks,target,(d+3)%6)
+		"limpetD","crabC":
+			var keys = board.keys().filter(func(other): return board[other].animal == animal)
+			var shape = Cards.PATTERNS[animal+card].shape
+			for colony in _components(board,keys):
+				if key not in colony: continue
+				for path in _best_shapes(colony,shape):
+					for member in path:
+						for d in range(6):
+							if H.key(H.coord(member)+H.DIRS[d]) in path: _mark_edge(marks,member,d)
+				break
 		"otterD":
 			_patrol_edges(board,key,ring,marks)
 	for edges in marks.values(): edges.sort()
@@ -219,15 +259,15 @@ static func _local_points(board: Dictionary, key: String, animal: String, card: 
 				reefs += int("reef" in _terrain(board,neighbor))
 			return 1 + mini(reefs,2)
 		"limpetB":
-			return 1 + (_opposite_edges(board,ring,false).size() >> 1)
+			return 2 + mini(1,_opposite_edges(board,ring,false).size() >> 1)
 		"limpetC":
-			return 1 if _matching_edges(board,key,ring).is_empty() else 3
+			var joins = _matching_edges(board,key,ring).size()
+			return 1+int(joins >= 1)+int(joins >= 3)
 		"ternA":
-			return 1 if _run_edges(ring,2,false).is_empty() else 3
+			if _run_edges(ring,2,false).is_empty(): return 1
+			return 2 if _run_edges(ring,3,false).is_empty() else 3
 		"ternB":
-			return 1 + mini(_tern_paths(board,key,ring,false).size(),2)
-		"ternC":
-			return 3 if _tern_sees_fish(board,neighbors) else 1
+			return 1 + mini(_wing_forks(ring).size(),2)
 		"gobyA":
 			return 3 if "mudflat" in home or "pool" in home else 1
 		"gobyB":
@@ -236,15 +276,10 @@ static func _local_points(board: Dictionary, key: String, animal: String, card: 
 				var other = _terrain(board,neighbor)
 				if not home.any(func(h): return h in other):
 					transitions += 1
-			return 1 + mini(transitions,2)
-		"gobyC":
-			var habitats_seen = {}
-			for cell in neighbors + [key]:
-				for h in _terrain(board,cell):
-					habitats_seen[h] = true
-			return 3 if habitats_seen.has("pool") and habitats_seen.has("mudflat") else 1
+			return 2 + mini(transitions,1)
 		"gobyD":
-			return 2 + _opposite_edges(board,ring,true).size()
+			var axes = _opposite_edges(board,ring,true).size() >> 1
+			return 2 + axes + int(axes > 0)
 		"otterA":
 			var foods = {}
 			for neighbor in neighbors:
@@ -254,12 +289,6 @@ static func _local_points(board: Dictionary, key: String, animal: String, card: 
 			return 1 + foods.size()
 		"otterB":
 			return 1 if _run_edges(ring,3,true).is_empty() else 3
-		"otterC":
-			for neighbor in neighbors:
-				var terrain = _terrain(board,neighbor)
-				if board[neighbor].animal == "" and ("shingle" in terrain or "reef" in terrain):
-					return 5
-			return 1
 	return 0
 
 static func wildlife(board: Dictionary, animal: String, card: String) -> Dictionary:
@@ -268,11 +297,13 @@ static func wildlife(board: Dictionary, animal: String, card: String) -> Diction
 	keys.sort()
 	if keys.is_empty() or not Cards.DETAILS.has(animal) or not Cards.DETAILS[animal].has(card):
 		return result
+	var pattern = Cards.PATTERNS.get(animal+card)
+	if pattern != null:
+		_score_pattern(board,keys,pattern,Cards.title(animal,card),result)
+		return result
 	match animal + card:
-		"crabC", "crabD":
-			_crab_colonies(board,keys,card,result)
-		"limpetD":
-			_limpet_samples(board,keys,result)
+		"crabD":
+			_crab_colonies(board,keys,result)
 		"ternD":
 			_tern_landings(board,keys,result)
 		"otterD":

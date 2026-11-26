@@ -19,8 +19,8 @@ const EXAMPLES = {
 			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),16,""], [Vector2i(0,1),17,""]]
 		],
 		"C": [
-			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),33,"crab"], [Vector2i(0,1),16,""]],
-			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),17,"tern"]]
+			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),33,"crab"], [Vector2i(0,1),17,"crab"]],
+			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),33,"crab"], [Vector2i(2,0),17,"crab"]]
 		],
 		"D": [
 			[[Vector2i(0,0),31,"crab"], [Vector2i(1,0),16,""], [Vector2i(0,1),36,""]],
@@ -41,8 +41,8 @@ const EXAMPLES = {
 			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),3,""]]
 		],
 		"D": [
-			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),37,"limpet"]],
-			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),18,"limpet"]]
+			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),37,"limpet"], [Vector2i(2,0),18,"limpet"]],
+			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),37,"limpet"], [Vector2i(0,1),18,"limpet"]]
 		]
 	},
 	"tern": {
@@ -51,12 +51,12 @@ const EXAMPLES = {
 			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(-1,1),17,""], [Vector2i(0,-1),18,""]]
 		],
 		"B": [
-			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(0,1),17,""]],
+			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(-1,1),17,""], [Vector2i(0,-1),18,""]],
 			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(2,0),36,""]]
 		],
 		"C": [
-			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(1,1),32,"goby"]],
-			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(2,0),17,""], [Vector2i(3,0),32,"goby"]]
+			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(2,0),21,"tern"]],
+			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(1,1),21,"tern"]]
 		],
 		"D": [
 			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(2,0),21,""]],
@@ -73,8 +73,8 @@ const EXAMPLES = {
 			[[Vector2i(0,0),91,"goby"], [Vector2i(1,0),36,""]]
 		],
 		"C": [
-			[[Vector2i(0,0),19,"goby"], [Vector2i(1,0),31,""], [Vector2i(0,1),36,""]],
-			[[Vector2i(0,0),32,"goby"], [Vector2i(1,0),31,""]]
+			[[Vector2i(0,0),19,"goby"], [Vector2i(1,0),32,"goby"], [Vector2i(1,1),36,"goby"]],
+			[[Vector2i(0,0),19,"goby"], [Vector2i(1,0),32,"goby"], [Vector2i(2,0),16,""], [Vector2i(3,0),36,"goby"]]
 		],
 		"D": [
 			[[Vector2i(0,0),19,"goby"], [Vector2i(1,0),31,""], [Vector2i(-1,0),36,""]],
@@ -91,8 +91,8 @@ const EXAMPLES = {
 			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),16,""], [Vector2i(-1,1),17,""], [Vector2i(0,-1),18,""]]
 		],
 		"C": [
-			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),26,""]],
-			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),27,"tern"]]
+			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),18,"otter"], [Vector2i(2,0),16,""], [Vector2i(3,0),38,"otter"], [Vector2i(4,0),26,"otter"]],
+			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),18,"otter"], [Vector2i(2,0),26,"otter"], [Vector2i(3,0),38,"otter"]]
 		],
 		"D": [
 			[[Vector2i(0,0),38,"otter"], [Vector2i(1,0),36,""], [Vector2i(2,0),37,""], [Vector2i(3,0),39,""]],

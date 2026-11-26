@@ -34,8 +34,16 @@ func run() -> void:
 	var crossing = {"0,0":cell(19,"goby"),"1,0":cell(31),"-1,0":cell(4),"0,1":cell(36)}
 	edges(crossing,"D",{"0,0":[0,3]},"Opposite neighbors supply whole-tile terrain even if it faces away")
 	var terns = {"0,0":cell(27,"tern"),"1,0":cell(16),"2,0":cell(21),"0,1":cell(17),"0,-2":cell(21)}
-	edges(terns,"B",{"0,0":[1],"0,1":[1]},"An open flight path crosses exactly one placed tile")
+	edges(terns,"B",{},"Two neighbors 60 degrees apart do not form a fork")
+	terns["-1,1"] = cell(17)
+	edges(terns,"B",{"0,0":[0,2]},"A 120-degree fork marks its arms")
 	edges(terns,"D",{"0,0":[0],"1,0":[0],"2,0":[3]},"Flight ends at the landing after a real intermediate tile")
+	terns["2,0"].animal = "tern"
+	edges(terns,"C",{"0,0":[0],"1,0":[0],"2,0":[3]},"Stepping-stone terns mark the link across the intermediate tile")
+	terns.erase("1,0")
+	edges(terns,"C",{},"A gap breaks the flock link")
+	var row = {"0,0":cell(16,"limpet"),"1,0":cell(37,"limpet"),"2,0":cell(18,"limpet"),"0,1":cell(16,"limpet")}
+	edges(row,"D",{"0,0":[0],"1,0":[0,3],"2,0":[3]},"Only the longest limpet line supplies the shape bonus")
 	var takeoff = {"0,0":cell(27,"tern"),"0,1":cell(17),"-1,1":cell(17),"-1,0":cell(17),"0,-1":cell(17)}
 	edges(takeoff,"A",{"0,0":[0,5]},"Open consecutive sides wrap from the last edge to the first")
 	var otter = {"0,0":cell(38,"otter"),"1,0":cell(36),"2,0":cell(37),"0,1":cell(17),"1,-1":cell(17)}

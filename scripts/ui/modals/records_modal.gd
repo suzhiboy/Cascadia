@@ -37,7 +37,7 @@ func open_stats(controller) -> void:
 		var value = data.best.get(str(count),null)
 		best.append(GameLocale.text("%d 人 · %s") % [count,"—" if value == null else str(int(value))])
 	content.add_child(ui._label("     ".join(best),22))
-	content.add_child(ui._heading(GameLocale.text("计分卡平均分"),23,P.GOLD_DEEP))
+	content.add_child(ui._heading(GameLocale.text("本版计分卡平均分"),23,P.GOLD_DEEP))
 	var grid = GridContainer.new()
 	grid.name = "CardMeans"
 	grid.columns = 5

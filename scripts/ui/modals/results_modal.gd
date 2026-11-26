@@ -1,7 +1,7 @@
 extends "res://scripts/ui/modals/modal.gd"
 
 const S = preload("res://scripts/core/scorer.gd")
-const SOLO_THRESHOLDS = [91,95,100,105]
+const SOLO_THRESHOLDS = [90,94,97,100]
 const SOLO_RATINGS = ["完成初访","潮滩观察员","岸线记录员","群岛调查员","潮间带领航员"]
 const RATING_INKS = [P.SEA_DEEP,P.SEA_MID,P.MOSS,P.DARK,P.GOLD_DEEP]
 const CATEGORY_TIME = .11

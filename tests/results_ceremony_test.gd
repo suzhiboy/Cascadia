@@ -26,9 +26,10 @@ func survey(id: String, total: int) -> GameState:
 func run() -> void:
 	var path := "user://ceremony-%d.json" % OS.get_process_id()
 	var legacy = FileAccess.open(path,FileAccess.WRITE)
-	legacy.store_string(JSON.stringify({"completed":2,"best":{"1":80},"daily":{DATE:200},"cards":{},"recorded":{"legacy":true}}))
+	legacy.store_string(JSON.stringify({"completed":2,"best":{"1":80},"daily":{DATE:200},"cards":{"crabC":{"sum":17,"count":1}},"recorded":{"legacy":true}}))
 	legacy.close()
 	var records = Records.new(path)
+	check(records.read().cards.has("legacy/crabC") and not records.read().cards.has("crabC"),"Legacy card averages remain separate from the new scoring rules")
 	var first = survey("first",60)
 	check(records.record(first,Scorer.game_scores(first)) == OK,"Legacy field records accept a new result")
 	var game = survey("second",150)
@@ -76,7 +77,7 @@ func run() -> void:
 	check(record is Label and record.visible and record.text == "新纪录","A strict personal best earns the record mark")
 	check(rating is Control and rating.visible and rating.get("value") == 4,"A score above all four thresholds earns the top drawn badge")
 	if rating is Control:
-		var thresholds = [91,95,100,105]
+		var thresholds = [90,94,97,100]
 		for i in range(thresholds.size()):
 			check(modal.get_script().rating_for(thresholds[i]-1) == i and modal.get_script().rating_for(thresholds[i]) == i+1,"The measured cutoff starts the next rating at %d" % thresholds[i])
 	ui._close_modal()
