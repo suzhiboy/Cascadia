@@ -8,6 +8,7 @@ const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
 const S = preload("res://scripts/core/scorer.gd")
+const CHART_WASH = preload("res://assets/art/chart_wash.png")
 const CHART_SEA = Color("cfe1d9")
 const SHORE_FOAM = Color("e6f1ea")
 const SHORE_SHALLOW = Color("b9d6cc")
@@ -443,6 +444,9 @@ func _draw() -> void:
 	var breathe = .5+.5*sin(clock*3.2)
 	draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
 	_draw_shore()
+	draw_set_transform(Vector2.ZERO)
+	_draw_chart_wash()
+	draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
 	_draw_grid()
 	for p in (camera_frontier if _drag_tile > 0 and market_drop_enabled else frontier):
 		var c = H.to_pixel(p,radius)
@@ -523,6 +527,16 @@ func _draw() -> void:
 		for side in scoring_edge_marks[k]:
 			Painter.scoring_edge(self,c,radius-2,side)
 	draw_set_transform(Vector2.ZERO)
+
+func _draw_chart_wash() -> void:
+	var inset = Rect2(Vector2.ZERO,size).grow(-15)
+	if inset.size.x <= 20 or inset.size.y <= 20: return
+	var corner = Vector2(8,8)/inset.size
+	var uv = PackedVector2Array([Vector2(corner.x,0),Vector2(1.0-corner.x,0),Vector2(1,corner.y),
+		Vector2(1,1.0-corner.y),Vector2(1.0-corner.x,1),Vector2(corner.x,1),Vector2(0,1.0-corner.y),Vector2(0,corner.y)])
+	var points = PackedVector2Array()
+	for point in uv: points.append(inset.position+point*inset.size)
+	draw_polygon(points,PackedColorArray([Color(1,1,1,.53)]),uv,CHART_WASH)
 
 # A faint printed hex grid around the player's land: where the map could still grow.
 func _draw_grid() -> void:

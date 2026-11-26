@@ -3,6 +3,11 @@ extends RefCounted
 const H = preload("res://scripts/core/hex.gd")
 const T = preload("res://scripts/core/tile_definition.gd")
 const P = preload("res://scripts/ui/palette.gd")
+const TERRAIN_ATLAS = preload("res://assets/art/terrain_atlas.png")
+const ATLAS_GRID = Vector2(3,2)
+const TERRAIN_SWATCHES = {"reef":Vector2(0,0),"marsh":Vector2(1,0),"shingle":Vector2(2,0),
+	"mudflat":Vector2(0,1),"pool":Vector2(1,1)}
+const PAPER_SWATCH = Vector2(2,1)
 const EDGE_TOP = Color("e9dcb2")
 const EDGE_SIDE = Color("a8956a")
 static var habitat_labels = true
@@ -41,17 +46,20 @@ static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, ro
 	canvas.draw_colored_polygon(polygon(center+Vector2(0,depth),radius),EDGE_SIDE)
 	outline(canvas,center+Vector2(0,depth),radius,Color(0.32,0.26,0.16,0.35),1.0)
 	canvas.draw_colored_polygon(polygon(center+Vector2(0,depth*.45),radius),EDGE_SIDE.lightened(.18))
-	canvas.draw_colored_polygon(polygon(center,radius),EDGE_TOP)
+	var face = polygon(center,radius)
+	var print_angle = -(rotation+id%6)*PI/3.0
+	canvas.draw_colored_polygon(face,EDGE_TOP)
+	_print(canvas,face,center,radius,print_angle,PAPER_SWATCH,.65)
 	var corners = polygon(center,radius-3)
 	var terrains = []
 	for d in range(6):
 		terrains.append(H.edge(definition,rotation,d))
 	for d in range(6):
 		var base = P.TERRAIN[terrains[d]]
+		var wedge = PackedVector2Array([center,corners[d],corners[(d+1)%6]])
 		# Light falls from the upper left: brighter centre, cooler rim.
-		canvas.draw_polygon(PackedVector2Array([center,corners[d],corners[(d+1)%6]]),PackedColorArray([base.lightened(.1),base.darkened(.05),base.darkened(.05)]))
-	for d in range(6):
-		_scenery(canvas,center,radius,id,d,terrains[d])
+		canvas.draw_polygon(wedge,PackedColorArray([base.lightened(.1),base.darkened(.05),base.darkened(.05)]))
+		_print(canvas,wedge,center,radius,print_angle,TERRAIN_SWATCHES[terrains[d]],.8)
 	# Seams where two habitats meet.
 	for d in range(6):
 		if terrains[d] != terrains[(d+1)%6]:
@@ -114,44 +122,13 @@ static func shell(canvas: CanvasItem, center: Vector2, size: float, tint: Color,
 		var ray = Vector2.from_angle(deg_to_rad(241+29*i))*size
 		canvas.draw_line(hinge+ray*.18,hinge+ray*1.07,line,maxf(.7,size*.085),true)
 
-# Coastal landmarks are drawn inside each terrain wedge, even at a rotated boundary.
-static func _scenery(canvas: CanvasItem, center: Vector2, radius: float, id: int, d: int, habitat: String) -> void:
-	var base = P.TERRAIN[habitat]
-	for k in range(2):
-		var angle = deg_to_rad(60.0*d+(k*2-1)*14.0+(_rand(id,d,k)-.5)*10.0)
-		var p = center+Vector2.from_angle(angle)*radius*(.57+_rand(id,d,k+7)*.15)
-		var s = radius*(.1+_rand(id,d,k+11)*.035)
-		var ink = base.darkened(.35)
-		match habitat:
-			"reef":
-				var rock = PackedVector2Array([p+Vector2(-1,.45)*s,p+Vector2(-.7,-.2)*s,p+Vector2(.15,-.62)*s,p+Vector2(.84,-.35)*s,p+Vector2(1,.2)*s,p+Vector2(.3,.47)*s])
-				canvas.draw_colored_polygon(rock,ink)
-				canvas.draw_line(rock[1],rock[2],base.lightened(.5),maxf(1,s*.17),true)
-				canvas.draw_line(rock[2],p,base.lightened(.17),maxf(1,s*.12),true)
-			"marsh":
-				for blade in range(-2,3):
-					var root = p+Vector2(blade*.14,.55)*s
-					var tip = p+Vector2(blade*.47,-1.0+.18*absi(blade))*s
-					canvas.draw_colored_polygon(PackedVector2Array([root,root.lerp(tip,.5)+Vector2(s*.12,0),tip,root+Vector2(-s*.12,0)]),ink)
-			"shingle":
-				for j in range(3):
-					var stone = p+Vector2(-.58+.64*j,.25 if j != 1 else -.23)*s
-					canvas.draw_circle(stone,s*(.28+.07*(j%2)),ink,true,-1,true)
-					canvas.draw_line(stone-Vector2(.13,.07)*s,stone+Vector2(.08,-.12)*s,base.lightened(.5),maxf(.7,s*.11),true)
-			"mudflat":
-				for j in range(2):
-					var rill = PackedVector2Array()
-					for i in range(6):
-						rill.append(p+Vector2((i-2.5)*.34,sin(i*.8)*.23+j*.43)*s)
-					canvas.draw_polyline(rill,ink,maxf(.8,s*.12),true)
-				canvas.draw_circle(p+Vector2(-.38,-.48)*s,s*.15,ink)
-			"pool":
-				for j in range(2):
-					var ripple = PackedVector2Array()
-					for i in range(13):
-						var a = i*TAU/12.0
-						ripple.append(p+Vector2(cos(a),sin(a)*.37)*s*(.64+j*.45))
-					canvas.draw_polyline(ripple,base.lightened(.45) if j == 0 else ink,maxf(.7,s*.12),true)
+# Inset UVs keep neighboring swatches out of filtered terrain edges.
+static func _print(canvas: CanvasItem, points: PackedVector2Array, center: Vector2, radius: float, angle: float, swatch: Vector2, opacity: float) -> void:
+	var uv = PackedVector2Array()
+	for p in points:
+		var local = (p-center).rotated(angle)*(.4/radius)+Vector2(.5,.5)
+		uv.append((swatch+local)/ATLAS_GRID)
+	canvas.draw_polygon(points,PackedColorArray([Color(1,1,1,opacity)]),uv,TERRAIN_ATLAS)
 
 static func token(canvas: CanvasItem, center: Vector2, radius: float, animal: String, small: bool = false) -> void:
 	if animal == "":
