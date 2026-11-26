@@ -150,6 +150,7 @@ func update(state: Dictionary) -> void:
 	if board_changed:
 		last_board_state = board_state.duplicate(true)
 		board.cells = game.preview_board() if active else viewed.board
+		board.scoring_cards = game.config.cards
 		board.interactive = active and not game.finished and state.can_act
 		board.highlight = state.highlight.duplicate()
 		var placing = board.interactive and not game.pending.is_empty()
@@ -176,6 +177,7 @@ func update(state: Dictionary) -> void:
 		else:
 			board.set_score_preview(Callable(),board.NO_CELL,false)
 		board.update_cursor()
+		board.refresh_scoring_edges()
 		board.queue_redraw()
 	if board_changed or turn_changed or view_changed:
 		board.request_fit(turn_changed or view_changed)

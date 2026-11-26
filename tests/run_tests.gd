@@ -171,7 +171,7 @@ func test_diagram_examples() -> void:
 	if "compact" in diagram:
 		diagram.compact = true
 		diagram._ready()
-		check(diagram.custom_minimum_size == Vector2(80,60),"Thumbnail fits the 80 by 60 card slot")
+		check(diagram.custom_minimum_size == Vector2(146,90),"Thumbnail reserves room for tiles and the example score")
 		check(diagram.mouse_filter == Control.MOUSE_FILTER_IGNORE,"Thumbnail leaves clicks to the card")
 	diagram.free()
 

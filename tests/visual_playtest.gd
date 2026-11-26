@@ -131,6 +131,29 @@ func capture_results(label: String) -> void:
 	await capture(label)
 	await capture("stage4-"+label,true)
 
+func capture_rules() -> void:
+	var cards = {"crab":"C","limpet":"C","goby":"D","tern":"D","otter":"B"}
+	scene.start_game({"count":1,"cards":cards},scene.Practice.SEED)
+	var diagram = preload("res://scripts/ui/rule_diagram.gd").new()
+	diagram.animal = "limpet"
+	diagram.card = "C"
+	scene.game.players[0].board = diagram.example(false)
+	diagram.free()
+	scene.refresh()
+	await settle()
+	scene.board.center_board()
+	var hover = InputEventMouseMotion.new()
+	hover.position = scene.board.screen_position(Vector2i.ZERO)
+	scene.board._gui_input(hover)
+	verify(scene.board.scoring_edge_marks == {"0,0":[0],"1,0":[3]},"Hover lights the limpet's matching join")
+	layout()
+	await capture("stage5-scoring-edges",true)
+	scene.show_card("goby","D")
+	await capture("stage5-scoring-card",true)
+	scene.show_help()
+	await capture("stage5-help",true)
+	scene._close_modal()
+
 func run() -> void:
 	had_save = FileAccess.file_exists("user://autosave.json")
 	if had_save: saved = FileAccess.get_file_as_string("user://autosave.json")
@@ -198,6 +221,7 @@ func run() -> void:
 	for p in scene.game.players: verify(p.turns == 20 and p.board.size() == 23,"Four-player final components")
 	verify(rank_captured,"Hotseat playtest shows a ranking change")
 	await capture_turn_feedback()
+	await capture_rules()
 	if had_save:
 		var file = FileAccess.open("user://autosave.json",FileAccess.WRITE)
 		file.store_string(saved)

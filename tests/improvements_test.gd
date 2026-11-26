@@ -46,7 +46,7 @@ func run() -> void:
 	event.pressed = true
 	var example = diagram.example(false)
 	check(ui.S.wildlife(example,"crab","A").points == 3,"Mudflat burrow scores three")
-	event.position = diagram._layout(0,example)["0,0"]
+	event.position = diagram._layout(example,diagram._example_area(0)).centers["0,0"]
 	diagram._gui_input(event)
 	check(diagram.removed[0].has("0,0"),"Click removes crab")
 	example["0,0"].animal = ""

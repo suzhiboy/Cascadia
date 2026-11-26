@@ -7,6 +7,7 @@ const H = preload("res://scripts/core/hex.gd")
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
+const S = preload("res://scripts/core/scorer.gd")
 const CHART_SEA = Color("cfe1d9")
 const SHORE_FOAM = Color("e6f1ea")
 const SHORE_SHALLOW = Color("b9d6cc")
@@ -30,6 +31,8 @@ var camera_frontier: Array = []
 var emphasize_frontier = false
 var legal_animals: Array = []
 var highlight: Array = []
+var scoring_cards := {}
+var scoring_edge_marks := {}
 var turn_highlight: Array = []
 var turn_highlight_pulse := 1.0
 var placement_points := {}
@@ -39,6 +42,7 @@ var landing_progress := 1.0
 var landing_tween: Tween
 var preview_key = ""
 var hovered = NO_CELL
+var _pointer = Vector2.INF
 var pan = Vector2.ZERO
 var zoom = 1.0
 var camera_adjusted = false
@@ -149,6 +153,7 @@ func _process(delta: float) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_DRAG_END or what == NOTIFICATION_MOUSE_EXIT:
 		_drag_tile = 0
+		_pointer = Vector2.INF
 		if not _keyboard_cursor: _set_hover(NO_CELL)
 
 func land(cell: Vector2i, animal: bool) -> void:
@@ -227,8 +232,11 @@ func _camera_moving() -> bool:
 func _set_camera(next_pan: Vector2, next_zoom: float) -> void:
 	pan = next_pan
 	zoom = next_zoom
-	_update_ghost()
-	queue_redraw()
+	if _pointer.is_finite() and not _keyboard_cursor:
+		_set_hover(_cell_at(_pointer))
+	else:
+		_update_ghost()
+		queue_redraw()
 
 func _adjust_camera() -> void:
 	if _camera_tween: _camera_tween.kill()
@@ -251,13 +259,27 @@ func _cell_at(point: Vector2) -> Vector2i:
 	return H.from_pixel((point-size*.5-pan)/zoom,radius)
 
 func _set_hover(cell: Vector2i) -> void:
+	var changed = hovered != cell
 	hovered = cell
+	if changed: refresh_scoring_edges()
 	_update_ghost()
 	queue_redraw()
+
+func refresh_scoring_edges() -> void:
+	var marks = {}
+	if hovered != NO_CELL and not (_keyboard_cursor or dragging or _sea_dragging or _drag_tile > 0):
+		var key = H.key(hovered)
+		var animal = cells.get(key,{}).get("animal","")
+		if scoring_cards.has(animal):
+			marks = S.wildlife_edges(cells,key,scoring_cards[animal])
+	if scoring_edge_marks != marks:
+		scoring_edge_marks = marks
+		queue_redraw()
 
 func clear_cursor() -> void:
 	_keyboard_cursor = false
 	_drag_tile = 0
+	_pointer = Vector2.INF
 	_set_hover(NO_CELL)
 
 func update_cursor() -> void:
@@ -282,6 +304,7 @@ func move_cursor(direction: Vector2) -> bool:
 				selected = cell
 	_keyboard_cursor = true
 	_set_hover(selected)
+	refresh_scoring_edges()
 	if direction != Vector2.ZERO:
 		var point = screen_position(selected)
 		var inset = Vector2.ONE*48
@@ -299,6 +322,7 @@ func _gui_input(event: InputEvent) -> void:
 		var cell = _cell_at(event.position)
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			dragging = event.pressed
+			refresh_scoring_edges()
 		elif rotation_enabled and (event.is_action_pressed("board_rotate_right",false,true) or event.is_action_pressed("board_rotate_left",false,true)):
 			rotation_requested.emit(-1 if event.is_action_pressed("board_rotate_left",false,true) else 1)
 		elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
@@ -315,8 +339,11 @@ func _gui_input(event: InputEvent) -> void:
 				_sea_press = false
 				_sea_dragging = false
 				if click and interactive: cell_clicked.emit(_cell_at(_sea_origin))
+				refresh_scoring_edges()
 	if event is InputEventMouseMotion:
+		var changed_source = _keyboard_cursor or (_sea_press and not _sea_dragging)
 		_keyboard_cursor = false
+		_pointer = event.position
 		if dragging and event.relative != Vector2.ZERO:
 			pan_by(event.relative)
 		elif _sea_press:
@@ -325,6 +352,7 @@ func _gui_input(event: InputEvent) -> void:
 				_sea_dragging = true
 				pan_by(event.position-_sea_origin)
 		_set_hover(_cell_at(event.position))
+		if changed_source: refresh_scoring_edges()
 
 func _can_drop_data(position: Vector2, data: Variant) -> bool:
 	if not market_drop_enabled or not data is Dictionary or not data.has("market_row"): return false
@@ -332,6 +360,7 @@ func _can_drop_data(position: Vector2, data: Variant) -> bool:
 	_keyboard_cursor = false
 	var cell = _cell_at(position)
 	_set_hover(cell)
+	refresh_scoring_edges()
 	return Rect2(Vector2.ZERO,size).has_point(position) and cell in camera_frontier
 
 func _drop_data(position: Vector2, data: Variant) -> void:
@@ -489,6 +518,10 @@ func _draw() -> void:
 			Painter.outline(self,c,radius,Color(P.GOLD_DEEP.r,P.GOLD_DEEP.g,P.GOLD_DEEP.b,.8),2.5)
 		if p == hovered and interactive and choosing and p in legal_animals:
 			Painter.outline(self,c,radius,P.GOLD,3.0)
+	for k in scoring_edge_marks:
+		var c = H.to_pixel(H.coord(k),radius)
+		for side in scoring_edge_marks[k]:
+			Painter.scoring_edge(self,c,radius-2,side)
 	draw_set_transform(Vector2.ZERO)
 
 # A faint printed hex grid around the player's land: where the map could still grow.

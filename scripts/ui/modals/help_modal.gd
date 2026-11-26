@@ -3,6 +3,7 @@ extends "res://scripts/ui/modals/modal.gd"
 func open(controller) -> void:
 	var body = controller._open_modal(GameLocale.text("潮间带调查手册"),1000,900,self)
 	var scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	body.add_child(scroll)
 	var content = ui._vbox(10)
@@ -14,9 +15,22 @@ func open(controller) -> void:
 		var selected_card = str(ui.game.config.cards[animal]) if ui.game != null else "A"
 		links.add_child(ui._button(GameLocale.text(T.ANIMAL_NAMES[animal])+" "+selected_card,func():ui.show_card(animal,selected_card)))
 	content.add_child(links)
-	var field_diagram = load("res://scripts/ui/rule_diagram.gd").new()
+	content.add_child(ui._heading(GameLocale.text(T.ANIMAL_NAMES.limpet)+" C · "+Cards.title("limpet","C"),21,P.DARK))
+	content.add_child(ui._wrap(GameLocale.text("金线标出符合计分条件的边。点击动物把它移走，再点原处放回，看看分数怎么变。"),20))
+	var field_diagram = preload("res://scripts/ui/rule_diagram.gd").new()
+	field_diagram.animal = "limpet"
+	field_diagram.card = "C"
 	content.add_child(ui._chip(field_diagram,"CardPanel"))
-	content.add_child(ui._wrap(GameLocale.text("试着在图例中移走一枚动物，再放回原处。上方按钮可翻阅本局采用的五张观察卡。"),20))
+	content.add_child(ui._wrap(GameLocale.text("对局中，把鼠标停在动物所在的地块上，就能看到相关的计分边。符合条件的边都可能亮起，实际加分仍按卡上的上限算。"),18,P.MUTED))
+	content.add_child(ui._heading(GameLocale.text("计分小词表"),24,P.DARK))
+	for entry in [
+		"相邻：两块地共用一条边。",
+		"相接的两条边：两块地碰在一起的那一对边。",
+		"正对的两侧：从动物往一边看一格，再往完全相反的方向看一格。",
+		"空地块：已经铺好、但没有动物。没铺地块的位置叫未铺空位。",
+		"地貌：地块上的地形。算同种地貌连片时，相接的两条边必须是同种地貌。"
+	]:
+		content.add_child(ui._wrap(GameLocale.text(entry),19))
 	var sections = [
 		[GameLocale.text("01  选一组，放两次"),GameLocale.text("挑一列，把岛块和动物一起取走。沿任意一条外缘扩建海岸。动物可以先安置，也可等新岛块落定后再安排。")],
 		[GameLocale.text("02  为动物找到家"),GameLocale.text("寻找印有该物种图案的空地块。每格只容纳一只动物。选择放归会将动物送回袋中。在只有一种图案的地块安置动物，可领取一枚自然标记。")],

@@ -19,12 +19,21 @@ static func outline(canvas: CanvasItem, center: Vector2, radius: float, color: C
 	points.append(points[0])
 	canvas.draw_polyline(points,color,width,true)
 
+static func scoring_edge(canvas: CanvasItem, center: Vector2, radius: float, side: int) -> void:
+	var inset = clampf(radius*.075,1.25,6.0)
+	var corners = polygon(center,radius-inset)
+	var a = corners[side]
+	var b = corners[(side+1)%6]
+	var width = clampf(radius*.056,1.25,5.5)
+	canvas.draw_line(a.lerp(b,.13),b.lerp(a,.13),P.INK,width*1.85,true)
+	canvas.draw_line(a.lerp(b,.13),b.lerp(a,.13),P.GOLD_LIGHT,width,true)
+
 # Deterministic 0..1 noise so each tile keeps the same scenery between redraws.
 static func _rand(id: int, a: int, b: int) -> float:
 	var v = sin(float(id)*12.9898+float(a)*78.233+float(b)*37.719)*43758.5453
 	return v-floor(v)
 
-static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, rotation: int, animal: String = "", market_display: bool = false) -> void:
+static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, rotation: int, animal: String = "", market_display: bool = false, show_slots: bool = true) -> void:
 	var definition = T.get_tile(id)
 	var depth = radius*.085
 	# Cast shadow, then the cardboard edge, then the printed face.
@@ -70,7 +79,7 @@ static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, ro
 		_keystone(canvas,center+Vector2(0,-radius*.66),radius*.13)
 	if animal != "":
 		token(canvas,center,radius*.39,animal)
-	else:
+	elif show_slots:
 		var animals = definition.wildlife
 		var scale = 1.12 if market_display else 1.0
 		for i in range(animals.size()):

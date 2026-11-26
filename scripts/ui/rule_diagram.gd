@@ -4,7 +4,8 @@ const H = preload("res://scripts/core/hex.gd")
 const P = preload("res://scripts/ui/palette.gd")
 const Paint = preload("res://scripts/ui/tile_painter.gd")
 const S = preload("res://scripts/core/scorer.gd")
-const T = preload("res://scripts/core/tile_definition.gd")
+const Ornament = preload("res://scripts/ui/ornament.gd")
+const TILE_BOUNDS = Rect2(-.93,-1.03,1.90,2.20)
 
 # Paired field sketches. Each placement records axial position, catalogue tile and resident.
 const EXAMPLES = {
@@ -36,8 +37,8 @@ const EXAMPLES = {
 			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),17,""], [Vector2i(0,1),36,""]]
 		],
 		"C": [
-			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),17,""]],
-			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),36,""]]
+			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),3,"",3]],
+			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),3,""]]
 		],
 		"D": [
 			[[Vector2i(0,0),16,"limpet"], [Vector2i(1,0),37,"limpet"]],
@@ -46,7 +47,7 @@ const EXAMPLES = {
 	},
 	"tern": {
 		"A": [
-			[[Vector2i(0,0),27,"tern"]],
+			[[Vector2i(0,0),27,"tern"], [Vector2i(0,1),16,""], [Vector2i(-1,1),17,""], [Vector2i(-1,0),18,""], [Vector2i(0,-1),26,""]],
 			[[Vector2i(0,0),27,"tern"], [Vector2i(1,0),16,""], [Vector2i(-1,1),17,""], [Vector2i(0,-1),18,""]]
 		],
 		"B": [
@@ -104,13 +105,16 @@ var animal = "crab"
 var card = "A"
 var compact = false
 var removed = [{},{}]
+var score_plate = Ornament.badge(P.CREAM,P.GOLD)
 
 func _ready() -> void:
+	name = "RuleDiagram"
+	resized.connect(queue_redraw)
 	if compact:
-		custom_minimum_size = Vector2(80,60)
+		custom_minimum_size = Vector2(146,90)
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		return
-	custom_minimum_size = Vector2(700,260)
+	custom_minimum_size = Vector2(0,386)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	tooltip_text = GameLocale.text("点击图例中的动物可暂时移除，再点同一格可恢复。")
 
@@ -118,35 +122,43 @@ func example(alternate: bool) -> Dictionary:
 	var board = {}
 	for placement in EXAMPLES[animal][card][int(alternate)]:
 		var p = placement[0]
-		board[H.key(p)] = {"q":p.x,"r":p.y,"tile":placement[1],"rotation":0,"animal":placement[2]}
+		var key = H.key(p)
+		var resident = "" if removed[int(alternate)].has(key) else placement[2]
+		board[key] = {"q":p.x,"r":p.y,"tile":placement[1],"rotation":placement[3] if placement.size() > 3 else 0,"animal":resident}
 	return board
 
 func reset_example() -> void:
 	removed = [{},{}]
 	queue_redraw()
 
-func _layout(side: int, board: Dictionary) -> Dictionary:
-	var low = Vector2(INF,INF)
-	var high = Vector2(-INF,-INF)
+func _example_area(side: int) -> Rect2:
+	var width = size.x if compact else size.x*.5
+	var margin = 3.0 if compact else 14.0
+	return Rect2(Vector2(width*side+margin,margin),Vector2(width-margin*2,size.y-margin-(24 if compact else 54)))
+
+func _layout(board: Dictionary, area: Rect2) -> Dictionary:
+	var bounds = Rect2()
 	var centers = {}
 	for key in board:
-		var center = H.to_pixel(H.coord(key),32)
+		var center = H.to_pixel(H.coord(key),1.0)
 		centers[key] = center
-		low = low.min(center)
-		high = high.max(center)
-	var origin = Vector2(size.x*(0.25+side*0.5),105)-(low+high)*0.5
+		var tile = Rect2(center+TILE_BOUNDS.position,TILE_BOUNDS.size)
+		bounds = tile if centers.size() == 1 else bounds.merge(tile)
+	var fit = area.size/bounds.size
+	var radius = minf(fit.x,fit.y)
+	var origin = area.get_center()-bounds.get_center()*radius
 	for key in centers:
-		centers[key] += origin
-	return centers
+		centers[key] = origin+centers[key]*radius
+	return {"centers":centers,"radius":radius,"bounds":Rect2(origin+bounds.position*radius,bounds.size*radius)}
 
 func _gui_input(event: InputEvent) -> void:
 	if compact or not event is InputEventMouseButton or not event.pressed or event.button_index != MOUSE_BUTTON_LEFT:
 		return
 	for side in range(2):
 		var board = example(side == 1)
-		var centers = _layout(side,board)
+		var layout = _layout(board,_example_area(side))
 		for key in board:
-			if board[key].animal != "" and event.position.distance_to(centers[key]) <= 27:
+			if (board[key].animal != "" or removed[side].has(key)) and event.position.distance_to(layout.centers[key]) <= layout.radius*.65:
 				if removed[side].has(key):
 					removed[side].erase(key)
 				else:
@@ -155,50 +167,37 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 				return
 
-func _draw_cell(center: Vector2, cell: Dictionary) -> void:
-	var tile = T.get_tile(cell.tile)
-	var corners = Paint.polygon(center,31)
-	for d in range(6):
-		var terrain = H.edge(tile,cell.rotation,d)
-		draw_colored_polygon(PackedVector2Array([center,corners[d],corners[(d+1)%6]]),P.TERRAIN[terrain])
-	Paint.outline(self,center,31,P.INK,1)
-	if cell.animal != "":
-		Paint.token(self,center+Vector2(0,-5),15,cell.animal)
-	if compact:
-		return
-	var names = tile.habitats.map(func(h): return GameLocale.text(T.HABITAT_NAMES[h]))
-	var caption = "·".join(names)
-	var label_pos = center + Vector2(-31,19 if cell.animal != "" else 5)
-	draw_string_outline(P.font(600),label_pos,caption,HORIZONTAL_ALIGNMENT_CENTER,62,12,3,P.INK)
-	draw_string(P.font(600),label_pos,caption,HORIZONTAL_ALIGNMENT_CENTER,62,12,P.PAPER)
-
-func _draw_thumbnail() -> void:
-	var board = example(false)
-	var bounds = Rect2()
-	var first = true
-	for key in board:
-		var center = H.to_pixel(H.coord(key),32)
-		var cell_bounds = Rect2(center-Vector2(29,32),Vector2(58,64))
-		bounds = cell_bounds if first else bounds.merge(cell_bounds)
-		first = false
-	var scale_factor = minf((size.x-4)/bounds.size.x,(size.y-4)/bounds.size.y)
-	draw_set_transform(size/2-bounds.get_center()*scale_factor,0,Vector2.ONE*scale_factor)
-	for key in board:
-		_draw_cell(H.to_pixel(H.coord(key),32),board[key])
-	draw_set_transform(Vector2.ZERO,0,Vector2.ONE)
+func _points(board: Dictionary) -> int:
+	return S.wildlife(board,animal,card).points
 
 func _draw() -> void:
-	if compact:
-		_draw_thumbnail()
-		return
-	for side in range(2):
+	var width = size.x if compact else size.x*.5
+	var font_size = 17 if compact else 23
+	var font = P.font(700)
+	for side in range(1 if compact else 2):
 		var board = example(side == 1)
-		var centers = _layout(side,board)
+		var layout = _layout(board,_example_area(side))
+		var radius = layout.radius*(.91 if compact else .975)
 		for key in board:
-			if removed[side].has(key):
-				board[key].animal = ""
-			_draw_cell(centers[key],board[key])
-		var score = S.wildlife(board,animal,card).points
-		var caption = (GameLocale.text("例一") if side == 0 else GameLocale.text("对照")) + GameLocale.text("　%d 分") % score
-		draw_string(P.font(600),Vector2(size.x*side*0.5,225),caption,HORIZONTAL_ALIGNMENT_CENTER,size.x*.5,23,P.INK)
-	draw_line(Vector2(size.x/2,25),Vector2(size.x/2,235),P.LINE,1)
+			var cell = board[key]
+			var center = layout.centers[key]
+			Paint.tile(self,center,radius,cell.tile,cell.rotation,"" if compact else cell.animal,false,false)
+			if compact and cell.animal != "":
+				Paint.token(self,center,radius*.53,cell.animal)
+		var marks = {}
+		for key in board:
+			if board[key].animal != animal: continue
+			var edges = S.wildlife_edges(board,key,card)
+			for marked in edges:
+				if not marks.has(marked): marks[marked] = {}
+				for d in edges[marked]: marks[marked][d] = true
+		for key in marks:
+			for d in marks[key]:
+				Paint.scoring_edge(self,layout.centers[key],radius,d)
+		var caption = GameLocale.text("示例 %d 分" if side == 0 else "对照 %d 分") % _points(board)
+		var badge = font.get_string_size(caption,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x+20
+		var y = size.y-(23 if compact else 42)
+		draw_style_box(score_plate,Rect2((side+.5)*width-badge*.5,y,badge,23 if compact else 34))
+		draw_string(font,Vector2(width*side,y+font.get_ascent(font_size)+1),caption,HORIZONTAL_ALIGNMENT_CENTER,width,font_size,P.INK)
+	if not compact:
+		draw_line(Vector2(width,14),Vector2(width,size.y-14),P.LINE,1)

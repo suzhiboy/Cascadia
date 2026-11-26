@@ -26,33 +26,30 @@ func build(ui) -> void:
 		button.add_child(margin)
 		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var illustrations = ui._vbox(0)
-		illustrations.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		illustrations.custom_minimum_size.x = 88
-		var art = ui._art(animal)
-		art.custom_minimum_size = Vector2(80,35)
-		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		illustrations.add_child(art)
 		var diagram = preload("res://scripts/ui/rule_diagram.gd").new()
 		diagram.compact = true
 		diagram.animal = animal
 		diagram.card = ui.game.config.cards[animal]
-		illustrations.add_child(diagram)
-		row.add_child(illustrations)
+		diagram.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(diagram)
 		var info = ui._vbox(2)
 		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		info.alignment = BoxContainer.ALIGNMENT_CENTER
-		var title = ui._hbox(8)
+		var title = ui._hbox(5)
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		title.add_child(ui._heading(GameLocale.text(T.ANIMAL_NAMES[animal]),22,P.INK,650))
+		title.add_child(ui._heading(GameLocale.text(T.ANIMAL_NAMES[animal]),20,P.INK,650))
 		var letter = ui._heading("",15,P.CREAM,700)
 		var chip = ui._chip(letter)
 		chip.add_theme_stylebox_override("panel",P.chip(P.ANIMALS[animal].darkened(.15),P.ANIMALS[animal].darkened(.3),6,7,0))
 		title.add_child(chip)
 		info.add_child(title)
-		var description = ui._label("",16,P.MUTED)
+		var description = ui._wrap("",17,P.MUTED)
 		info.add_child(description)
+		var art = ui._art(animal)
+		art.custom_minimum_size = Vector2(66,30)
+		art.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		info.add_child(art)
 		var points = ui._heading("",22,P.GOLD_DEEP,700)
 		info.add_child(points)
 		cards[animal] = {"letter":letter,"description":description,"points":points,"diagram":diagram}
@@ -70,7 +67,7 @@ func update(state: Dictionary) -> void:
 		var letter = game.config.cards[animal]
 		if row.letter.text != letter:
 			View.apply(row.letter,&"text",letter)
-			View.apply(row.description,&"text",Cards.title(animal,letter))
+			View.apply(row.description,&"text",Cards.summary(animal,letter))
 			row.diagram.card = letter
 			row.diagram.queue_redraw()
 		View.apply(row.points,&"visible",game.finished)

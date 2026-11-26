@@ -34,6 +34,12 @@ func _run() -> void:
 		_check_english(ui.modal)
 		ui.show_help()
 		_check_english(ui.modal)
+		check(_contains(ui.modal,"Scoring glossary"),"English scoring glossary in the help page")
+		for animal in TileDefinition.ANIMALS:
+			for card in ["A","B","C","D"]:
+				ui.show_card(animal,card)
+				_check_english(ui.modal)
+				check(not _has_han(ScoringCardDefinition.summary(animal,card)),"English sidebar summary for "+animal+card)
 		ui.show_lan_lobby()
 		_check_english(ui.modal)
 		ui.show_card("goby","A")
@@ -84,10 +90,12 @@ func _check_english(node: Node) -> void:
 	if node is Label or node is Button:
 		visible_text = node.text
 	visible_text += node.tooltip_text if node is Control else ""
-	for i in visible_text.length():
-		var code = visible_text.unicode_at(i)
-		if code >= 0x3400 and code <= 0x9fff:
-			check(false,"Untranslated English UI: " + visible_text)
-			break
+	check(not _has_han(visible_text),"Untranslated English UI: " + visible_text)
 	for child in node.get_children():
 		_check_english(child)
+
+func _has_han(value: String) -> bool:
+	for i in value.length():
+		var code = value.unicode_at(i)
+		if code >= 0x3400 and code <= 0x9fff: return true
+	return false
