@@ -27,7 +27,8 @@ const LanSessionClass = preload("res://scripts/network/lan_session.gd")
 const LanProtocol = preload("res://scripts/network/lan_protocol.gd")
 const LanDiscoveryClass = preload("res://scripts/network/lan_discovery.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
-const BACKGROUND = preload("res://assets/art/tidal_islands.svg")
+const MENU_BACKGROUND = preload("res://assets/art/menu_tidal_islands.png")
+const GAME_BACKGROUND = preload("res://assets/art/tidal_islands.svg")
 
 const RecordsModal = preload("res://scripts/ui/modals/records_modal.gd")
 var records = preload("res://scripts/core/field_records.gd").new()
@@ -322,9 +323,9 @@ func _reset_screen() -> void:
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(screen)
 
-func _background(parent: Control, opacity: float = 1.0) -> void:
+func _background(parent: Control, texture: Texture2D, opacity: float = 1.0) -> void:
 	var image = TextureRect.new()
-	image.texture = BACKGROUND
+	image.texture = texture
 	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	image.modulate.a = opacity
@@ -346,7 +347,7 @@ func show_menu() -> void:
 		_practicing = false
 		game = null
 	_reset_screen()
-	_background(screen)
+	_background(screen,MENU_BACKGROUND)
 	var panel = PanelContainer.new()
 	panel.theme_type_variation = "MenuPanel"
 	panel.position = Vector2(110,130)
@@ -651,7 +652,7 @@ func _build_game_screen() -> void:
 	screen.add_child(background)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# Decoration lives inside the background node so the child order of screen is unchanged.
-	_background(background,.55)
+	_background(background,GAME_BACKGROUND,.55)
 	var tint = ColorRect.new()
 	tint.color = Color(P.DARK.r,P.DARK.g,P.DARK.b,.78)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
