@@ -21,6 +21,9 @@ static func make(kind_name: String, minimum: Vector2, fill: Color = P.DARK, mark
 	emblem.custom_minimum_size = minimum
 	return emblem
 
+static func badge(fill: Color, edge: Color) -> StyleBoxFlat:
+	return P.chip(fill,edge,9,10,3)
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER

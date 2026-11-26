@@ -32,11 +32,12 @@ func press(text: String) -> void:
 		button.pressed.emit()
 	await settle()
 
-func capture(label: String) -> void:
+func capture(label: String, sized: bool = false) -> void:
 	await get_tree().create_timer(.3).timeout
 	await RenderingServer.frame_post_draw
 	var img = get_tree().root.get_texture().get_image()
-	img.save_png(capture_dir+"/"+label+".png")
+	if sized: label += "-%dx%d" % [img.get_width(),img.get_height()]
+	verify(img.save_png(capture_dir+"/"+label+".png") == OK,"Screenshot saved: "+label)
 	print("CAPTURE ",label," ",img.get_size())
 
 func layout() -> void:
@@ -94,6 +95,28 @@ func turn(index: int) -> void:
 	layout()
 	await press("完成回合")
 
+func capture_turn_feedback() -> void:
+	scene.start_game({"count":1},scene.Practice.SEED)
+	await settle()
+	scene._market_pick(0,false)
+	await press("确认选取")
+	await press("E ↷")
+	scene.board._set_hover(scene.Practice.TARGET)
+	var badge = scene.board.get_node("ScorePreview")
+	verify(badge.visible and badge.text == "+1","Tile ghost has a compact score badge")
+	await capture("stage3-tile-ghost",true)
+	await click_practice_hex()
+	scene.board._set_hover(scene.Practice.TARGET)
+	verify(badge.visible and badge.text == "+4","Animal ghost updates the compact forecast")
+	await capture("stage3-animal-ghost",true)
+	await click_practice_hex()
+	await press("完成回合")
+	verify(scene.board_panel.turn_total.visible,"Turn score appears beside the progress trail")
+	verify(not scene.board.turn_highlight.is_empty(),"Habitat growth outlines the island cells")
+	verify(scene._toast_label.size.y < 112.0,"Growth toast leaves the island visible")
+	await capture("stage3-turn-score",true)
+	layout()
+
 func run() -> void:
 	had_save = FileAccess.file_exists("user://autosave.json")
 	if had_save: saved = FileAccess.get_file_as_string("user://autosave.json")
@@ -143,9 +166,13 @@ func run() -> void:
 	layout()
 	await capture("four-start")
 	verify(scene.board.pan.length()<200,"New game camera centered")
+	var rank_captured = false
 	for i in range(80):
 		verify(scene.game.active == i%4,"Hotseat changes to next player")
 		await turn(i)
+		if not rank_captured and scene._toast_label.visible and "升至第" in scene._toast_label.text:
+			await capture("stage3-ranking",true)
+			rank_captured = true
 		if i == 3:
 			scene._view(2)
 			await settle()
@@ -155,6 +182,8 @@ func run() -> void:
 	verify(scene.game.finished,"Four players reach scoring")
 	await capture("four-results")
 	for p in scene.game.players: verify(p.turns == 20 and p.board.size() == 23,"Four-player final components")
+	verify(rank_captured,"Hotseat playtest shows a ranking change")
+	await capture_turn_feedback()
 	if had_save:
 		var file = FileAccess.open("user://autosave.json",FileAccess.WRITE)
 		file.store_string(saved)

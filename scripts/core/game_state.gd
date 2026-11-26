@@ -177,13 +177,18 @@ func place_tile(p: Vector2i, rotation: int) -> String:
 	pending.rotation = posmod(rotation,6)
 	return ""
 
-func preview_board() -> Dictionary:
+func preview_board(tile_target: Variant = null, animal_target: Variant = null) -> Dictionary:
 	var board = players[active].board.duplicate(true)
-	if not pending.is_empty() and pending.tile_pos != null:
-		var p = Vector2i(pending.tile_pos[0],pending.tile_pos[1])
+	if pending.is_empty(): return board
+	var tile_pos = [tile_target.x,tile_target.y] if tile_target != null else pending.tile_pos
+	var animal_pos = [animal_target.x,animal_target.y] if animal_target != null else pending.animal_pos
+	if animal_target == null and animal_pos != null and animal_pos == pending.tile_pos:
+		animal_pos = tile_pos
+	if tile_pos != null:
+		var p = Vector2i(tile_pos[0],tile_pos[1])
 		board[H.key(p)] = {"q":p.x,"r":p.y,"tile":pending.tile,"rotation":pending.rotation,"animal":""}
-	if not pending.is_empty() and pending.animal_pos != null:
-		var p = Vector2i(pending.animal_pos[0],pending.animal_pos[1])
+	if animal_pos != null:
+		var p = Vector2i(animal_pos[0],animal_pos[1])
 		board[H.key(p)].animal = pending.animal
 	return board
 

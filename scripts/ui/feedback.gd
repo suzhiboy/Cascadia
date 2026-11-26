@@ -17,9 +17,9 @@ static func count_score(label: Label, points: int) -> void:
 	tween.tween_method(func(value: float): label.text = str(roundi(value)),0.0,float(points),0.45)
 	tween.tween_callback(func(): label.text = str(points))
 
-static func toast(label: Label, finished: Callable) -> Tween:
+static func toast(label: Label, finished: Callable, animated: bool = true) -> Tween:
 	var tween = label.create_tween()
-	if not enabled:
+	if not enabled or not animated:
 		label.modulate.a = 1.0
 		tween.tween_interval(.8)
 	else:

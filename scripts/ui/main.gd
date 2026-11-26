@@ -48,8 +48,9 @@ var music: AudioStreamPlayer
 var view_player = 0:
 	set(index):
 		if index != view_player:
-			if is_instance_valid(turn_effects): turn_effects.stop_motion()
-			if is_instance_valid(board): board.stop_landing()
+			if is_instance_valid(board):
+				turn_effects.clear_view()
+				board.stop_landing()
 			_market_drop.clear()
 		view_player = index
 var mode = "tile"
@@ -590,8 +591,10 @@ func _render_game() -> void:
 
 	if _screen_game != game or not is_instance_valid(board):
 		_build_game_screen()
-	refresh()
-	if not _practicing and not feedback_event.is_empty(): _show_feedback(feedback_event)
+	var notices = refresh()
+	if _practicing: feedback_event = ""
+	if not notices.is_empty(): feedback_event = notices if feedback_event.is_empty() else feedback_event+"\n"+notices
+	if not feedback_event.is_empty(): _show_feedback(feedback_event)
 
 	_schedule_ai()
 
@@ -679,11 +682,10 @@ func _build_game_screen() -> void:
 	action_bar.build(self)
 	status_label = action_bar.status
 	_toast_label = _heading("",26,P.GOLD_LIGHT,650)
-	_toast_label.add_theme_color_override("font_shadow_color",P.DARK)
-	_toast_label.add_theme_constant_override("shadow_outline_size",5)
+	_toast_label.add_theme_stylebox_override("normal",Ornament.badge(Color(P.DARK,.96),P.GOLD))
 	_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_toast_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toast_label.size = Vector2(620,45)
 	_toast_label.hide()
 	screen.add_child(_toast_label)
 	turn_effects = preload("res://scripts/ui/turn_effects.gd").new()
@@ -697,9 +699,9 @@ func _view_state() -> Dictionary:
 		"reports":reports,"status":status,"practice":_practicing,"step":_practice_step() if _practicing else -1,
 		"lan":lan,"ai":not _ai_level().is_empty(),"can_act":_ai_level().is_empty() and (not lan or lan_session.can_control_player(game.active))}
 
-func refresh() -> void:
+func refresh() -> String:
 	var state = _view_state()
-	turn_effects.update(state)
+	var notices = turn_effects.update(state)
 	for panel in [header_bar,market_panel,board_panel,cards_panel,action_bar]:
 		panel.update(state)
 	if is_instance_valid(modal): modal.update(state)
@@ -708,6 +710,7 @@ func refresh() -> void:
 		for label in screen.find_children("*","Label",true,false):
 			if label.has_meta("base_font_size"):
 				label.add_theme_font_size_override("font_size",label.get_meta("base_font_size")+(2 if _large_text else 0))
+	return notices
 
 func _set_mode(next: String) -> void:
 	if not _ai_level().is_empty(): return
@@ -717,12 +720,24 @@ func _set_mode(next: String) -> void:
 func _show_feedback(text: String) -> void:
 	if _toast_tween: _toast_tween.kill()
 	_feedback_toast = _toast_label
-	_toast_label.text = "✦  "+text
-	_toast_label.position = Vector2(650,105)
+	var caption = "✦  "+text
+	var bounds = board.get_global_rect()
+	var font = _toast_label.get_theme_font("font")
+	var font_size = _toast_label.get_theme_font_size("font_size")
+	var width = 0.0
+	for line in caption.split("\n"):
+		width = maxf(width,font.get_string_size(line,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size).x)
+	width = minf(width+32.0,maxf(220.0,bounds.size.x-32.0))
+	_toast_label.size.x = width
+	_toast_label.text = caption
+	_toast_label.size.y = _toast_label.get_minimum_size().y
+	_toast_label.position = Vector2(bounds.get_center().x-width*.5,bounds.position.y+20.0)
 	_toast_label.show()
-	_toast_tween = Feedback.toast(_toast_label,func():
-		_toast_label.hide()
-		_feedback_toast = null)
+	_toast_tween = Feedback.toast(_toast_label,_hide_feedback,board.animations)
+
+func _hide_feedback() -> void:
+	_toast_label.hide()
+	_feedback_toast = null
 
 func _rule(color: Color) -> StyleBoxLine:
 	var line = StyleBoxLine.new()
@@ -967,6 +982,8 @@ func _apply_comfort() -> void:
 		board.animations = settings.animations
 		board.show_names = settings.animal_names
 		if not settings.animations:
+			if _toast_tween: _toast_tween.kill()
+			_hide_feedback()
 			turn_effects.stop_motion()
 			market_panel.stop_motion()
 			board.stop_landing()

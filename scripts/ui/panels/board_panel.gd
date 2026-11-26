@@ -8,6 +8,7 @@ const BoardView = preload("res://scripts/ui/board.gd")
 const Practice = preload("res://scripts/ui/first_turn_practice.gd")
 const Feedback = preload("res://scripts/ui/feedback.gd")
 const Preview = preload("res://scripts/ui/score_preview.gd")
+const S = preload("res://scripts/core/scorer.gd")
 
 var board = BoardView.new()
 var emblem: Control
@@ -15,12 +16,12 @@ var title: Label
 var nature: Label
 var turns: Label
 var trail: Control
+var turn_total: Label
 var lesson: PanelContainer
 var lesson_progress: Label
 var lesson_title: Label
 var lesson_text: Label
 var lan_phase: Label
-var preview: Label
 var keyboard_hints: VBoxContainer
 var gamepad_hints: VBoxContainer
 var last_step := -1
@@ -51,6 +52,14 @@ func build(ui) -> void:
 		caption.add_child(turns)
 		trail = Ornament.make("progress",Vector2(190,16),P.GOLD_LIGHT,P.CREAM)
 		caption.add_child(trail)
+		turn_total = ui._heading("",21,P.GOLD_LIGHT,700)
+		turn_total.name = "TurnTotal"
+		turn_total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		turn_total.mouse_filter = Control.MOUSE_FILTER_PASS
+		turn_total.custom_minimum_size.x = 64
+		turn_total.add_theme_stylebox_override("normal",Ornament.badge(P.DARK,P.GOLD))
+		turn_total.hide()
+		caption.add_child(turn_total)
 	add_child(caption)
 	if ui._practicing:
 		var row = ui._hbox(18)
@@ -67,8 +76,6 @@ func build(ui) -> void:
 		add_child(lesson)
 	lan_phase = ui._label("",17,P.CREAM)
 	add_child(lan_phase)
-	preview = ui._wrap("",17,P.GOLD_LIGHT)
-	add_child(preview)
 	board.animations = ui.settings.animations
 	board.cell_clicked.connect(ui._board_click)
 	board.rotation_requested.connect(ui._rotate)
@@ -128,6 +135,7 @@ func update(state: Dictionary) -> void:
 	elif view_changed and board.camera_adjusted:
 		manual_cameras[last_view] = [board.pan,board.zoom]
 	if turn_changed or view_changed:
+		board.set_score_preview(Callable(),board.NO_CELL,false)
 		board.restore_camera(manual_cameras.get(state.view,[]))
 		board.clear_cursor()
 	if view_changed:
@@ -141,8 +149,6 @@ func update(state: Dictionary) -> void:
 	var board_changed = last_board_state != board_state
 	if board_changed:
 		last_board_state = board_state.duplicate(true)
-		View.apply(preview,&"visible",active and not game.pending.is_empty())
-		if preview.visible: View.apply(preview,&"text",Preview.describe(game))
 		board.cells = game.preview_board() if active else viewed.board
 		board.interactive = active and not game.finished and state.can_act
 		board.highlight = state.highlight.duplicate()
@@ -161,6 +167,14 @@ func update(state: Dictionary) -> void:
 			board.frontier = [Practice.TARGET] if state.step in [Practice.Step.ROTATE,Practice.Step.TILE] else []
 			board.legal_animals = [Practice.TARGET] if state.step == Practice.Step.ANIMAL else []
 		board.placement_points = Preview.placement_points(game,board.legal_animals)
+		if active and not game.pending.is_empty():
+			var pending = game.pending
+			var anchor = pending.animal_pos if pending.animal_pos != null else pending.tile_pos
+			var position = Vector2i(anchor[0],anchor[1]) if anchor != null else board.NO_CELL
+			var scores = S.game_scores(game)
+			board.set_score_preview(func(tile,animal): return Preview.estimate(game,scores,tile,animal),position,pending.animal_pos != null)
+		else:
+			board.set_score_preview(Callable(),board.NO_CELL,false)
 		board.update_cursor()
 		board.queue_redraw()
 	if board_changed or turn_changed or view_changed:

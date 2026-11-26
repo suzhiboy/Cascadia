@@ -6,6 +6,7 @@ signal market_tile_dropped(data: Dictionary, cell: Vector2i)
 const H = preload("res://scripts/core/hex.gd")
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
+const Ornament = preload("res://scripts/ui/ornament.gd")
 const CHART_SEA = Color("cfe1d9")
 const SHORE_FOAM = Color("e6f1ea")
 const SHORE_SHALLOW = Color("b9d6cc")
@@ -29,6 +30,8 @@ var camera_frontier: Array = []
 var emphasize_frontier = false
 var legal_animals: Array = []
 var highlight: Array = []
+var turn_highlight: Array = []
+var turn_highlight_pulse := 1.0
 var placement_points := {}
 var landing_cell := Vector2i.ZERO
 var landing_animal := false
@@ -65,6 +68,11 @@ var clock = 0.0
 var _frame_wait = 0.0
 var _ghost: GhostView
 var _ghost_ring: GhostView
+var _score_preview: Label
+var _score_source: Callable
+var _score_anchor := NO_CELL
+var _score_on_animal := false
+var _score_target := []
 
 # The held piece floats above its landing spot: translucent body plus an opaque brass ring.
 class GhostView extends Control:
@@ -108,6 +116,16 @@ func _ready() -> void:
 	_ghost_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ghost_ring.visible = false
 	add_child(_ghost_ring)
+	_score_preview = Label.new()
+	_score_preview.name = "ScorePreview"
+	_score_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_score_preview.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_score_preview.add_theme_font_override("font",P.font(700))
+	_score_preview.add_theme_font_size_override("font_size",22)
+	_score_preview.add_theme_color_override("font_color",P.CREAM)
+	_score_preview.add_theme_stylebox_override("normal",Ornament.badge(P.DARK,P.GOLD_LIGHT))
+	_score_preview.hide()
+	add_child(_score_preview)
 	if not animations:
 		pulse = 1.0
 		return
@@ -209,6 +227,7 @@ func _camera_moving() -> bool:
 func _set_camera(next_pan: Vector2, next_zoom: float) -> void:
 	pan = next_pan
 	zoom = next_zoom
+	_update_ghost()
 	queue_redraw()
 
 func _adjust_camera() -> void:
@@ -331,6 +350,7 @@ func _update_ghost() -> void:
 	_ghost.visible = show_tile or show_animal
 	_ghost_ring.visible = _ghost.visible
 	if not _ghost.visible:
+		_update_score_preview(false,false)
 		return
 	var span = radius*2.4*zoom
 	var tile_id = (_drag_tile if dragging_tile else ghost_tile) if show_tile else 0
@@ -347,11 +367,41 @@ func _update_ghost() -> void:
 		_ghost_ring.animal = animal
 		_ghost_ring.hex_radius = _ghost.hex_radius
 		_ghost_ring.queue_redraw()
-	var lift = Vector2(0,-(7.0+2.5*sin(clock*4.0))*zoom)
+	var lift = Vector2(0,-(7.0+2.5*sin(clock*4.0) if animations and Feedback.enabled else 7.0)*zoom)
 	_ghost.size = Vector2(span,span)
 	_ghost.position = screen_position(hovered)-_ghost.size*.5+lift
 	_ghost_ring.size = _ghost.size
 	_ghost_ring.position = screen_position(hovered)-_ghost.size*.5
+	_update_score_preview(show_tile and not dragging_tile,show_animal)
+
+func set_score_preview(source: Callable, anchor: Vector2i, animal: bool) -> void:
+	_score_source = source
+	_score_anchor = anchor
+	_score_on_animal = animal
+	_score_target.clear()
+	_update_ghost()
+
+func _update_score_preview(tile: bool, animal: bool) -> void:
+	var cell = hovered if tile or animal else _score_anchor
+	_score_preview.visible = _score_source.is_valid() and cell != NO_CELL
+	if not _score_preview.visible:
+		_score_target.clear()
+		tooltip_text = ""
+		return
+	var target = [cell,tile,animal]
+	if _score_target != target:
+		_score_target = target
+		var estimate = _score_source.call(cell if tile else null,cell if animal else null)
+		_score_preview.text = GameLocale.text("%+d") % estimate.delta
+		_score_preview.reset_size()
+		tooltip_text = estimate.details
+		if animal and placement_points.has(cell):
+			tooltip_text += "\n"+GameLocale.text("此格安置增量 %+d") % placement_points[cell]
+	var offset = radius*zoom*(.46 if animal or (not tile and _score_on_animal) else .82)
+	var center = _ghost.position+_ghost.size*.5 if tile or animal else screen_position(cell)
+	var x = center.x+offset
+	if x+_score_preview.size.x > size.x: x = center.x-offset-_score_preview.size.x
+	_score_preview.position = Vector2(x,center.y-offset-_score_preview.size.y*.65).clamp(Vector2.ZERO,(size-_score_preview.size).max(Vector2.ZERO))
 
 # The footprint of a thick tile: top face plus the cardboard edge below it.
 func _footprint(c: Vector2, r: float) -> PackedVector2Array:
@@ -418,9 +468,11 @@ func _draw() -> void:
 	for k in order:
 		var c = H.to_pixel(H.coord(k),radius)
 		var p = H.coord(k)
-		if k in highlight:
-			Painter.outline(self,c,radius-1,Color(1,.86,.42,.25+.2*breathe),9.0)
-			Painter.outline(self,c,radius-4,Color(1,.95,.63,.55+.45*pulse),3.0+1.5*pulse)
+		if k in highlight or (not scoring and k in turn_highlight):
+			var glow = breathe if scoring else turn_highlight_pulse
+			var edge = pulse if scoring else turn_highlight_pulse
+			Painter.outline(self,c,radius-1,Color(1,.86,.42,.25+.2*glow),9.0)
+			Painter.outline(self,c,radius-4,Color(1,.95,.63,.55+.45*edge),3.0+1.5*edge)
 		if p in legal_animals:
 			var points = placement_points.get(p,0)
 			var strength = inverse_lerp(low,high,float(points)) if high > low else .5
@@ -438,12 +490,6 @@ func _draw() -> void:
 		if p == hovered and interactive and choosing and p in legal_animals:
 			Painter.outline(self,c,radius,P.GOLD,3.0)
 	draw_set_transform(Vector2.ZERO)
-	if placement_points.has(hovered):
-		var value = "%+d" % placement_points[hovered]
-		var label_size = Vector2(58,30)
-		var pos = (screen_position(hovered)+Vector2(-29,-radius*zoom-24)).clamp(Vector2.ZERO,size-label_size)
-		draw_style_box(P.chip(P.DARK,P.GOLD_LIGHT,8,0,0),Rect2(pos,label_size))
-		draw_string(P.font(700),pos+Vector2(0,22),value,HORIZONTAL_ALIGNMENT_CENTER,label_size.x,21,P.CREAM)
 
 # A faint printed hex grid around the player's land: where the map could still grow.
 func _draw_grid() -> void:

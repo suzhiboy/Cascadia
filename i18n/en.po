@@ -355,8 +355,8 @@ msgstr "Click the white circle on the new tile. Mudskippers need an empty tile m
 msgid "完成回合"
 msgstr "Finish turn"
 
-msgid "看一眼上方的试摆分差，再点击「完成回合」。确认前可以撤回摆放。"
-msgstr "Check the preview above, then click “Finish turn.” You can undo placements until you confirm."
+msgid "看一眼版图上的试摆分数，再点击「完成回合」。确认前可以撤回摆放。"
+msgstr "Check the score preview on the map, then click “Finish turn.” You can undo placements until you confirm."
 
 msgid "练习完成"
 msgstr "Practice complete"
@@ -976,8 +976,8 @@ msgstr "Compare"
 msgid "　%d 分"
 msgstr "  %d pts"
 
-msgid "试摆预估：+0 分（确认后落定；奖励按当前排名）"
-msgstr "Preview: +0 pts (settled on confirmation; bonuses use current standings)"
+msgid "试摆预估"
+msgstr "Preview"
 
 msgid "生境 %+d"
 msgstr "Habitat %+d"
@@ -988,8 +988,35 @@ msgstr "Bonus %+d"
 msgid "自然标记 %+d"
 msgstr "Nature tokens %+d"
 
-msgid "试摆预估：%+d 分%s（确认后落定；奖励按当前排名）"
-msgstr "Preview: %+d pts%s (settled on confirmation; bonuses use current standings)"
+msgid "计入当前连片奖励，确认后落定。"
+msgstr "Includes current habitat bonuses. Confirm to lock in placements."
+
+msgid "%+d"
+msgstr "%+d"
+
+msgid "上回合 %+d"
+msgstr "Last turn %+d"
+
+msgid "%s %+d"
+msgstr "%s %+d"
+
+msgid "%s · %s"
+msgstr "%s · %s"
+
+msgid "%s连片 %d → %d"
+msgstr "%s region %d → %d"
+
+msgid "%s 本回合得分"
+msgstr "%s’s score this turn"
+
+msgid "%s 升至第 %d"
+msgstr "%s rose to place %d"
+
+msgid "%s 降至第 %d"
+msgstr "%s fell to place %d"
+
+msgid "此格安置增量 %+d"
+msgstr "Wildlife placement here %+d"
 
 msgid "发现新版本 "
 msgstr "New version "

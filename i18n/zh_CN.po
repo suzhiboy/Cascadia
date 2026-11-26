@@ -355,8 +355,8 @@ msgstr "点击新地块上的白色圆圈。弹涂鱼只能住进带弹涂鱼图
 msgid "完成回合"
 msgstr "完成回合"
 
-msgid "看一眼上方的试摆分差，再点击「完成回合」。确认前可以撤回摆放。"
-msgstr "看一眼上方的试摆分差，再点击「完成回合」。确认前可以撤回摆放。"
+msgid "看一眼版图上的试摆分数，再点击「完成回合」。确认前可以撤回摆放。"
+msgstr "看一眼版图上的试摆分数，再点击「完成回合」。确认前可以撤回摆放。"
 
 msgid "练习完成"
 msgstr "练习完成"
@@ -976,8 +976,8 @@ msgstr "对照"
 msgid "　%d 分"
 msgstr "　%d 分"
 
-msgid "试摆预估：+0 分（确认后落定；奖励按当前排名）"
-msgstr "试摆预估：+0 分（确认后落定；奖励按当前排名）"
+msgid "试摆预估"
+msgstr "试摆预估"
 
 msgid "生境 %+d"
 msgstr "生境 %+d"
@@ -988,8 +988,35 @@ msgstr "奖励 %+d"
 msgid "自然标记 %+d"
 msgstr "自然标记 %+d"
 
-msgid "试摆预估：%+d 分%s（确认后落定；奖励按当前排名）"
-msgstr "试摆预估：%+d 分%s（确认后落定；奖励按当前排名）"
+msgid "计入当前连片奖励，确认后落定。"
+msgstr "计入当前连片奖励，确认后落定。"
+
+msgid "%+d"
+msgstr "%+d"
+
+msgid "上回合 %+d"
+msgstr "上回合 %+d"
+
+msgid "%s %+d"
+msgstr "%s %+d"
+
+msgid "%s · %s"
+msgstr "%s · %s"
+
+msgid "%s连片 %d → %d"
+msgstr "%s连片 %d → %d"
+
+msgid "%s 本回合得分"
+msgstr "%s 本回合得分"
+
+msgid "%s 升至第 %d"
+msgstr "%s 升至第 %d"
+
+msgid "%s 降至第 %d"
+msgstr "%s 降至第 %d"
+
+msgid "此格安置增量 %+d"
+msgstr "此格安置增量 %+d"
 
 msgid "发现新版本 "
 msgstr "发现新版本 "
