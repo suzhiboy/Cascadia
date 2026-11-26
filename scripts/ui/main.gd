@@ -44,7 +44,12 @@ var modal: Control
 var status_label: Label
 var sound: Sound
 var music: AudioStreamPlayer
-var view_player = 0
+var view_player = 0:
+	set(index):
+		if index != view_player:
+			if is_instance_valid(turn_effects): turn_effects.stop_motion()
+			if is_instance_valid(board): board.stop_landing()
+		view_player = index
 var mode = "tile"
 var selection_tile = -1
 var selection_animal = -1

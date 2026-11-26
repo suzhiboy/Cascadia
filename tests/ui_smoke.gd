@@ -60,9 +60,9 @@ func run() -> void:
 	await process_frame
 	scene.board.pan = Vector2(999,999)
 	scene._market_pick(0,false)
-	await process_frame
-	await process_frame
-	check(scene.view_player == scene.game.active and scene.board.pan.length()<200,"Market selection restores active camera")
+	check(scene.view_player == scene.game.active,"Market selection returns to the active player immediately")
+	await create_timer(.43).timeout
+	check(scene.board.pan.length()<200,"Market selection fits the active camera after easing")
 	scene.reports = scene.S.game_scores(scene.game)
 	scene.show_results()
 	await process_frame

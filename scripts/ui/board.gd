@@ -9,10 +9,19 @@ const SHORE_FOAM = Color("e6f1ea")
 const SHORE_SHALLOW = Color("b9d6cc")
 const SHORE_WET = Color("d3caa4")
 const SHORE_DRY = Color("e7dab4")
-var animations = true
+const Feedback = preload("res://scripts/ui/feedback.gd")
+const CAMERA_MARGIN = 80.0
+const CAMERA_DURATION = .35
+var animations = true:
+	set(enabled):
+		animations = enabled
+		if not enabled and _camera_moving():
+			_camera_tween.kill()
+			_set_camera(_target_pan,_target_zoom)
 var show_names = true
 var cells: Dictionary = {}
 var frontier: Array = []
+var camera_frontier: Array = []
 var emphasize_frontier = false
 var legal_animals: Array = []
 var highlight: Array = []
@@ -25,6 +34,12 @@ var preview_key = ""
 var hovered = Vector2i(999,999)
 var pan = Vector2.ZERO
 var zoom = 1.0
+var camera_adjusted = false
+var _camera_tween: Tween
+var _target_pan := Vector2.ZERO
+var _target_zoom := 1.0
+var _fit_queued = false
+var _force_fit = false
 var radius = 73.0
 var dragging = false
 var interactive = true
@@ -71,6 +86,7 @@ func _ready() -> void:
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	resized.connect(queue_redraw)
+	resized.connect(func(): request_fit(_camera_moving()))
 	_ghost = GhostView.new()
 	_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ghost.modulate.a = .58
@@ -123,15 +139,70 @@ func stop_landing() -> void:
 	queue_redraw()
 
 func center_board() -> void:
-	if cells.is_empty():
-		return
+	_fit_camera(true,false)
+
+func restore_camera(camera: Array = []) -> void:
+	if _camera_tween: _camera_tween.kill()
+	camera_adjusted = not camera.is_empty()
+	if camera_adjusted:
+		_set_camera(camera[0],camera[1])
+
+func request_fit(force: bool = false) -> void:
+	if camera_adjusted or not is_inside_tree(): return
+	_force_fit = _force_fit or force
+	if not _fit_queued:
+		_fit_queued = true
+		get_tree().process_frame.connect(_fit_after_layout,CONNECT_ONE_SHOT)
+
+func _fit_after_layout() -> void:
+	var force = _force_fit
+	_fit_queued = false
+	_force_fit = false
+	if not camera_adjusted and is_inside_tree():
+		_fit_camera(force,animations and Feedback.enabled)
+
+func _fit_camera(force: bool, animate: bool) -> void:
+	if cells.is_empty() or size.x <= 0 or size.y <= 0: return
 	var bounds = Rect2(H.to_pixel(H.coord(cells.keys()[0]),radius),Vector2.ZERO)
 	for k in cells:
 		bounds = bounds.expand(H.to_pixel(H.coord(k),radius))
-	zoom = minf(1.1,minf((size.x-160)/maxf(bounds.size.x+radius*2,1),(size.y-160)/maxf(bounds.size.y+radius*2,1)))
-	zoom = clampf(zoom,.28,1.5)
-	pan = -bounds.get_center()*zoom
+	for p in frontier+camera_frontier:
+		bounds = bounds.expand(H.to_pixel(p,radius))
+	bounds = bounds.grow(radius)
+	var margin = (size*.4).min(Vector2.ONE*CAMERA_MARGIN)
+	var visible_area = Rect2(margin,size-margin*2)
+	var moving = _camera_moving()
+	var fit_pan = _target_pan if moving else pan
+	var fit_zoom = _target_zoom if moving else zoom
+	var projected = Rect2(size*.5+fit_pan+bounds.position*fit_zoom,bounds.size*fit_zoom)
+	if not force and visible_area.grow(.01).encloses(projected): return
+	var fit_scale = visible_area.size/bounds.size
+	var next_zoom = minf(1.1,minf(fit_scale.x,fit_scale.y))
+	var next_pan = -bounds.get_center()*next_zoom
+	if moving and animate and next_pan.is_equal_approx(fit_pan) and is_equal_approx(next_zoom,fit_zoom): return
+	if _camera_tween: _camera_tween.kill()
+	_target_zoom = next_zoom
+	_target_pan = next_pan
+	if not animate or (pan.is_equal_approx(next_pan) and is_equal_approx(zoom,next_zoom)):
+		_set_camera(next_pan,next_zoom)
+		return
+	var from_pan = pan
+	var from_zoom = zoom
+	_camera_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_camera_tween.tween_method(func(t: float):
+		_set_camera(from_pan.lerp(next_pan,t),lerpf(from_zoom,next_zoom,t)),0.0,1.0,CAMERA_DURATION)
+
+func _camera_moving() -> bool:
+	return _camera_tween != null and _camera_tween.is_running()
+
+func _set_camera(next_pan: Vector2, next_zoom: float) -> void:
+	pan = next_pan
+	zoom = next_zoom
 	queue_redraw()
+
+func _adjust_camera() -> void:
+	if _camera_tween: _camera_tween.kill()
+	camera_adjusted = true
 
 func screen_position(p: Vector2i) -> Vector2:
 	return size*.5+pan+H.to_pixel(p,radius)*zoom
@@ -141,14 +212,16 @@ func _gui_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			dragging = event.pressed
 		elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
+			_adjust_camera()
 			var old = zoom
-			zoom = clampf(zoom*(1.12 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0/1.12),.25,2.3)
+			zoom = clampf(zoom*(1.12 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0/1.12),minf(.25,old),2.3)
 			pan = event.position-size*.5-(event.position-size*.5-pan)*(zoom/old)
 			queue_redraw()
 		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and interactive:
 			cell_clicked.emit(H.from_pixel((event.position-size*.5-pan)/zoom,radius))
 	if event is InputEventMouseMotion:
-		if dragging:
+		if dragging and event.relative != Vector2.ZERO:
+			_adjust_camera()
 			pan += event.relative
 		var cell = H.from_pixel((event.position-size*.5-pan)/zoom,radius)
 		if dragging or cell != hovered:

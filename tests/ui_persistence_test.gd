@@ -41,8 +41,8 @@ func run() -> void:
 	await process_frame
 	check(ui.game.players[0].turns == 1,"Full turn committed")
 	ui._view(0)
-	check(ui.board.pan == Vector2(43,17) and ui.board.zoom == .85,"Returning to a player restores their camera")
 	await create_timer(1.1).timeout
+	check(ui.board.pan != Vector2(43,17),"Returning to a player on a new turn fits their island")
 	tracking = false
 	print("TURN UI: added=",added," removed=",removed)
 	check(removed == 0 and added == 0,"Ordinary turn and toast expiry retain every UI node")

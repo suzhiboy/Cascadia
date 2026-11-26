@@ -54,6 +54,25 @@ func run() -> void:
 	ui._draft()
 	if effects != null:
 		check(not effects.flying_tile.visible and not effects.flying_token.visible,"Reduced motion disables piece flights immediately")
+	ui.settings.animations = true
+	ui._apply_comfort()
+	ui.start_game({"count":2},ui.Practice.SEED)
+	await process_frame
+	await process_frame
+	effects = ui.turn_effects
+	effects._show_score_changes([{"kind":"wildlife","label":GameLocale.text(ui.T.ANIMAL_NAMES.crab),"points":7}],{"tile_pos":[0,0],"animal_pos":[0,0]})
+	check(effects.score_labels.any(func(label): return label.visible),"A score label is in flight before switching islands")
+	ui._view(1)
+	check(not effects.score_labels.any(func(label): return label.visible),"Switching islands immediately clears the previous score labels")
+	ui._view(0)
+	ui._market_pick(0,false)
+	ui._draft()
+	ui._board_click(ui.game.frontier()[0])
+	var legal = ui.game.legal_animal_cells()
+	if legal.is_empty(): ui._action(ui._request_action("discard_animal"))
+	else: ui._board_click(legal[0])
+	ui._commit()
+	check(ui.view_player == 1 and not effects.score_labels.any(func(label): return label.visible),"Hotseat commit keeps the outgoing score labels off the next island")
 	if had_save:
 		var file = FileAccess.open("user://autosave.json",FileAccess.WRITE)
 		file.store_buffer(saved)

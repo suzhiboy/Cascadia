@@ -23,7 +23,8 @@ var lan_phase: Label
 var preview: Label
 var last_step := -1
 var last_view := -1
-var cameras := {}
+var last_turn: Array = []
+var manual_cameras := {}
 var last_board_state: Array = []
 
 func build(ui) -> void:
@@ -103,9 +104,24 @@ func update(state: Dictionary) -> void:
 	if state.lan:
 		var phase = GameLocale.text("正在选取") if game.pending.is_empty() else (GameLocale.text("等待确认") if game.ready_to_commit() else GameLocale.text("正在摆放"))
 		View.apply(lan_phase,&"text",GameLocale.text("轮到 ")+GameLocale.player_name(game.players[game.active].name)+" · "+phase+GameLocale.text(" · 可自由查看版图与计分卡"))
+	var turn = [game.active,game.players[game.active].turns,game.finished]
+	var turn_changed = last_turn != turn
+	var view_changed = last_view != state.view
+	if turn_changed:
+		last_turn = turn
+		manual_cameras.clear()
+	elif view_changed and board.camera_adjusted:
+		manual_cameras[last_view] = [board.pan,board.zoom]
+	if turn_changed or view_changed:
+		board.restore_camera(manual_cameras.get(state.view,[]))
+	if view_changed:
+		last_view = state.view
+		emblem.color = P.PLAYERS[last_view%P.PLAYERS.size()]
+		emblem.queue_redraw()
 	var active = state.view == game.active
 	var board_state = [viewed.board,game.pending if active else {},state.highlight,active,state.mode,state.step,state.can_act,game.finished,state.view,game.config.cards]
-	if last_board_state != board_state:
+	var board_changed = last_board_state != board_state
+	if board_changed:
 		last_board_state = board_state.duplicate(true)
 		View.apply(preview,&"visible",active and not game.pending.is_empty())
 		if preview.visible: View.apply(preview,&"text",Preview.describe(game))
@@ -114,7 +130,8 @@ func update(state: Dictionary) -> void:
 		board.highlight = state.highlight.duplicate()
 		var placing = board.interactive and not game.pending.is_empty()
 		var tile_mode = state.mode == "tile"
-		board.frontier = game.frontier() if placing and tile_mode else []
+		board.camera_frontier = game.frontier() if active and not game.finished and not state.practice else []
+		board.frontier = board.camera_frontier if placing and tile_mode else []
 		board.legal_animals = game.legal_animal_cells() if placing and not tile_mode else []
 		board.preview_key = H.key(Vector2i(game.pending.tile_pos[0],game.pending.tile_pos[1])) if placing and game.pending.tile_pos != null else ""
 		board.ghost_tile = int(game.pending.tile) if placing and tile_mode else 0
@@ -127,20 +144,5 @@ func update(state: Dictionary) -> void:
 			board.legal_animals = [Practice.TARGET] if state.step == Practice.Step.ANIMAL else []
 		board.placement_points = Preview.placement_points(game,board.legal_animals)
 		board.queue_redraw()
-	if last_view != state.view:
-		if last_view >= 0: cameras[last_view] = [board.pan,board.zoom]
-		last_view = state.view
-		emblem.color = P.PLAYERS[last_view%P.PLAYERS.size()]
-		emblem.queue_redraw()
-		if cameras.has(last_view):
-			board.pan = cameras[last_view][0]
-			board.zoom = cameras[last_view][1]
-		elif state.practice:
-			board.pan = Vector2(0,-52)
-			board.zoom = 1.1
-		else:
-			_center_new_view.call_deferred(last_view)
-		board.queue_redraw()
-
-func _center_new_view(view: int) -> void:
-	if is_inside_tree() and view == last_view: board.center_board()
+	if board_changed or turn_changed or view_changed:
+		board.request_fit(turn_changed or view_changed)

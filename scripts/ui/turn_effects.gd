@@ -43,7 +43,7 @@ func update(state: Dictionary) -> void:
 	var changed_turn = turns != last_turn
 	if changed_turn:
 		var next_scores = S.game_scores(game)
-		if Feedback.enabled and last_turn >= 0 and not previous_hand.is_empty() and ui.board_panel.last_view == last_actor:
+		if Feedback.enabled and last_turn >= 0 and not previous_hand.is_empty() and state.view == last_actor and ui.board_panel.last_view == last_actor:
 			_show_score_changes(Preview.changes(baseline[last_actor],next_scores[last_actor]),previous_hand)
 		baseline = next_scores
 	elif Feedback.enabled and previous_hand.is_empty() and not game.pending.is_empty() and state.view == game.active:
@@ -109,15 +109,18 @@ func _show_score_changes(changes: Array, hand: Dictionary) -> void:
 		var label = score_labels[i]
 		label.text = "%s %+d" % [part.label,part.points]
 		label.size = Vector2(180,34)
-		var bounds = ui.board.get_global_rect()
-		var anchor = bounds.position+ui.board.screen_position(cell)
-		label.position = (anchor-Vector2(90,42+level*31)).clamp(bounds.position,bounds.end-label.size)
+		_position_score(0.0,label,cell,level)
 		label.modulate.a = 1.0
 		label.show()
-		score_tween.tween_property(label,"position:y",label.position.y-23,.64).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		score_tween.tween_method(_position_score.bind(label,cell,level),0.0,23.0,.64).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		score_tween.tween_property(label,"modulate:a",0,.22).set_delay(.48)
 	score_tween.chain().tween_callback(func():
 		for label in score_labels: label.hide())
+
+func _position_score(rise: float, label: Label, cell: Vector2i, level: int) -> void:
+	var bounds = ui.board.get_global_rect()
+	var anchor = bounds.position+ui.board.screen_position(cell)
+	label.position = (anchor-Vector2(90,42+level*31+rise)).clamp(bounds.position,bounds.end-label.size)
 
 func stop_motion() -> void:
 	_end_flight()
