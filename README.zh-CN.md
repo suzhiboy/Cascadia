@@ -33,4 +33,6 @@ godot --headless --path . --script tests/ui_smoke.gd --quit-after 60
 godot --path . --resolution 1280x720 -- --playtest
 ```
 
-安装匹配版本的导出模板后可从 Godot 的「导出」面板打包。发行者可在项目设置 `updates/github_repository` 填入自己的 `owner/repo`，留空会关闭更新检查。
+设置中可切换简体中文和英语。终局选择「调查轨迹」查看各轮分数、最佳一步与各人的终局地图。
+
+安装匹配版本的导出模板后，可使用 Windows Desktop、macOS、Linux 和 Web 四个预设。Web 导出目录需通过 HTTP(S) 提供。Web 隐藏联机和更新入口。Linux 与 macOS 发现新版后提供发布页按钮。发行者可在项目设置 `updates/github_repository` 填入自己的 `owner/repo`，留空会关闭更新检查。

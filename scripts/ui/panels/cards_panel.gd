@@ -14,8 +14,8 @@ func build(ui) -> void:
 	custom_minimum_size.x = 330
 	var content = ui._vbox(10)
 	add_child(ui._margin(content,8))
-	content.add_child(ui._heading("野生动物手记",27,P.DARK))
-	content.add_child(ui._label("点击卡片，查看完整计分规则",16,P.MUTED))
+	content.add_child(ui._heading(GameLocale.text("野生动物手记"),27,P.DARK))
+	content.add_child(ui._label(GameLocale.text("点击卡片，查看完整计分规则"),16,P.MUTED))
 	for animal in T.ANIMALS:
 		var button = ui._styled(ui._button("",func():ui.show_card(animal,ui.game.config.cards[animal])),"CardButton")
 		button.custom_minimum_size = Vector2(285,115)
@@ -45,7 +45,7 @@ func build(ui) -> void:
 		info.alignment = BoxContainer.ALIGNMENT_CENTER
 		var title = ui._hbox(8)
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		title.add_child(ui._heading(T.ANIMAL_NAMES[animal],22,P.INK,650))
+		title.add_child(ui._heading(GameLocale.text(T.ANIMAL_NAMES[animal]),22,P.INK,650))
 		var letter = ui._heading("",15,P.CREAM,700)
 		var chip = ui._chip(letter)
 		chip.add_theme_stylebox_override("panel",P.chip(P.ANIMALS[animal].darkened(.15),P.ANIMALS[animal].darkened(.3),6,7,0))
@@ -58,9 +58,9 @@ func build(ui) -> void:
 		cards[animal] = {"letter":letter,"description":description,"points":points,"diagram":diagram}
 		row.add_child(info)
 		content.add_child(button)
-	results = ui._button("查看完整计分",ui.show_results,true)
+	results = ui._button(GameLocale.text("查看完整计分"),ui.show_results,true)
 	content.add_child(results)
-	hint = ui._wrap("栖息地连成片，动物各有所爱。\n计分在旅程结束后进行。",16,P.MUTED)
+	hint = ui._wrap(GameLocale.text("栖息地连成片，动物各有所爱。\n计分在旅程结束后进行。"),16,P.MUTED)
 	content.add_child(hint)
 
 func update(state: Dictionary) -> void:
@@ -75,6 +75,6 @@ func update(state: Dictionary) -> void:
 			row.diagram.queue_redraw()
 		View.apply(row.points,&"visible",game.finished)
 		if game.finished:
-			View.apply(row.points,&"text","%d 分" % state.reports[state.view].wildlife[animal].points)
+			View.apply(row.points,&"text",GameLocale.text("%d 分") % state.reports[state.view].wildlife[animal].points)
 	View.apply(results,&"visible",game.finished)
 	View.apply(hint,&"visible",not game.finished)

@@ -16,8 +16,10 @@ Field observations, connected habitats, area bonuses and unused nature tokens de
 
 Replay a date-seeded solo survey to improve your local best. Starting a daily survey uses the regular offline autosave slot. Field records show completed offline games, best scores by player count, card averages and daily bests. Local seats may be human, easy AI or standard AI. The speed setting shortens the pauses between computer actions.
 
+Switch between English and Simplified Chinese in Settings. The results screen opens a survey history with one score line per seat, the best move and final island maps.
+
 ## Build and verify
 
-Import with the matching editor and install its export templates. Use the export panel or `godot --headless --export-release "Windows Desktop" build/windows/TidetraceIsles.exe`. The optional project setting `updates/github_repository` accepts the publisher's GitHub owner/repo. An empty value disables update requests.
+Import with the matching editor and install its export templates. The export panel includes Windows, macOS, Linux and Web. Serve Web exports over HTTP(S). Web games omit LAN and update controls. Other desktop platforms can open the release page when an update is available. For Windows, use `godot --headless --export-release "Windows Desktop" build/windows/TidetraceIsles.exe`. The optional project setting `updates/github_repository` accepts the publisher's GitHub owner/repo. An empty value disables update requests.
 
 Run `tests/run_tests.gd` and the individual test scripts with Godot's headless script runner. Start the rendered practice, solo and four-seat acceptance run with `godot --path . --resolution 1280x720 -- --playtest`. Use `tools/test_lan_processes.py` for the multi-process network test. Saves and preferences live in Godot's per-game user directory.

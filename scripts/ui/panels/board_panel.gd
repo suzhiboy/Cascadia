@@ -43,7 +43,7 @@ func build(ui) -> void:
 	divider.add_theme_stylebox_override("separator",ui._rule(Color(P.CREAM.r,P.CREAM.g,P.CREAM.b,.25)))
 	caption.add_child(divider)
 	if not ui._practicing:
-		caption.add_child(ui._label("回合",19,P.SAGE))
+		caption.add_child(ui._label(GameLocale.text("回合"),19,P.SAGE))
 		turns = ui._heading("",21,P.CREAM,640)
 		caption.add_child(turns)
 		trail = Ornament.make("progress",Vector2(190,16),P.GOLD_LIGHT,P.CREAM)
@@ -70,8 +70,8 @@ func build(ui) -> void:
 	board.cell_clicked.connect(ui._board_click)
 	add_child(board)
 	var navigation = ui._hbox(8)
-	var hints = [["滚轮","缩放"],["中键","拖动"],["Q","E","旋转"]]
-	if not ui._practicing: hints.append(["Tab","得分"])
+	var hints = [[GameLocale.text("滚轮"),GameLocale.text("缩放")],[GameLocale.text("中键"),GameLocale.text("拖动")],["Q","E",GameLocale.text("旋转")]]
+	if not ui._practicing: hints.append(["Tab",GameLocale.text("得分")])
 	for hint in hints:
 		for i in range(hint.size()-1): navigation.add_child(ui._keycap(hint[i]))
 		navigation.add_child(ui._label(hint[-1],16,P.SAGE))
@@ -79,14 +79,14 @@ func build(ui) -> void:
 		gap.custom_minimum_size.x = 10
 		navigation.add_child(gap)
 	ui._spacer(navigation)
-	navigation.add_child(ui._styled(ui._button("居中版图",board.center_board),"GhostButton"))
+	navigation.add_child(ui._styled(ui._button(GameLocale.text("居中版图"),board.center_board),"GhostButton"))
 	add_child(navigation)
 
 func update(state: Dictionary) -> void:
 	var game = state.game
 	var viewed = game.players[state.view]
-	View.apply(title,&"text",viewed.name+" 的生态版图")
-	View.apply(nature,&"text","自然标记 %d" % int(viewed.nature))
+	View.apply(title,&"text",GameLocale.player_name(viewed.name)+GameLocale.text(" 的生态版图"))
+	View.apply(nature,&"text",GameLocale.text("自然标记 %d") % int(viewed.nature))
 	if turns != null:
 		View.apply(turns,&"text","%d / 20" % int(viewed.turns))
 		if trail.value != viewed.turns:
@@ -94,15 +94,15 @@ func update(state: Dictionary) -> void:
 			trail.queue_redraw()
 	if state.practice and last_step != state.step:
 		last_step = state.step
-		var progress = "完成" if last_step == Practice.Step.REVIEW else "%d / 6" % (last_step+1)
-		View.apply(lesson_progress,&"text","首回合练习  ·  "+progress)
-		View.apply(lesson_title,&"text",Practice.LESSONS[last_step][0])
-		View.apply(lesson_text,&"text",Practice.LESSONS[last_step][1])
+		var progress = GameLocale.text("完成") if last_step == Practice.Step.REVIEW else "%d / 6" % (last_step+1)
+		View.apply(lesson_progress,&"text",GameLocale.text("首回合练习  ·  ")+progress)
+		View.apply(lesson_title,&"text",GameLocale.text(Practice.LESSONS[last_step][0]))
+		View.apply(lesson_text,&"text",GameLocale.text(Practice.LESSONS[last_step][1]))
 		Feedback.reveal(lesson,.18)
 	View.apply(lan_phase,&"visible",state.lan)
 	if state.lan:
-		var phase = "正在选取" if game.pending.is_empty() else ("等待确认" if game.ready_to_commit() else "正在摆放")
-		View.apply(lan_phase,&"text","轮到 "+game.players[game.active].name+" · "+phase+" · 可自由查看版图与计分卡")
+		var phase = GameLocale.text("正在选取") if game.pending.is_empty() else (GameLocale.text("等待确认") if game.ready_to_commit() else GameLocale.text("正在摆放"))
+		View.apply(lan_phase,&"text",GameLocale.text("轮到 ")+GameLocale.player_name(game.players[game.active].name)+" · "+phase+GameLocale.text(" · 可自由查看版图与计分卡"))
 	var active = state.view == game.active
 	var board_state = [viewed.board,game.pending if active else {},state.highlight,active,state.mode,state.step,state.can_act,game.finished,state.view,game.config.cards]
 	if last_board_state != board_state:

@@ -1,0 +1,1202 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Tidetrace Isles\n"
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "旅行者 %d"
+msgstr "Observer %d"
+
+msgid "四枚同种动物过剩，已自动更换。"
+msgstr "All four wildlife tokens matched and were replaced."
+
+msgid "请在选取地块前使用。"
+msgstr "Use this before drafting."
+
+msgid "请选择至少一枚动物。"
+msgstr "Select at least one animal."
+
+msgid "无效的动物选择。"
+msgstr "Invalid wildlife selection."
+
+msgid "自然标记不足。"
+msgstr "Not enough nature tokens."
+
+msgid "每回合仅可免费更换一次三枚同种动物。"
+msgstr "You may replace matching triples for free only once per turn."
+
+msgid "请选择三枚同种动物。"
+msgstr "Select the three matching animals."
+
+msgid "请先完成当前回合。"
+msgstr "Finish the current turn first."
+
+msgid "请选择市场中的地块与动物。"
+msgstr "Select a tile and an animal from the market."
+
+msgid "跨组选取需要一枚自然标记。"
+msgstr "Drafting across columns costs one nature token."
+
+msgid "请先从市场选取。"
+msgstr "Draft from the market first."
+
+msgid "地块须与已有地块共边，且不能重叠。"
+msgstr "Place the tile beside an existing tile in an empty space."
+
+msgid "动物须放在有对应图标、且尚未入住的地块。"
+msgstr "Choose an unoccupied tile marked with this species."
+
+msgid "请先选取动物。"
+msgstr "Select an animal first."
+
+msgid "请摆放地块，并安置动物或选择放归。"
+msgstr "Place the tile, then settle or release the animal."
+
+msgid "未知的联机操作。"
+msgstr "Unknown network action."
+
+msgid "存档不兼容"
+msgstr "Incompatible save"
+
+msgid "巡护潮池"
+msgstr "Patrolled tide pool"
+
+msgid "掘穴守潮"
+msgstr "Burrow at Low Tide"
+
+msgid "每只招潮蟹得 2 分。自己的地块有泥滩，再加 1 分。"
+msgstr "Each fiddler crab scores 2 points, plus 1 if its tile contains mudflat."
+
+msgid "选择掘穴地点。"
+msgstr "Choose a site for each burrow."
+
+msgid "开口迎潮"
+msgstr "Open Entrances"
+
+msgid "每只招潮蟹得 1 分。每两条面向图外空位的边再加 1 分，余下一条也加 1 分。"
+msgstr "Each fiddler crab scores 1 point, plus 1 per two edges facing unbuilt space. Round odd edge counts up."
+
+msgid "把蟹穴放在有多个出入口的岸边。"
+msgstr "Leave several entrances open along the shore."
+
+msgid "滩面食盘"
+msgstr "Shared Feeding Grounds"
+
+msgid "共边连通的招潮蟹共享食场。每只得 1 分，群旁已铺且无动物的地块每格再得 3 分，同格只算一次。每群最多计入蟹数两倍的食场格。"
+msgstr "Crabs connected edge to edge share a feeding ground. Score 1 per crab and 3 per adjacent unoccupied tile, counting shared tiles once. Count at most two feeding tiles per crab in the colony."
+
+msgid "让整群蟹围住更多空滩。"
+msgstr "Leave empty feeding flats around the whole colony."
+
+msgid "潮线采样"
+msgstr "Tide-Line Survey"
+
+msgid "共边连通的招潮蟹每只得 1 分。查看群外相邻地块朝向蟹群的边，每种不同地貌再得 1 分。每群加分上限为蟹数的两倍。"
+msgstr "Score 1 per crab in an edge-connected colony. Add 1 for each distinct terrain on an adjacent outer tile edge facing the colony. The bonus is capped at twice the colony size."
+
+msgid "用地块朝向给同群蟹引入不同潮线。"
+msgstr "Rotate the surrounding tiles to expose different shorelines."
+
+msgid "岩面啃藻"
+msgstr "Algae on Rock"
+
+msgid "每只帽贝得 1 分。本格及六个邻格中，每个带岩礁的地块再得 1 分，最多加 2 分。"
+msgstr "Each limpet scores 1 point. Its own tile and the six neighboring spaces each score 1 more if they contain reef, up to 2 extra points."
+
+msgid "给帽贝安排相连的岩面。"
+msgstr "Give limpets a stretch of reef to graze."
+
+msgid "两岸消浪"
+msgstr "Wave Shelter"
+
+msgid "每只帽贝得 1 分。沿穿过它的三条直线查看紧邻两侧。两侧都有地块的直线每条加 1 分。"
+msgstr "Each limpet scores 1 point. Check the three axes through its tile. Each axis with tiles immediately on both sides adds 1."
+
+msgid "在两侧都有遮蔽的狭口落脚。"
+msgstr "Settle in a narrow gap with shelter on both sides."
+
+msgid "归壳潮痕"
+msgstr "Home Scar"
+
+msgid "每只帽贝得 1 分。若本格至少有一条边与邻格的对边地貌相同，加 2 分一次。"
+msgstr "Each limpet scores 1 point. If any of its edges matches the facing terrain on an adjacent tile, add 2 points once."
+
+msgid "旋转地块留下连续的归壳路径。"
+msgstr "Rotate a tile to make a continuous path back to the home scar."
+
+msgid "壳层标本"
+msgstr "Shell Collection"
+
+msgid "每只帽贝得 1 分。记录所有帽贝所在格的地貌组合，每种组合再得 1 分。双地貌的顺序与朝向均忽略。"
+msgstr "Score 1 per limpet and 1 per distinct terrain combination under all limpets. Ignore terrain order and tile rotation."
+
+msgid "分散帽贝，收齐不同底质上的壳层。"
+msgstr "Spread limpets across different substrates."
+
+msgid "迎风起飞"
+msgstr "Into the Wind"
+
+msgid "每只燕鸥得 1 分。若有相连的两条边都面向图外空位，再加 2 分一次。"
+msgstr "Each tern scores 1 point. If two consecutive edges face unbuilt space, add 2 points once."
+
+msgid "预留足够宽的起飞口。"
+msgstr "Leave a wide gap for takeoff."
+
+msgid "掠岸航道"
+msgstr "Coastal Flyway"
+
+msgid "每只燕鸥得 1 分。沿六个方向各看两格。第一格有地块、第二格为图外空位的方向各加 1 分，最多加 2 分。"
+msgstr "Each tern scores 1 point. Look two spaces along each of six directions. Add 1 for each direction where the first space has a tile and the second is unbuilt, up to 2 extra points."
+
+msgid "沿一格宽的滩头起飞。"
+msgstr "Fly across a single tile at the head of a beach."
+
+msgid "衔鱼归巢"
+msgstr "Fish for the Nest"
+
+msgid "每只燕鸥得 1 分。若从本格经至多两步共边的已铺地块可到达弹涂鱼，加 2 分一次。多只鸟可看见同一条鱼。"
+msgstr "Each tern scores 1 point. Add 2 once if it can reach a mudskipper in up to two edge-to-edge steps across placed tiles. Multiple terns can use the same fish."
+
+msgid "沿已铺的岸线把巢设在鱼群附近。"
+msgstr "Nest within reach of fish along a connected shore."
+
+msgid "迁徙落脚点"
+msgstr "Migration Stops"
+
+msgid "每只燕鸥得 1 分。从每只鸟沿直线跨过一格已铺地块，看第二格。第二格含砾滩或盐沼即为落脚点。全岛每个落脚点只加 1 分，总加分最多为燕鸥数的两倍。"
+msgstr "Each tern scores 1 point. Look straight across one placed tile to the next space. A tile there containing shingle or salt marsh is a stop. Each distinct stop adds 1 across the whole island, up to twice the number of terns."
+
+msgid "分开航线，勘察不同的落脚点。"
+msgstr "Spread out the flight paths to discover more stops."
+
+msgid "湿泥换气"
+msgstr "Breathing on the Flat"
+
+msgid "每只弹涂鱼得 1 分。自己的地块含泥滩或潮池，再加 2 分一次。"
+msgstr "Each mudskipper scores 1 point. Add 2 once if its tile contains mudflat or tide pool."
+
+msgid "把鱼放回湿润的底质。"
+msgstr "Settle on damp ground."
+
+msgid "跨滩换位"
+msgstr "A Change of Ground"
+
+msgid "每只弹涂鱼得 1 分。相邻格与本格完全没有共同地貌，每格加 1 分，最多加 2 分。"
+msgstr "Each mudskipper scores 1 point. Add 1 per neighboring tile sharing no terrain with its home tile, up to 2 extra points."
+
+msgid "让鱼能从一种底质跳到另一种。"
+msgstr "Leave a different substrate within jumping distance."
+
+msgid "干湿轮替"
+msgstr "Wet and Dry"
+
+msgid "每只弹涂鱼得 1 分。自己的地块和相邻格合起来同时出现泥滩与潮池，再加 2 分一次。双地貌可同时提供两种。"
+msgstr "Each mudskipper scores 1 point. Add 2 once if its tile and neighboring tiles together contain both mudflat and tide pool. A single mixed tile can supply both."
+
+msgid "在陆上进食区与水下避难处之间留出转换空间。"
+msgstr "Keep a route between feeding grounds and wet refuges."
+
+msgid "横穿潮沟"
+msgstr "Across the Channel"
+
+msgid "每只弹涂鱼得 2 分。穿过它的每条轴线，若两个紧邻格能分别提供泥滩和潮池，加 2 分。同一轴线只加一次。"
+msgstr "Each mudskipper scores 2 points. Each axis through it adds 2 if one immediately adjacent tile supplies mudflat and its opposite supplies tide pool. Count each axis once."
+
+msgid "把鱼放在互为对岸的泥滩与潮池之间。"
+msgstr "Place the fish between a mudflat and a pool on opposite banks."
+
+msgid "翻石觅食"
+msgstr "Turning Stones"
+
+msgid "每只水獭得 1 分。六个邻格内每出现一种猎物再加 1 分。猎物包括招潮蟹、帽贝和弹涂鱼。"
+msgstr "Each otter scores 1 point plus 1 per distinct prey species on adjacent tiles. Prey are fiddler crabs, limpets and mudskippers."
+
+msgid "把水獭放到食物种类不同的岸边。"
+msgstr "Choose a shore with different kinds of prey."
+
+msgid "背风育幼湾"
+msgstr "Sheltered Nursery"
+
+msgid "每只水獭得 1 分。若连续三条边的外侧都有地块，再加 2 分一次。连续可跨越六边形的首尾。"
+msgstr "Each otter scores 1 point. Add 2 once if three consecutive edges have tiles beside them. The run can wrap around the tile."
+
+msgid "用连续岸壁围出背风湾。"
+msgstr "Build a continuous bank around the nursery."
+
+msgid "上岸晾毛"
+msgstr "Drying Ashore"
+
+msgid "每只水獭得 1 分。若紧邻一格尚无动物的砾滩或岩礁，加 4 分一次。其他水獭可以共用这格岸。"
+msgstr "Each otter scores 1 point. Add 4 once if an adjacent unoccupied tile contains shingle or reef. Multiple otters may share the same shore."
+
+msgid "为水獭保留一块空闲的干岸。"
+msgstr "Keep a dry landing place open."
+
+msgid "水域巡护"
+msgstr "Pool Patrol"
+
+msgid "每只水獭得 1 分。水獭本格或共边邻格有潮池，即巡护该片潮池。对边同为潮池的地块相连成片。每片按地块数加分，最多加 3 分，多只水獭共用只算一次。"
+msgstr "Each otter scores 1 point. It patrols any tide pool on its tile or an adjacent tile. Matching pool edges connect tiles into one pool. Each patrolled pool scores 1 per tile up to 3; count it only once across all otters."
+
+msgid "在不同潮池之间安排巡护范围。"
+msgstr "Distribute patrols across different pools."
+
+msgid "招潮蟹"
+msgstr "Fiddler crab"
+
+msgid "帽贝"
+msgstr "Limpet"
+
+msgid "弹涂鱼"
+msgstr "Mudskipper"
+
+msgid "燕鸥"
+msgstr "Tern"
+
+msgid "水獭"
+msgstr "Otter"
+
+msgid "岩礁"
+msgstr "Reef"
+
+msgid "盐沼"
+msgstr "Salt marsh"
+
+msgid "砾滩"
+msgstr "Shingle"
+
+msgid "泥滩"
+msgstr "Mudflat"
+
+msgid "潮池"
+msgstr "Tide pool"
+
+msgid "联机协议版本不兼容。"
+msgstr "Incompatible network protocol."
+
+msgid "无效的联机命令。"
+msgstr "Invalid network command."
+
+msgid "无效的联机参数。"
+msgstr "Invalid network arguments."
+
+msgid "房主"
+msgstr "Host"
+
+msgid "只有未开始的房主可以开局。"
+msgstr "Only the host can start a game, before play begins."
+
+msgid "请等待所有玩家连接并准备。"
+msgstr "Wait for all players to connect and ready up."
+
+msgid "重连超时，联机房间已结束。"
+msgstr "Reconnection timed out. The room has closed."
+
+msgid "玩家重连超时，房间已结束。"
+msgstr "A player could not reconnect in time. The room has closed."
+
+msgid "还没轮到这位玩家。"
+msgstr "It is another player's turn."
+
+msgid "操作已处理，请勿重复发送。"
+msgstr "This action has already been processed."
+
+msgid "版本不同，请两位玩家使用同一份最新游戏包。"
+msgstr "Version mismatch. All players need the same game version."
+
+msgid "房间已开局，不能加入新玩家。"
+msgstr "This game has started and is closed to new players."
+
+msgid "房间已满，请选择其他房间。"
+msgstr "The room is full. Choose another room."
+
+msgid "旅行者"
+msgstr "Observer"
+
+msgid "连接失败。请检查房主热点 IPv4 地址、UDP 35721 防火墙放行及热点是否允许设备互访。"
+msgstr "Connection failed. Check the host hotspot's IPv4 address, firewall access to UDP 35721, and whether the hotspot allows devices to communicate."
+
+msgid "入住："
+msgstr "Resident: "
+
+msgid "可入住："
+msgstr "Suitable for: "
+
+msgid "选取一组"
+msgstr "Choose a pair"
+
+msgid "点击左侧金边的第 1 组。点地块或弹涂鱼都可以，两件会一起选中。"
+msgstr "Click the gold-framed first column on the left. Clicking its tile or mudskipper selects both."
+
+msgid "领取样区"
+msgstr "Take your pair"
+
+msgid "点击市集下方的「确认选取」，把这组地块和弹涂鱼领取样区。"
+msgstr "Click “Confirm draft” below the market to collect the tile and mudskipper."
+
+msgid "转一转地块"
+msgstr "Rotate the tile"
+
+msgid "按 E 或点击「E ↷」，把新地块的泥滩转向右下方，对齐起始地块的泥滩。"
+msgstr "Press E or click “E ↷” to turn the new tile's mudflat toward the lower right, matching the starter mudflat."
+
+msgid "接长泥滩"
+msgstr "Extend the mudflat"
+
+msgid "点击棋盘上的金色六角空位。同类生境接边，会连成更大的区域。"
+msgstr "Click the gold hex space. Matching terrain along a shared edge forms a larger habitat."
+
+msgid "安置弹涂鱼"
+msgstr "Settle the mudskipper"
+
+msgid "点击新地块上的白色圆圈。弹涂鱼只能住进带弹涂鱼图标、还没住动物的格子。"
+msgstr "Click the white circle on the new tile. Mudskippers need an empty tile marked with their species."
+
+msgid "完成回合"
+msgstr "Finish turn"
+
+msgid "看一眼上方的试摆分差，再点击「完成回合」。确认前可以撤回摆放。"
+msgstr "Check the preview above, then click “Finish turn.” You can undo placements until you confirm."
+
+msgid "练习完成"
+msgstr "Practice complete"
+
+msgid "首回合已经落定。点击「查看练习得分」，看看生境与动物分别怎样得分。"
+msgstr "The first turn is complete. Click “Practice score” to see how habitats and wildlife scored."
+
+msgid "选取一组地块与动物，开始构筑你的生态世界。"
+msgstr "Draft a tile and an animal to begin your island."
+
+msgid "潮 间 带 · 观 测 手 记"
+msgstr "INTERTIDAL FIELD NOTES"
+
+msgid "潮痕群岛"
+msgstr "Tidetrace Isles"
+
+msgid "退潮后，礁石与泥滩渐渐露出。\n沿着潮线，为五种动物留下栖身之处。"
+msgstr "As the tide ebbs, reefs and mudflats emerge.\nFollow the shoreline and find a home for five species."
+
+msgid "开始新的旅程"
+msgstr "New expedition"
+
+msgid "首回合练习"
+msgstr "Practice first turn"
+
+msgid "局域网联机"
+msgstr "LAN multiplayer"
+
+msgid "继续上次旅程"
+msgstr "Continue expedition"
+
+msgid "玩法说明"
+msgstr "Field guide"
+
+msgid "设置"
+msgstr "Settings"
+
+msgid "退出游戏"
+msgstr "Quit game"
+
+msgid "1–4 位旅行者   /   20 回合   /   离线游玩"
+msgstr "1–4 observers   /   20 turns each   /   Offline play"
+
+msgid "低潮调查 · 群岛生态记录"
+msgstr "Low-tide survey · Island ecology"
+
+msgid "已连接 %d / %d 位旅行者。"
+msgstr "%d / %d observers connected."
+
+msgid "加入  %s  ·  %s/%s"
+msgstr "Join  %s  ·  %s/%s"
+
+msgid "正在连接房间……"
+msgstr "Connecting to room…"
+
+msgid "已连接房主，等待开局。"
+msgstr "Connected to host. Waiting for the game to start."
+
+msgid "连接中断，正在尝试重连（最多 120 秒）。"
+msgstr "Connection lost. Reconnecting for up to 120 seconds."
+
+msgid "当前玩家断线，等待重连。"
+msgstr "The active player disconnected. Waiting for reconnection."
+
+msgid "正在连接……"
+msgstr "Connecting…"
+
+msgid "轮到 "
+msgstr "Turn: "
+
+msgid "请选择地块与动物。"
+msgstr "Choose a tile and an animal."
+
+msgid "正在摆放，可等待或查看其他版图。"
+msgstr "Placing pieces. You can wait or explore other boards."
+
+msgid "联机提示"
+msgstr "Network notice"
+
+msgid "重新连接"
+msgstr "Reconnect"
+
+msgid "练习旅行者"
+msgstr "Practice observer"
+
+msgid "无法读取存档"
+msgstr "Could not load save"
+
+msgid "存档无法读取。可以关闭此窗口并开始新的旅程。"
+msgstr "The save could not be read. Close this window to start a new expedition."
+
+msgid "旅程已恢复，继续上次的选择。"
+msgstr "Expedition restored. Continue where you left off."
+
+msgid "自动存档写入失败，请检查磁盘空间。"
+msgstr "Autosave failed. Check available disk space."
+
+msgid "旅程完成"
+msgstr "Expedition complete"
+
+msgid "回合完成"
+msgstr "Turn complete"
+
+msgid "动物已刷新"
+msgstr "Wildlife refreshed"
+
+msgid "选择完成后，点击「确认选取」。"
+msgstr "When ready, click “Confirm draft.”"
+
+msgid "试着旋转一次，看看地块的朝向怎样变化。"
+msgstr "Try rotating once to see how the terrain edges move."
+
+msgid "点击虚线空格放地块；也可先切换到「放动物」。"
+msgstr "Click an outlined space to place the tile, or switch to “Place animal” first."
+
+msgid "先转到泥滩对齐，再点击金色空位。"
+msgstr "Rotate to align the mudflats, then click the gold space."
+
+msgid "请点亮框标出的练习落点。"
+msgstr "Click the highlighted practice space."
+
+msgid "请先从左侧市集选取一组地块与动物。"
+msgstr "Choose a tile and an animal from the market on the left."
+
+msgid "点击带白圈的栖息地安置动物，也可选择放归。"
+msgstr "Click a habitat with a white circle to settle the animal, or release it."
+
+msgid "泥滩接上了！把弹涂鱼放到新地块上。"
+msgstr "The mudflats connect! Place the mudskipper on the new tile."
+
+msgid "地块与动物均可继续调整。满意后点击「完成回合」。"
+msgstr "You can still adjust both pieces. Click “Finish turn” when ready."
+
+msgid "动物已选择栖息地，接着摆放地块。"
+msgstr "The animal has a home. Place the tile next."
+
+msgid "弹涂鱼已安置。可以确认这一回合，也可以撤回重试。"
+msgstr "Mudskipper settled. Confirm the turn or undo and try again."
+
+msgid "请等待轮到自己且连接恢复后再操作。"
+msgstr "Wait for your turn and an active connection."
+
+msgid "正在同步操作……"
+msgstr "Syncing action…"
+
+msgid "，轮到你了。选择下一组地块与动物。"
+msgstr ", your turn. Choose the next tile and animal."
+
+msgid "这一回合已落定，练习数据不会保存。"
+msgstr "Practice turn complete. Practice progress is not saved."
+
+msgid "点击计分项目，可在版图上查看得分依据。"
+msgstr "Click a score category to highlight its contributing tiles."
+
+msgid "%s：%d 分。金色边框显示参与计分的地块。"
+msgstr "%s: %d points. Gold borders mark the scoring tiles."
+
+msgid "%s：最大相连区域 %d 分，奖励 %d 分。"
+msgstr "%s: largest habitat %d points, bonus %d points."
+
+msgid "重置图例"
+msgstr "Reset example"
+
+msgid "点击圆片移除，再点空格恢复，观察分数变化。共边才算相邻；图例只计算本张动物卡，不影响对局。"
+msgstr "Click a token to remove it, then click the same space to restore it. Neighbors share an edge. The examples score only this card."
+
+msgid "查看本项得分 · %d 分"
+msgstr "Inspect score · %d pts"
+
+msgid "潮间带调查手册"
+msgstr "Intertidal Field Guide"
+
+msgid "看图认识动物计分"
+msgstr "Wildlife scoring examples"
+
+msgid "试着在图例中移走一枚动物，再放回原处。上方按钮可翻阅本局采用的五张观察卡。"
+msgstr "Remove a token from the example and put it back. The buttons above open the five cards used this game."
+
+msgid "01  选一组，放两次"
+msgstr "01  Draft two pieces"
+
+msgid "挑一列，把岛块和动物一起取走。沿任意一条外缘扩建海岸。动物可以先安置，也可等新岛块落定后再安排。"
+msgstr "Choose one column and take its tile and animal. Extend the island at any outer edge. You can settle the animal before or after placing the new tile."
+
+msgid "02  为动物找到家"
+msgstr "02  Find a home"
+
+msgid "寻找印有该物种图案的空地块。每格只容纳一只动物。选择放归会将动物送回袋中。在只有一种图案的地块安置动物，可领取一枚自然标记。"
+msgstr "Choose an empty tile showing the species. Each tile holds one animal. Release an animal to return it to the bag. Settling on a tile with just one species icon earns a nature token."
+
+msgid "03  自然标记与动物过剩"
+msgstr "03  Nature tokens and overpopulation"
+
+msgid "选取前可以花一枚自然标记，把不同列的两件组件配成一组，或重抽指定的动物。仍有标记就能再次使用。市集中若出现三只同种动物，这回合可免费换掉这三只一次。四只同种会自动重抽。"
+msgstr "Before drafting, spend a nature token to choose pieces from different columns or replace selected animals. You may spend more tokens in the same turn. If three market animals match, you may replace all three once for free. Four matching animals are automatically replaced."
+
+msgid "04  连接岛岸"
+msgstr "04  Connect the shore"
+
+msgid "转动岛块，让同色生境沿边相接。每种颜色只测量最大的一片，面积每格记一分。动物的得分条件请翻阅右侧观察卡。"
+msgstr "Rotate tiles to join matching terrain along shared edges. Only the largest patch of each habitat scores, at one point per tile. Check the cards on the right for wildlife scores."
+
+msgid "05  独行与同行"
+msgstr "05  Solo and local play"
+
+msgid "独自调查时，每次交接后两列剩余组件的末项各随潮水离开，新组件由上方补入。多人同行时只填空缺。每位调查员各记录二十回合。"
+msgstr "In solo play, the last remaining tile and animal in their respective market rows wash away after each turn. New pieces enter from the top. In multiplayer, only empty slots refill. Each observer plays twenty turns."
+
+msgid "06  终局计分"
+msgstr "06  Final scoring"
+
+msgid "将观察卡分数、生境面积、面积奖励及手中的自然标记相加。独自调查的七格生境奖两分。两人比较同色面积，领先者奖两分，持平各一分。三至四人按名次奖三分、一分；两人同居首位各两分，更多人同居首位各一分，并列第二没有奖励。总分持平先比标记数，再持平便共享胜利。"
+msgstr "Add wildlife cards, habitat sizes, habitat bonuses and remaining nature tokens. In solo play a habitat of at least seven tiles earns two bonus points. With two players the leader for each habitat earns two points, or one each for a tie. With three or four players, first scores three and second one. Two tied leaders earn two each; three or more earn one each. Tied second earns nothing. Break overall ties by remaining tokens, then share the win."
+
+msgid "操作与存档"
+msgstr "Controls and saving"
+
+msgid "点击地图试摆，Q 和 E 可逐边转向。滚轮调节视野，按住中键平移。确认回合前可撤回摆放。重抽后结果立即生效。下次启动时可从主菜单接续本地调查。"
+msgstr "Click to preview placements. Q and E rotate one step. Scroll to zoom; drag with the middle button to pan. Undo placements before confirming your turn. Redraws take effect immediately. Resume your local expedition from the main menu."
+
+msgid "房主创建 2–4 人房间；可从局域网列表加入，也可输入主机 IP。联机局使用独立状态，不覆盖离线存档。"
+msgstr "Host a room for 2–4 players. Join from the LAN list or enter the host's IP. Network games keep their own state and preserve your offline save."
+
+msgid "正在搜索局域网房间……"
+msgstr "Searching the LAN for rooms…"
+
+msgid "房主名字"
+msgstr "Host name"
+
+msgid "%d 人联机"
+msgstr "%d-player LAN game"
+
+msgid "创建房间"
+msgstr "Host room"
+
+msgid "创建房间失败：端口 %d 不可用。"
+msgstr "Could not host: port %d is unavailable."
+
+msgid "房间已创建，等待另一位旅行者加入。"
+msgstr "Room ready. Waiting for another observer."
+
+msgid "主机 IP，例如 192.168.1.20"
+msgstr "Host IP, e.g. 192.168.1.20"
+
+msgid "你的名字"
+msgstr "Your name"
+
+msgid "申请第 %d 个座位"
+msgstr "Request seat %d"
+
+msgid "加入房间"
+msgstr "Join room"
+
+msgid "正在连接房主……"
+msgstr "Connecting to host…"
+
+msgid "无法连接到房间。"
+msgstr "Could not connect to room."
+
+msgid "默认端口 35721。Windows 首次联网时，请允许应用访问专用网络。"
+msgstr "Default port 35721. On Windows, allow access on private networks when prompted."
+
+msgid "座位 %d · %s · %s"
+msgstr "Seat %d · %s · %s"
+
+msgid "空位"
+msgstr "Empty"
+
+msgid "已准备"
+msgstr "Ready"
+
+msgid "未准备"
+msgstr "Not ready"
+
+msgid "未连接"
+msgstr "Offline"
+
+msgid "修改名字"
+msgstr "Change name"
+
+msgid "取消准备"
+msgstr "Cancel ready"
+
+msgid "准备好了"
+msgstr "Ready up"
+
+msgid "随机"
+msgstr "Random"
+
+msgid "房主 IPv4："
+msgstr "Host IPv4: "
+
+msgid "\n端口 35721 · 请朋友选择热点网卡对应地址。"
+msgstr "\nPort 35721 · Choose the address of the hotspot adapter."
+
+msgid "开始联机对局"
+msgstr "Start LAN game"
+
+msgid "离开房间 / 重试"
+msgstr "Leave room / retry"
+
+msgid "关闭"
+msgstr "Close"
+
+msgid "自然标记"
+msgstr "Nature tokens"
+
+msgid "每枚自然标记可帮助你选择更合适的伙伴。未使用的标记在终局各值 1 分。"
+msgstr "Use a nature token to draft a better match. Each unspent token is worth one point at game end."
+
+msgid "自由搭配 · 任选一块地与一枚动物"
+msgstr "Free choice · Any tile and animal"
+
+msgid "分别点击一个地块与一枚动物。跨组选取消耗 1 枚自然标记。"
+msgstr "Click a tile and an animal separately. Taking them from different columns costs one nature token."
+
+msgid "更换动物 · 选择任意数量"
+msgstr "Replace wildlife · Choose any number"
+
+msgid "点击市集中想更换的动物，再点击「确认更换动物」。"
+msgstr "Choose the animals in the market, then click “Confirm replacement.”"
+
+msgid "更换会揭示新动物，确认后无法撤回。可在同一回合多次使用自然标记。"
+msgstr "Replacements reveal new animals and are final. You may spend nature tokens more than once per turn."
+
+msgid "首回合练习完成"
+msgstr "First-turn practice complete"
+
+msgid "这个回合为版图增加了 %d 分"
+msgstr "This turn added %d points"
+
+msgid "泥滩  ·  最大相连区域从 %d 格变为 %d 格，每格 1 分。"
+msgstr "Mudflat · Largest patch grew from %d to %d tiles, at one point per tile."
+
+msgid "弹涂鱼 A  ·  在这片泥滩记录到一只弹涂鱼，得 %d 分。"
+msgstr "Mudskipper A · One mudskipper on this mudflat scores %d points."
+
+msgid "练习到此结束，不写入正式存档。正式对局有 20 回合，你可以自由选择组件和落点。"
+msgstr "Practice ends here without writing a game save. In a full game you choose pieces and placements freely for 20 turns."
+
+msgid "返回主菜单"
+msgstr "Main menu"
+
+msgid "计分项目"
+msgstr "Score category"
+
+msgid "剩余自然标记"
+msgstr "Remaining nature tokens"
+
+msgid "总分"
+msgstr "Total"
+
+msgid "回看生态版图"
+msgstr "Explore board"
+
+msgid "再来一局"
+msgstr "Play again"
+
+msgid "实时得分 · Tab 返回"
+msgstr "Live score · Tab to return"
+
+msgid "旅程的收获"
+msgstr "Expedition results"
+
+msgid "  并列获胜"
+msgstr "  share the win"
+
+msgid "  获胜"
+msgstr "  wins"
+
+msgid "你的生态世界 · %d 分"
+msgstr "Your island · %d points"
+
+msgid "当前已落定版图 · 分数预估"
+msgstr "Settled island · Current estimate"
+
+msgid "不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。"
+msgstr "Unconfirmed placements are excluded. Habitat bonuses use current standings. Tab / Esc to return."
+
+msgid "点击动物或生境得分，查看版图上的计分依据。"
+msgstr "Click wildlife or habitat points to see the tiles that contributed."
+
+msgid "旅途设置"
+msgstr "Expedition settings"
+
+msgid "音效音量"
+msgstr "Effects volume"
+
+msgid "背景音乐音量"
+msgstr "Music volume"
+
+msgid "只调节背景音乐；拖至最左侧静音。"
+msgstr "Adjust music only. Drag left to mute."
+
+msgid "全屏显示"
+msgstr "Fullscreen"
+
+msgid "轻量动画"
+msgstr "Animations"
+
+msgid "较大文字"
+msgstr "Larger text"
+
+msgid "鼠标悬停显示动物名称"
+msgstr "Show animal names on hover"
+
+msgid "生境文字标识（辅助辨色）"
+msgstr "Habitat text labels"
+
+msgid "文字大小在关闭设置后应用。离线模式自动存档，联机模式由房主同步。"
+msgstr "Text size applies when settings close. Offline games autosave. The host syncs network games."
+
+msgid "返回旅程"
+msgstr "Return"
+
+msgid "一起出发"
+msgstr "Set out together"
+
+msgid "选择同行人数与本局计分卡。初次游玩推荐使用全部 A 卡。"
+msgstr "Choose the player count and scoring cards. Start with all A cards for your first game."
+
+msgid "单人 · 独行之旅"
+msgstr "Solo expedition"
+
+msgid "2 人 · 同机轮流"
+msgstr "2 players · Pass and play"
+
+msgid "3 人 · 同机轮流"
+msgstr "3 players · Pass and play"
+
+msgid "4 人 · 同机轮流"
+msgstr "4 players · Pass and play"
+
+msgid "本局野生动物计分卡"
+msgstr "Wildlife scoring cards"
+
+msgid "全部 A 卡"
+msgstr "All A cards"
+
+msgid "全部随机"
+msgstr "Randomize all"
+
+msgid "登岛调查"
+msgstr "Start survey"
+
+msgid "雨幕鸦语"
+msgstr "Rain Crow Whispers"
+
+msgid "Crow Calls over Rain（混音）"
+msgstr "Crow Calls over Rain (mix)"
+
+msgid "选取"
+msgstr "Draft"
+
+msgid "地块"
+msgstr "Tile"
+
+msgid "动物"
+msgstr "Animal"
+
+msgid "确认"
+msgstr "Confirm"
+
+msgid "查看练习得分"
+msgstr "Practice score"
+
+msgid "查看计分"
+msgstr "View score"
+
+msgid "返回当前玩家"
+msgstr "Back to active player"
+
+msgid "放地块"
+msgstr "Place tile"
+
+msgid "放动物"
+msgstr "Place animal"
+
+msgid "放归动物"
+msgstr "Release animal"
+
+msgid "撤回摆放"
+msgstr "Undo placement"
+
+msgid "首回合已确认"
+msgstr "First turn confirmed"
+
+msgid "旅程完成  ·  %d 分"
+msgstr "Expedition complete · %d pts"
+
+msgid "正在查看其他旅行者的版图"
+msgstr "Viewing another observer's board"
+
+msgid "回合"
+msgstr "Turn"
+
+msgid "滚轮"
+msgstr "Wheel"
+
+msgid "缩放"
+msgstr "Zoom"
+
+msgid "中键"
+msgstr "Middle mouse"
+
+msgid "拖动"
+msgstr "Pan"
+
+msgid "旋转"
+msgstr "Rotate"
+
+msgid "得分"
+msgstr "Score"
+
+msgid "居中版图"
+msgstr "Center board"
+
+msgid " 的生态版图"
+msgstr "'s island"
+
+msgid "自然标记 %d"
+msgstr "Nature tokens %d"
+
+msgid "完成"
+msgstr "Done"
+
+msgid "首回合练习  ·  "
+msgstr "Practice · "
+
+msgid "正在选取"
+msgstr "Drafting"
+
+msgid "等待确认"
+msgstr "Awaiting confirmation"
+
+msgid "正在摆放"
+msgstr "Placing"
+
+msgid " · 可自由查看版图与计分卡"
+msgstr " · Explore boards and cards"
+
+msgid "野生动物手记"
+msgstr "Wildlife notebook"
+
+msgid "点击卡片，查看完整计分规则"
+msgstr "Click a card for its scoring rule"
+
+msgid "查看完整计分"
+msgstr "Full score"
+
+msgid "栖息地连成片，动物各有所爱。\n计分在旅程结束后进行。"
+msgstr "Connect habitats and find homes for wildlife.\nScores are settled at the end of the expedition."
+
+msgid "%d 分"
+msgstr "%d pts"
+
+msgid "规则"
+msgstr "Rules"
+
+msgid "退出练习"
+msgstr "Exit practice"
+
+msgid "主菜单"
+msgstr "Main menu"
+
+msgid "查看 %s 的生态版图"
+msgstr "View %s's island"
+
+msgid "海岸市集"
+msgstr "Shore market"
+
+msgid "选一块栖息地 · 邀一位新邻居"
+msgstr "Choose a habitat · Welcome a neighbor"
+
+msgid "更换三枚同种动物"
+msgstr "Replace matching triple"
+
+msgid "自由搭配：分别点选地块与动物"
+msgstr "Free choice: select a tile and an animal"
+
+msgid "更换动物：点选要换掉的动物"
+msgstr "Replace wildlife: choose the animals to redraw"
+
+msgid "\n可安置："
+msgstr "\nSuitable for: "
+
+msgid "教学市集 · 练习不影响正式存档"
+msgstr "Practice market · Your save is unaffected"
+
+msgid "单人：最下方剩余地块与动物将在回合结束时离场。"
+msgstr "Solo: the last remaining tile and animal wash away after the turn."
+
+msgid "剩余地块  %d"
+msgstr "Tiles remaining  %d"
+
+msgid "确认更换动物"
+msgstr "Confirm replacement"
+
+msgid "自由搭配 · 确认"
+msgstr "Confirm free choice"
+
+msgid "确认选取"
+msgstr "Confirm draft"
+
+msgid "使用自然标记  ·  %d"
+msgstr "Use nature token · %d"
+
+msgid "点击图例中的动物可暂时移除，再点同一格可恢复。"
+msgstr "Click an animal in the example to remove it. Click again to restore it."
+
+msgid "例一"
+msgstr "Example"
+
+msgid "对照"
+msgstr "Compare"
+
+msgid "　%d 分"
+msgstr "  %d pts"
+
+msgid "试摆预估：+0 分（确认后落定；奖励按当前排名）"
+msgstr "Preview: +0 pts (settled on confirmation; bonuses use current standings)"
+
+msgid "生境 %+d"
+msgstr "Habitat %+d"
+
+msgid "奖励 %+d"
+msgstr "Bonus %+d"
+
+msgid "自然标记 %+d"
+msgstr "Nature tokens %+d"
+
+msgid "试摆预估：%+d 分%s（确认后落定；奖励按当前排名）"
+msgstr "Preview: %+d pts%s (settled on confirmation; bonuses use current standings)"
+
+msgid "发现新版本 "
+msgstr "New version "
+
+msgid "新版游戏已可下载。"
+msgstr "A new game version is available."
+
+msgid "更新并重启"
+msgstr "Update and restart"
+
+msgid "稍后"
+msgstr "Later"
+
+msgid "游戏更新"
+msgstr "Game update"
+
+msgid "正在下载更新…"
+msgstr "Downloading update…"
+
+msgid "更新失败，当前版本仍可游玩。请稍后重新启动游戏再试。"
+msgstr "Update failed. You can keep playing and try again on your next launch."
+
+msgid "界面语言"
+msgstr "Language"
+
+msgid "、"
+msgstr ", "
+
+msgid "English"
+msgstr "English"
+
+msgid "最大连片"
+msgstr "Largest habitat"
+
+msgid "奖励"
+msgstr "Bonus"
+
+msgid " 领取了地块与"
+msgstr " drafted a tile and a "
+
+msgid " 拼接了新的海岸地块。"
+msgstr " extended the shore."
+
+msgid " 安置了"
+msgstr " settled a "
+
+msgid " 放归了"
+msgstr " released a "
+
+msgid "电脑正在行动。"
+msgstr "Computer is playing."
+
+msgid "快进电脑回合"
+msgstr "Skip computer animation"
+
+msgid "真人"
+msgstr "Human"
+
+msgid "电脑 · 简单"
+msgstr "Computer · Easy"
+
+msgid "电脑 · 标准"
+msgstr "Computer · Standard"
+
+msgid "电脑 %d"
+msgstr "Computer %d"
+
+msgid " · 电脑回合"
+msgstr " · Computer turn"
+
+msgid "。"
+msgstr "."
+
+msgid "简体中文"
+msgstr "简体中文"
+
+msgid "每日调查"
+msgstr "Daily survey"
+
+msgid "今日最佳 %d 分"
+msgstr "Today's best: %d pts"
+
+msgid "本地调查记录"
+msgstr "Local survey records"
+
+msgid "已完成 %d 局"
+msgstr "Completed games: %d"
+
+msgid "%d 人最高 %d 分"
+msgstr "%d players · Best %d pts"
+
+msgid "尚无记录"
+msgstr "No records yet"
+
+msgid "观察卡平均得分"
+msgstr "Average score by card"
+
+msgid "调查轨迹"
+msgstr "Survey history"
+
+msgid "第 %d 回合 · %+d 分"
+msgstr "Turn %d · %+d pts"
+
+msgid "查看发布页"
+msgstr "View release"
+
+msgid "每日挑战"
+msgstr "Daily challenge"
+
+msgid "调查记录"
+msgstr "Survey records"
+
+msgid "本机最佳"
+msgstr "Device best"
+
+msgid "累计完成"
+msgstr "Games completed"
+
+msgid "本日最高"
+msgstr "Today's best"
+
+msgid "按人数统计"
+msgstr "By player count"
+
+msgid "计分卡平均分"
+msgstr "Average card scores"
+
+msgid "暂无记录"
+msgstr "No records yet"
+
+msgid "日期"
+msgstr "Date"
+
+msgid "同一天使用相同的计分卡、起始海湾和抽取顺序。完成 20 回合后，保留本机当天的最高分。"
+msgstr "Everyone playing the same date gets the same cards, starting bay and draw order. Finish all 20 turns to record your best local score for that date."
+
+msgid "种子 %d"
+msgstr "Seed %d"
+
+msgid "本日最高 %d 分"
+msgstr "Today's best: %d pts"
+
+msgid "本日尚无成绩"
+msgstr "No score recorded for today"
+
+msgid "开始挑战"
+msgstr "Start challenge"
+
+msgid "累计完成 %d 局"
+msgstr "Completed games: %d"
+
+msgid "按人数统计的本机最佳"
+msgstr "Best local scores by player count"
+
+msgid "%d 人 · %s"
+msgstr "%d players · %s"
+
+msgid "物种"
+msgstr "Species"
+
+msgid "每日挑战 · 本机最高分"
+msgstr "Daily challenges · Local bests"
+
+msgid "尚无挑战记录"
+msgstr "No completed challenges yet"
+
+msgid "%s    %d 分"
+msgstr "%s    %d pts"
+
+msgid "每日挑战 %s · %d 分"
+msgstr "Daily challenge %s · %d pts"
+
+msgid "  /  本日最高 %d 分"
+msgstr "  /  Today's best %d pts"
+
+msgid "每轮结束时的总分（含地貌排名奖励）"
+msgstr "Total after each turn, including habitat bonuses"
+
+msgid "最佳一步与终局版图"
+msgstr "Best move and final board"
+
+msgid "地块 #%d · (%d, %d) · %d°"
+msgstr "Tile #%d · (%d, %d) · %d°"
+
+msgid "%s · (%d, %d)"
+msgstr "%s · (%d, %d)"
+
+msgid "放归%s"
+msgstr "Released %s"
+
+msgid "没有可回顾的完整回合"
+msgstr "No completed turns to review"
+
+msgid "返回计分"
+msgstr "Back to scores"
+
+msgid "调查记录写入失败，重新打开存档后会重试。"
+msgstr "Could not save the survey record. Reopen this save to retry."
+
+msgid "%s 领取了地块与%s。"
+msgstr "%s drafted a tile and wildlife (%s)."
+
+msgid "%s 安置了%s。"
+msgstr "%s settled wildlife (%s)."
+
+msgid "%s 放归了%s。"
+msgstr "%s released wildlife (%s)."
+
+msgid "%s 拼接了新的海岸地块。"
+msgstr "%s extended the shore."

@@ -30,8 +30,8 @@ func build(ui) -> void:
 	custom_minimum_size.x = 310
 	var content = ui._vbox(10)
 	add_child(ui._margin(content,8))
-	content.add_child(ui._heading("海岸市集",27,P.DARK))
-	content.add_child(ui._label("选一块栖息地 · 邀一位新邻居",16,P.MUTED))
+	content.add_child(ui._heading(GameLocale.text("海岸市集"),27,P.DARK))
+	content.add_child(ui._label(GameLocale.text("选一块栖息地 · 邀一位新邻居"),16,P.MUTED))
 	notice = ui._wrap("",16,P.RUST)
 	notice_panel = ui._chip(notice)
 	content.add_child(notice_panel)
@@ -73,7 +73,7 @@ func build(ui) -> void:
 			ui._action(error)
 		else: ui._draft(),true)
 	content.add_child(take)
-	free_refresh = ui._styled(ui._button("更换三枚同种动物",func():
+	free_refresh = ui._styled(ui._button(GameLocale.text("更换三枚同种动物"),func():
 		ui._action(ui._request_action("refresh",{"indices":ui.game.triplicate(),"spend_nature":false}))),"QuietButton")
 	content.add_child(free_refresh)
 	nature = ui._styled(ui._button("",ui.show_nature),"QuietButton")
@@ -161,7 +161,7 @@ func update(state: Dictionary) -> void:
 	var game = state.game
 	View.apply(notice_panel,&"visible",state.independent or state.refreshing)
 	if notice_panel.visible:
-		View.apply(notice,&"text","自由搭配：分别点选地块与动物" if state.independent else "更换动物：点选要换掉的动物")
+		View.apply(notice,&"text",GameLocale.text("自由搭配：分别点选地块与动物") if state.independent else GameLocale.text("更换动物：点选要换掉的动物"))
 	var turns = 0
 	for player in game.players: turns += int(player.turns)
 	var refill = last_turn >= 0 and game.pending.is_empty() and not game.finished and Feedback.enabled
@@ -197,21 +197,21 @@ func update(state: Dictionary) -> void:
 			View.apply(row.tile,&"tooltip_text","")
 			if tile_id > 0:
 				var tile = T.get_tile(tile_id)
-				View.apply(row.tile,&"tooltip_text"," · ".join(tile.habitats.map(func(h):return T.HABITAT_NAMES[h]))+"\n可安置："+"、".join(tile.wildlife.map(func(a):return T.ANIMAL_NAMES[a])))
+				View.apply(row.tile,&"tooltip_text"," · ".join(tile.habitats.map(func(h):return GameLocale.text(T.HABITAT_NAMES[h])))+GameLocale.text("\n可安置：")+GameLocale.text("、").join(tile.wildlife.map(func(a):return GameLocale.text(T.ANIMAL_NAMES[a]))))
 			if hovered_row == i: _hover(i)
 		if row.token.animal != game.market_animals[i]:
 			row.token.animal = game.market_animals[i]
 			row.token.queue_redraw()
-			View.apply(row.animal,&"tooltip_text",T.ANIMAL_NAMES.get(row.token.animal,""))
+			View.apply(row.animal,&"tooltip_text",GameLocale.text(T.ANIMAL_NAMES.get(row.token.animal,"")))
 		var tint = Color(1,1,1,.5 if row_locked else 1.0)
 		View.apply(row.picture,&"self_modulate",tint)
 		View.apply(row.token,&"self_modulate",tint)
-	View.apply(footer,&"text","教学市集 · 练习不影响正式存档" if state.practice else ("单人：最下方剩余地块与动物将在回合结束时离场。" if game.config.count == 1 else "剩余地块  %d" % game.deck.size()))
-	View.apply(take,&"text","确认更换动物" if state.refreshing else ("自由搭配 · 确认" if state.independent else "确认选取"))
+	View.apply(footer,&"text",GameLocale.text("教学市集 · 练习不影响正式存档") if state.practice else (GameLocale.text("单人：最下方剩余地块与动物将在回合结束时离场。") if game.config.count == 1 else GameLocale.text("剩余地块  %d") % game.deck.size()))
+	View.apply(take,&"text",GameLocale.text("确认更换动物") if state.refreshing else (GameLocale.text("自由搭配 · 确认") if state.independent else GameLocale.text("确认选取")))
 	View.apply(take,&"disabled",locked or (state.indices.is_empty() if state.refreshing else state.tile < 0 or state.animal < 0))
 	View.apply(free_refresh,&"disabled",not state.can_act or state.practice or game.triplicate().is_empty())
 	var balance = int(game.players[game.active].nature)
-	View.apply(nature,&"text","使用自然标记  ·  %d" % balance)
+	View.apply(nature,&"text",GameLocale.text("使用自然标记  ·  %d") % balance)
 	View.apply(nature,&"disabled",state.practice or locked or balance < 1)
 	last_turn = turns
 	last_tiles = game.market_tiles.duplicate()

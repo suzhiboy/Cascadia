@@ -17,7 +17,7 @@ func build(ui) -> void:
 	var title = ui._label("TIDETRACE ISLES",24,P.CREAM)
 	title.add_theme_font_override("font",P.font(640,4))
 	wordmark.add_child(title)
-	wordmark.add_child(ui._label("潮痕群岛",15,P.GOLD_LIGHT))
+	wordmark.add_child(ui._label(GameLocale.text("潮痕群岛"),15,P.GOLD_LIGHT))
 	brand.add_child(wordmark)
 	add_child(brand)
 	for i in range(ui.game.players.size()):
@@ -28,9 +28,9 @@ func build(ui) -> void:
 		tabs.append(tab)
 		add_child(tab)
 	ui._spacer(self)
-	add_child(ui._styled(ui._button("规则",ui.show_help),"GhostButton"))
-	add_child(ui._styled(ui._button("设置",ui.show_settings),"GhostButton"))
-	add_child(ui._styled(ui._button("退出练习" if ui._practicing else "主菜单",func():
+	add_child(ui._styled(ui._button(GameLocale.text("规则"),ui.show_help),"GhostButton"))
+	add_child(ui._styled(ui._button(GameLocale.text("设置"),ui.show_settings),"GhostButton"))
+	add_child(ui._styled(ui._button(GameLocale.text("退出练习") if ui._practicing else GameLocale.text("主菜单"),func():
 		ui._save()
 		ui.show_menu()),"GhostButton"))
 
@@ -39,8 +39,8 @@ func update(state: Dictionary) -> void:
 	for i in range(tabs.size()):
 		var tab = tabs[i]
 		var player = game.players[i]
-		View.apply(tab,&"text",("● " if i == game.active and not game.finished else "")+player.name)
-		View.apply(tab,&"tooltip_text","查看 %s 的生态版图" % player.name)
+		View.apply(tab,&"text",("● " if i == game.active and not game.finished else "")+GameLocale.player_name(player.name))
+		View.apply(tab,&"tooltip_text",GameLocale.text("查看 %s 的生态版图") % GameLocale.player_name(player.name))
 		if last_view < 0 or (state.view != last_view and i in [last_view,state.view]):
 			P.apply_tab(tab,P.PLAYERS[i%P.PLAYERS.size()],i == state.view)
 			if i == state.view: tab.add_theme_font_override("font",P.font(640))

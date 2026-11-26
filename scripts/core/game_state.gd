@@ -16,6 +16,7 @@ var removed_tiles: Array = []
 var removed_animals: Array = []
 var held: Array = []
 var pending: Dictionary = {}
+var turn_nature_spent := 0
 var active = 0
 var optional_used = false
 var finished = false
@@ -44,13 +45,14 @@ func start(raw: Dictionary, seed_value: int = -1) -> void:
 			var p = [Vector2i(0,0),Vector2i(-1,1),Vector2i(0,1)][j]
 			var id = starters[i]*3+j+1
 			board[H.key(p)] = {"q":p.x,"r":p.y,"tile":id,"rotation":Tiles.get_tile(id).rotation,"animal":""}
-		players.append({"name":config.names[i],"board":board,"nature":0,"turns":0})
+		players.append({"name":config.names[i],"board":board,"nature":0,"turns":0,"history":[]})
 	market_tiles.clear()
 	market_animals.clear()
 	removed_tiles.clear()
 	removed_animals.clear()
 	held.clear()
 	pending.clear()
+	turn_nature_spent = 0
 	active = 0
 	optional_used = false
 	finished = false
@@ -117,6 +119,7 @@ func refresh(indices: Array, spend_nature: bool) -> String:
 		if players[active].nature < 1:
 			return "自然标记不足。"
 		players[active].nature -= 1
+		if turn_nature_spent >= 0: turn_nature_spent += 1
 		_release_held()
 	else:
 		var expected = triplicate()
@@ -146,6 +149,7 @@ func draft(tile_index: int, animal_index: int) -> String:
 	_release_held()
 	if tile_index != animal_index:
 		players[active].nature -= 1
+		if turn_nature_spent >= 0: turn_nature_spent += 1
 	pending = {"tile":market_tiles[tile_index],"animal":market_animals[animal_index],"tile_index":tile_index,"animal_index":animal_index,"tile_pos":null,"rotation":0,"animal_pos":null,"discarded":false}
 	market_tiles[tile_index] = 0
 	market_animals[animal_index] = ""
@@ -223,12 +227,27 @@ func ready_to_commit() -> bool:
 func commit_turn() -> String:
 	if not ready_to_commit():
 		return "请摆放地块，并安置动物或选择放归。"
+	var actor: Dictionary = players[active]
+	var before_total = Scorer.game_scores(self)[active].total+turn_nature_spent
+	var move = {"turn":actor.turns+1,"cell":pending.tile_pos.duplicate(),"tile":pending.tile,
+		"rotation":pending.rotation,"animal":pending.animal,"animal_cell":pending.animal_pos}
 	players[active].board = preview_board()
 	if pending.discarded:
 		bag.append(pending.animal)
 	elif Tiles.keystone(int(players[active].board[H.key(Vector2i(pending.animal_pos[0],pending.animal_pos[1]))].tile)):
 		players[active].nature += 1
 	players[active].turns += 1
+	var after = Scorer.game_scores(self)
+	move.total = after[active].total
+	move.delta = move.total-before_total if turn_nature_spent >= 0 else null
+	actor.history.append(move)
+	if active == players.size()-1:
+		# All series share a round boundary, including bonuses changed by later seats.
+		for i in range(players.size()):
+			var history = players[i].history
+			if not history.is_empty() and history.back().turn == move.turn:
+				history.back().round_total = after[i].total
+	turn_nature_spent = 0
 	pending.clear()
 	var total = 0
 	for player in players:
@@ -286,14 +305,22 @@ func apply_action(action: String, args: Dictionary) -> String:
 			return "未知的联机操作。"
 
 func snapshot() -> Dictionary:
-	return {"version":SAVE_VERSION,"config":config.duplicate(true),"players":players.duplicate(true),"deck":deck.duplicate(),"bag":bag.duplicate(),"market_tiles":market_tiles.duplicate(),"market_animals":market_animals.duplicate(),"removed_tiles":removed_tiles.duplicate(),"removed_animals":removed_animals.duplicate(),"held":held.duplicate(),"pending":pending.duplicate(true),"active":active,"optional_used":optional_used,"finished":finished,"rng_state":str(rng.state)}
+	return {"version":SAVE_VERSION,"config":config.duplicate(true),"players":players.duplicate(true),"deck":deck.duplicate(),"bag":bag.duplicate(),"market_tiles":market_tiles.duplicate(),"market_animals":market_animals.duplicate(),"removed_tiles":removed_tiles.duplicate(),"removed_animals":removed_animals.duplicate(),"held":held.duplicate(),"pending":pending.duplicate(true),"active":active,"turn_nature_spent":turn_nature_spent,"optional_used":optional_used,"finished":finished,"rng_state":str(rng.state)}
 
 func restore(data: Dictionary) -> void:
 	for field in ["config","players","deck","bag","market_tiles","market_animals","removed_tiles","removed_animals","held","pending","active","optional_used","finished"]:
 		set(field,data[field].duplicate(true) if data[field] is Array or data[field] is Dictionary else data[field])
+	# Earlier v2 saves cannot recover how many markers were spent before saving.
+	turn_nature_spent = int(data.get("turn_nature_spent",-1))
 	active = int(active)
 	config.count = int(config.count)
 	for player in players:
+		if not player.has("history"): player.history = []
+		for move in player.history:
+			for field in ["turn","tile","rotation","total","round_total","delta"]:
+				if move.get(field) != null: move[field] = int(move[field])
+			for field in ["cell","animal_cell"]:
+				if move.get(field) != null: move[field] = move[field].map(func(n):return int(n))
 		player.nature = int(player.nature)
 		player.turns = int(player.turns)
 		for cell in player.board.values():

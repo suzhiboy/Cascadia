@@ -9,22 +9,22 @@ static func changes(before: Dictionary, after: Dictionary) -> Array:
 	var parts = []
 	for animal in T.ANIMALS:
 		var points = after.wildlife[animal].points-before.wildlife[animal].points
-		if points: parts.append({"kind":"wildlife","label":T.ANIMAL_NAMES[animal],"points":points})
+		if points: parts.append({"kind":"wildlife","label":GameLocale.text(T.ANIMAL_NAMES[animal]),"points":points})
 	var habitat = 0
 	var bonus = 0
 	for h in T.HABITATS:
 		habitat += after.habitats[h].points-before.habitats[h].points
 		bonus += after.habitats[h].bonus-before.habitats[h].bonus
-	if habitat: parts.append({"kind":"habitat","label":"最大连片","points":habitat})
-	if bonus: parts.append({"kind":"bonus","label":"奖励","points":bonus})
+	if habitat: parts.append({"kind":"habitat","label":GameLocale.text("最大连片"),"points":habitat})
+	if bonus: parts.append({"kind":"bonus","label":GameLocale.text("奖励"),"points":bonus})
 	if after.nature != before.nature:
-		parts.append({"kind":"nature","label":"自然标记","points":after.nature-before.nature})
+		parts.append({"kind":"nature","label":GameLocale.text("自然标记"),"points":after.nature-before.nature})
 	return parts
 
 static func describe(game) -> String:
 	if game.pending.is_empty(): return ""
 	if game.pending.tile_pos == null and game.pending.animal_pos == null:
-		return "试摆预估：+0 分（确认后落定；奖励按当前排名）"
+		return GameLocale.text("试摆预估：+0 分（确认后落定；奖励按当前排名）")
 	var reports = S.game_scores(game)
 	var before = reports[game.active]
 	var board = game.preview_board()
@@ -40,7 +40,7 @@ static func describe(game) -> String:
 		after.habitats[h].bonus = S.majority(sizes)[game.active]
 		after.total += after.habitats[h].bonus
 	var parts = changes(before,after).map(func(part):return "%s %+d" % [part.label,part.points])
-	return "试摆预估：%+d 分%s（确认后落定；奖励按当前排名）" % [after.total-before.total," · "+ " / ".join(parts) if not parts.is_empty() else ""]
+	return GameLocale.text("试摆预估：%+d 分%s（确认后落定；奖励按当前排名）") % [after.total-before.total," · "+ " / ".join(parts) if not parts.is_empty() else ""]
 
 # Holding the tile fixed, compare each residence with releasing the token. A resident
 # may change the scores of other species. Habitat areas and majorities stay constant.

@@ -4,6 +4,7 @@ const S = preload("res://scripts/core/scorer.gd")
 
 var banner: Label
 var explanation: Label
+var review: Button
 var replay: Button
 var columns: Array[Dictionary] = []
 var animal_labels := {}
@@ -22,7 +23,7 @@ func open(controller) -> void:
 	grid.columns = ui.game.players.size()+1
 	grid.add_theme_constant_override("h_separation",14)
 	grid.add_theme_constant_override("v_separation",5)
-	grid.add_child(ui._heading("计分项目",20,P.MUTED,600))
+	grid.add_child(ui._heading(GameLocale.text("计分项目"),20,P.MUTED,600))
 	for i in range(ui.game.players.size()):
 		var label = ui._heading("",21,P.INK,640)
 		label.clip_text = true
@@ -42,15 +43,15 @@ func open(controller) -> void:
 		for i in range(columns.size()):
 			columns[i].wildlife[animal] = _score_button(grid,i,animal,true)
 	for habitat in T.HABITATS:
-		grid.add_child(ui._label(T.HABITAT_NAMES[habitat],20))
+		grid.add_child(ui._label(GameLocale.text(T.HABITAT_NAMES[habitat]),20))
 		for i in range(columns.size()):
 			columns[i].habitats[habitat] = _score_button(grid,i,habitat,false)
-	grid.add_child(ui._label("剩余自然标记",20))
+	grid.add_child(ui._label(GameLocale.text("剩余自然标记"),20))
 	for column in columns:
 		column.nature = ui._label("",22)
 		column.nature.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		grid.add_child(column.nature)
-	grid.add_child(ui._heading("总分",26,P.DARK))
+	grid.add_child(ui._heading(GameLocale.text("总分"),26,P.DARK))
 	for column in columns:
 		column.total = ui._heading("",35,P.DARK,720)
 		column.total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -58,9 +59,11 @@ func open(controller) -> void:
 	body.add_child(grid)
 	ui._spacer(body)
 	var row = ui._hbox()
-	row.add_child(ui._styled(ui._button("回看生态版图",ui._close_modal),"QuietButton"))
+	row.add_child(ui._styled(ui._button(GameLocale.text("回看生态版图"),ui._close_modal),"QuietButton"))
+	review = ui._button(GameLocale.text("调查轨迹"),func():preload("res://scripts/ui/modals/history_modal.gd").new().open(ui))
+	row.add_child(review)
 	ui._spacer(row)
-	replay = ui._button("再来一局",ui.show_setup,true)
+	replay = ui._button(GameLocale.text("再来一局"),ui.show_setup,true)
 	row.add_child(replay)
 	body.add_child(row)
 	update(ui._view_state())
@@ -81,25 +84,26 @@ func update(state: Dictionary) -> void:
 	var reports = S.game_scores(game)
 	ui.reports = reports
 	var winners = S.winners(game,reports)
-	var names = winners.map(func(i):return game.players[i].name)
+	var names = winners.map(func(i):return GameLocale.player_name(game.players[i].name))
 	var live = not game.finished
-	View.apply(title_label,&"text","实时得分 · Tab 返回" if live else "旅程的收获")
-	var heading = " · ".join(names)+("  并列获胜" if names.size()>1 else "  获胜")
-	if reports.size() == 1: heading = "你的生态世界 · %d 分" % reports[0].total
+	View.apply(title_label,&"text",GameLocale.text("实时得分 · Tab 返回") if live else GameLocale.text("旅程的收获"))
+	var heading = " · ".join(names)+(GameLocale.text("  并列获胜") if names.size()>1 else GameLocale.text("  获胜"))
+	if reports.size() == 1: heading = GameLocale.text("你的生态世界 · %d 分") % reports[0].total
 	if not live and not str(game.config.get("daily","")).is_empty():
 		var date = game.config.daily
 		var best = ui.records.read().daily.get(date)
-		heading = "每日挑战 %s · %d 分" % [date,int(reports[0].total)]
-		if best != null: heading += "  /  本日最高 %d 分" % int(best)
-	View.apply(banner,&"text","当前已落定版图 · 分数预估" if live else heading)
-	View.apply(explanation,&"text","不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。" if live else "点击动物或生境得分，查看版图上的计分依据。")
+		heading = GameLocale.text("每日挑战 %s · %d 分") % [date,int(reports[0].total)]
+		if best != null: heading += GameLocale.text("  /  本日最高 %d 分") % int(best)
+	View.apply(banner,&"text",GameLocale.text("当前已落定版图 · 分数预估") if live else heading)
+	View.apply(explanation,&"text",GameLocale.text("不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。") if live else GameLocale.text("点击动物或生境得分，查看版图上的计分依据。"))
 	View.apply(replay,&"visible",not live)
+	View.apply(review,&"visible",not live)
 	for animal in T.ANIMALS:
-		View.apply(animal_labels[animal],&"text",T.ANIMAL_NAMES[animal]+" "+game.config.cards[animal])
+		View.apply(animal_labels[animal],&"text",GameLocale.text(T.ANIMAL_NAMES[animal])+" "+game.config.cards[animal])
 	for i in range(columns.size()):
 		var column = columns[i]
 		var report = reports[i]
-		View.apply(column.name,&"text",game.players[i].name)
+		View.apply(column.name,&"text",GameLocale.player_name(game.players[i].name))
 		View.apply(column.name,&"tooltip_text",column.name.text)
 		for animal in T.ANIMALS: View.apply(column.wildlife[animal],&"text",str(report.wildlife[animal].points))
 		for habitat in T.HABITATS:

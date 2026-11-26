@@ -112,7 +112,7 @@ func _ready() -> void:
 		return
 	custom_minimum_size = Vector2(700,260)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	tooltip_text = "点击图例中的动物可暂时移除，再点同一格可恢复。"
+	tooltip_text = GameLocale.text("点击图例中的动物可暂时移除，再点同一格可恢复。")
 
 func example(alternate: bool) -> Dictionary:
 	var board = {}
@@ -166,7 +166,7 @@ func _draw_cell(center: Vector2, cell: Dictionary) -> void:
 		Paint.token(self,center+Vector2(0,-5),15,cell.animal)
 	if compact:
 		return
-	var names = tile.habitats.map(func(h): return T.HABITAT_NAMES[h])
+	var names = tile.habitats.map(func(h): return GameLocale.text(T.HABITAT_NAMES[h]))
 	var caption = "·".join(names)
 	var label_pos = center + Vector2(-31,19 if cell.animal != "" else 5)
 	draw_string_outline(P.font(600),label_pos,caption,HORIZONTAL_ALIGNMENT_CENTER,62,12,3,P.INK)
@@ -199,6 +199,6 @@ func _draw() -> void:
 				board[key].animal = ""
 			_draw_cell(centers[key],board[key])
 		var score = S.wildlife(board,animal,card).points
-		var caption = ("例一" if side == 0 else "对照") + "　%d 分" % score
+		var caption = (GameLocale.text("例一") if side == 0 else GameLocale.text("对照")) + GameLocale.text("　%d 分") % score
 		draw_string(P.font(600),Vector2(size.x*side*0.5,225),caption,HORIZONTAL_ALIGNMENT_CENTER,size.x*.5,23,P.INK)
 	draw_line(Vector2(size.x/2,25),Vector2(size.x/2,235),P.LINE,1)

@@ -4,7 +4,7 @@ var repository := str(ProjectSettings.get_setting("updates/github_repository", "
 const PACKAGE = "TidetraceIsles-Windows-x64.zip"
 
 func _ready() -> void:
-	if repository.is_empty():
+	if repository.is_empty() or OS.has_feature("web"):
 		return
 	var http := HTTPRequest.new()
 	add_child(http)
@@ -21,6 +21,9 @@ func _ready() -> void:
 	var tag := str(release.get("tag_name", ""))
 	var local := str(ProjectSettings.get_setting("application/config/version"))
 	if not newer(tag.trim_prefix("v"), local):
+		return
+	if not OS.has_feature("windows"):
+		_offer(tag, str(release.get("body", "")).left(500), "https://github.com/%s/releases/latest" % repository, "")
 		return
 	var url := "https://github.com/%s/releases/download/%s/%s" % [repository, tag, PACKAGE]
 	for asset in release.get("assets", []):
@@ -46,19 +49,22 @@ static func newer(candidate: String, current: String) -> bool:
 func _offer(tag: String, notes: String, url: String, digest: String) -> void:
 	var dialog := ConfirmationDialog.new()
 	add_child(dialog)
-	dialog.title = "发现新版本 " + tag
-	dialog.dialog_text = notes if notes else "新版游戏已可下载。"
+	dialog.title = GameLocale.text("发现新版本 ") + tag
+	dialog.dialog_text = notes if notes else GameLocale.text("新版游戏已可下载。")
 	dialog.get_label().autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	dialog.ok_button_text = "更新并重启"
-	dialog.cancel_button_text = "稍后"
-	dialog.confirmed.connect(_download.bind(url, digest), CONNECT_ONE_SHOT)
+	dialog.ok_button_text = GameLocale.text("更新并重启") if OS.has_feature("windows") else GameLocale.text("查看发布页")
+	dialog.cancel_button_text = GameLocale.text("稍后")
+	if OS.has_feature("windows"):
+		dialog.confirmed.connect(_download.bind(url, digest), CONNECT_ONE_SHOT)
+	else:
+		dialog.confirmed.connect(func(): OS.shell_open(url), CONNECT_ONE_SHOT)
 	dialog.popup_centered(Vector2i(540, 300))
 
 func _download(url: String, digest: String) -> void:
 	var info := AcceptDialog.new()
 	add_child(info)
-	info.title = "游戏更新"
-	info.dialog_text = "正在下载更新…"
+	info.title = GameLocale.text("游戏更新")
+	info.dialog_text = GameLocale.text("正在下载更新…")
 	info.get_ok_button().hide()
 	info.unresizable = true
 	info.popup_centered(Vector2i(420, 150))
@@ -90,6 +96,6 @@ func _download(url: String, digest: String) -> void:
 	for path in [zip, script, dir]:
 		if FileAccess.file_exists(path) or DirAccess.dir_exists_absolute(path):
 			DirAccess.remove_absolute(path)
-	info.dialog_text = "更新失败，当前版本仍可游玩。请稍后重新启动游戏再试。"
+	info.dialog_text = GameLocale.text("更新失败，当前版本仍可游玩。请稍后重新启动游戏再试。")
 	info.get_ok_button().show()
 	info.popup_centered()

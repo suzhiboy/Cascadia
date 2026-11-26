@@ -54,7 +54,7 @@ var refresh_indices: Array = []
 var highlight: Array = []
 var reports: Array = []
 var status = "选取一组地块与动物，开始构筑你的生态世界。"
-var settings = {"volume":0.6,"music_volume":0.35,"fullscreen":false,"animations":true,"large_text":false,"animal_names":true,"habitat_labels":true,"fast_ai":false}
+var settings = {"language":"zh_CN","volume":0.6,"music_volume":0.35,"fullscreen":false,"animations":true,"large_text":false,"animal_names":true,"habitat_labels":true,"fast_ai":false}
 var header_bar
 var market_panel
 var board_panel
@@ -91,8 +91,8 @@ func _ready() -> void:
 	_apply_audio()
 	music.play_next()
 	show_menu()
-	if OS.has_feature("windows") and not OS.has_feature("editor") and DisplayServer.get_name() != "headless":
-		screen.add_child(preload("res://scripts/update/check.gd").new())
+	if not OS.has_feature("web") and not OS.has_feature("editor") and DisplayServer.get_name() != "headless":
+		add_child(preload("res://scripts/update/check.gd").new())
 	lan_session = LanSessionClass.new()
 	lan_session.name = "LanSession"
 	add_child(lan_session)
@@ -280,43 +280,45 @@ func show_menu() -> void:
 	panel.add_child(_margin(content,48))
 	var crest = _hbox(14)
 	crest.add_child(Ornament.make("logo",Vector2(46,50)))
-	crest.add_child(_label("潮 间 带 · 观 测 手 记",18,P.MUTED))
+	crest.add_child(_label(GameLocale.text("潮 间 带 · 观 测 手 记"),18,P.MUTED))
 	content.add_child(crest)
 	var title = _label("TIDETRACE ISLES",49,P.DARK)
 	title.add_theme_font_override("font",P.font(640,5))
 	content.add_child(title)
-	content.add_child(_heading("潮痕群岛",36,P.DARK,600))
+	if not TranslationServer.get_locale().begins_with("en"):
+		content.add_child(_heading(GameLocale.text("潮痕群岛"),36,P.DARK,600))
 	var divider = HSeparator.new()
 	content.add_child(divider)
-	content.add_child(_wrap("退潮后，礁石与泥滩渐渐露出。\n沿着潮线，为五种动物留下栖身之处。",25))
+	content.add_child(_wrap(GameLocale.text("退潮后，礁石与泥滩渐渐露出。\n沿着潮线，为五种动物留下栖身之处。"),25))
 	_spacer(content)
 	var journeys = _hbox(12)
-	for button in [_button("开始新的旅程",show_setup,true),_button("每日挑战",_show_daily)]:
+	for button in [_button(GameLocale.text("开始新的旅程"),show_setup,true),_button(GameLocale.text("每日挑战"),_show_daily)]:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		journeys.add_child(button)
 	content.add_child(journeys)
 	var notes = _hbox(12)
-	for button in [_styled(_button("首回合练习",_start_practice),"ActiveButton"),_button("调查记录",_show_records)]:
+	for button in [_styled(_button(GameLocale.text("首回合练习"),_start_practice),"ActiveButton"),_button(GameLocale.text("调查记录"),_show_records)]:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		notes.add_child(button)
 	content.add_child(notes)
-	content.add_child(_button("局域网联机",show_lan_lobby))
-	var resume = _button("继续上次旅程",_continue_game)
+	if not OS.has_feature("web"):
+		content.add_child(_button(GameLocale.text("局域网联机"),show_lan_lobby))
+	var resume = _button(GameLocale.text("继续上次旅程"),_continue_game)
 	resume.disabled = not FileAccess.file_exists("user://autosave.json")
 	content.add_child(resume)
 	var row = _hbox()
-	var help = _styled(_button("玩法说明",show_help),"QuietButton")
+	var help = _styled(_button(GameLocale.text("玩法说明"),show_help),"QuietButton")
 	help.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(help)
-	var options = _styled(_button("设置",show_settings),"QuietButton")
+	var options = _styled(_button(GameLocale.text("设置"),show_settings),"QuietButton")
 	options.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(options)
-	var exit_button = _styled(_button("退出游戏",_exit_game),"QuietButton")
+	var exit_button = _styled(_button(GameLocale.text("退出游戏"),_exit_game),"QuietButton")
 	exit_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(exit_button)
 	content.add_child(row)
-	content.add_child(_label("1–4 位旅行者   /   20 回合   /   离线游玩",18,P.MUTED))
-	var footer = _label("低潮调查 · 群岛生态记录",19,P.PAPER)
+	content.add_child(_label(GameLocale.text("1–4 位旅行者   /   20 回合   /   离线游玩"),18,P.MUTED))
+	var footer = _label(GameLocale.text("低潮调查 · 群岛生态记录"),19,P.PAPER)
 	footer.add_theme_color_override("font_shadow_color",Color(.05,.12,.08,.75))
 	footer.add_theme_constant_override("shadow_offset_y",2)
 	footer.add_theme_constant_override("shadow_outline_size",6)
@@ -366,7 +368,7 @@ func _on_lan_lobby_changed(data: Dictionary) -> void:
 	if lan_session.is_host() and lan_discovery != null:
 		lan_discovery.start_announce(data)
 	if is_instance_valid(lan_modal_body):
-		status = "已连接 %d / %d 位旅行者。" % [data.get("slots",[]).filter(func(s):return s.connected).size(),int(data.get("count",2))]
+		status = GameLocale.text("已连接 %d / %d 位旅行者。") % [data.get("slots",[]).filter(func(s):return s.connected).size(),int(data.get("count",2))]
 		_render_lan_lobby()
 
 func _on_lan_room_found(room: Dictionary) -> void:
@@ -378,15 +380,15 @@ func _on_lan_room_found(room: Dictionary) -> void:
 			return
 	var address = str(room.get("address", "127.0.0.1"))
 	var port = int(room.get("port", LanProtocol.DEFAULT_GAME_PORT))
-	var button = _button("加入  %s  ·  %s/%s" % [str(room.get("host_name", "房主")),int(room.get("joined", 0)),int(room.get("count", 2))],func():
-		lan_session.join_lobby(address,port,"旅行者",1)
-		status = "正在连接房间……"
+	var button = _button(GameLocale.text("加入  %s  ·  %s/%s") % [str(room.get("host_name", GameLocale.text("房主"))),int(room.get("joined", 0)),int(room.get("count", 2))],func():
+		lan_session.join_lobby(address,port,GameLocale.text("旅行者"),1)
+		status = GameLocale.text("正在连接房间……")
 		_render_lan_lobby())
 	button.set_meta("room_key",key)
 	lan_room_list.add_child(button)
 
 func _on_lan_connection_changed(kind: String, _details: Dictionary) -> void:
-	status = {"connected":"已连接房主，等待开局。","reconnecting":"连接中断，正在尝试重连（最多 120 秒）。","paused":"当前玩家断线，等待重连。"}.get(kind,"正在连接……")
+	status = {"connected":GameLocale.text("已连接房主，等待开局。"),"reconnecting":GameLocale.text("连接中断，正在尝试重连（最多 120 秒）。"),"paused":GameLocale.text("当前玩家断线，等待重连。")}.get(kind,GameLocale.text("正在连接……"))
 	if is_instance_valid(lan_modal_body):
 		_render_lan_lobby()
 
@@ -401,7 +403,7 @@ func _on_lan_state_changed(snapshot: Dictionary, _revision: int) -> void:
 		_reset_selection()
 	if game.pending.is_empty(): _reset_selection()
 	if game.finished: reports = S.game_scores(game)
-	status = "轮到 "+game.players[game.active].name+" · "+("请选择地块与动物。" if game.pending.is_empty() else "正在摆放，可等待或查看其他版图。")
+	status = GameLocale.text("轮到 ")+GameLocale.player_name(game.players[game.active].name)+" · "+(GameLocale.text("请选择地块与动物。") if game.pending.is_empty() else GameLocale.text("正在摆放，可等待或查看其他版图。"))
 	_render_game()
 
 func _on_lan_closed(reason: String) -> void:
@@ -409,10 +411,10 @@ func _on_lan_closed(reason: String) -> void:
 	lan_session.shutdown()
 	game = null
 	show_menu()
-	status = reason
-	var body = _open_modal("联机提示",780,400)
-	body.add_child(_wrap(reason,22))
-	body.add_child(_button("重新连接",show_lan_lobby,true))
+	status = GameLocale.text(reason)
+	var body = _open_modal(GameLocale.text("联机提示"),780,400)
+	body.add_child(_wrap(GameLocale.text(reason),22))
+	body.add_child(_button(GameLocale.text("重新连接"),show_lan_lobby,true))
 
 # Name field with a stripe in that traveller's colour, matching their tab in game.
 
@@ -445,22 +447,22 @@ func start_game(config: Dictionary, seed_value: int = -1) -> void:
 	reports = []
 	highlight.clear()
 	_reset_selection()
-	status = "选取一组地块与动物，开始构筑你的生态世界。"
+	status = GameLocale.text("选取一组地块与动物，开始构筑你的生态世界。")
 	_save()
 	_render_game()
 
 func _continue_game() -> void:
 	var resumed = G.new()
 	if not resumed.load_game():
-		var body = _open_modal(resumed.last_notice if resumed.last_notice != "" else "无法读取存档",650,310)
-		body.add_child(_wrap("存档无法读取。可以关闭此窗口并开始新的旅程。"))
+		var body = _open_modal(GameLocale.text(resumed.last_notice) if resumed.last_notice != "" else GameLocale.text("无法读取存档"),650,310)
+		body.add_child(_wrap(GameLocale.text("存档无法读取。可以关闭此窗口并开始新的旅程。")))
 		return
 	game = resumed
 	view_player = game.active
 	highlight.clear()
 	_reset_selection()
 	mode = "animal" if not game.pending.is_empty() and game.pending.tile_pos != null else "tile"
-	status = "旅程已恢复，继续上次的选择。"
+	status = GameLocale.text("旅程已恢复，继续上次的选择。")
 	reports = S.game_scores(game) if game.finished else []
 	if game.finished: _record_result()
 	_render_game()
@@ -477,7 +479,7 @@ func _save() -> void:
 	if _practicing or (lan_session != null and lan_session.started):
 		return
 	if game.save_game() != OK:
-		status = "自动存档写入失败，请检查磁盘空间。"
+		status = GameLocale.text("自动存档写入失败，请检查磁盘空间。")
 
 func _render_game() -> void:
 	var completed_turns = 0
@@ -485,9 +487,9 @@ func _render_game() -> void:
 	var feedback_event = ""
 	if _feedback_game_id == game.get_instance_id():
 		if completed_turns > _feedback_turns:
-			feedback_event = "旅程完成" if game.finished else "回合完成"
+			feedback_event = GameLocale.text("旅程完成") if game.finished else GameLocale.text("回合完成")
 		elif str(game.rng.state) != _feedback_rng:
-			feedback_event = "动物已刷新"
+			feedback_event = GameLocale.text("动物已刷新")
 	_feedback_game_id = game.get_instance_id()
 	_feedback_turns = completed_turns
 	_feedback_rng = str(game.rng.state)
@@ -526,16 +528,16 @@ func _play_ai_step() -> void:
 	else:
 		var error = _request_action(entry.action,entry.args)
 		if error.is_empty():
-			var name = str(game.players[game.active].name)
+			var name = str(GameLocale.player_name(game.players[game.active].name))
 			match entry.action:
 				"draft":
-					status = name+" 领取了地块与"+T.ANIMAL_NAMES[game.pending.animal]+"。"
+					status = GameLocale.text("%s 领取了地块与%s。") % [name,GameLocale.text(T.ANIMAL_NAMES[game.pending.animal])]
 					mode = "tile"
 				"place_tile":
-					status = name+" 拼接了新的海岸地块。"
+					status = GameLocale.text("%s 拼接了新的海岸地块。") % name
 					mode = "animal"
-				"place_animal": status = name+" 安置了"+T.ANIMAL_NAMES[game.pending.animal]+"。"
-				"discard_animal": status = name+" 放归了"+T.ANIMAL_NAMES[game.pending.animal]+"。"
+				"place_animal": status = GameLocale.text("%s 安置了%s。") % [name,GameLocale.text(T.ANIMAL_NAMES[game.pending.animal])]
+				"discard_animal": status = GameLocale.text("%s 放归了%s。") % [name,GameLocale.text(T.ANIMAL_NAMES[game.pending.animal])]
 			_action("")
 		else:
 			ai_steps.clear()
@@ -658,7 +660,7 @@ func _market_pick(index: int, is_animal: bool) -> void:
 	else:
 		selection_tile = index
 		selection_animal = index
-	status = "选择完成后，点击「确认选取」。"
+	status = GameLocale.text("选择完成后，点击「确认选取」。")
 	_render_game()
 
 func _draft() -> void:
@@ -666,7 +668,7 @@ func _draft() -> void:
 	if error.is_empty():
 		if _practicing: game.rotate_pending(-1)
 		_reset_selection()
-		status = "试着旋转一次，看看地块的朝向怎样变化。" if _practicing else "点击虚线空格放地块；也可先切换到「放动物」。"
+		status = GameLocale.text("试着旋转一次，看看地块的朝向怎样变化。") if _practicing else GameLocale.text("点击虚线空格放地块；也可先切换到「放动物」。")
 	_action(error)
 
 func _board_click(cell: Vector2i) -> void:
@@ -674,28 +676,28 @@ func _board_click(cell: Vector2i) -> void:
 	if _practicing:
 		var practice_step = _practice_step()
 		if practice_step == Practice.Step.ROTATE:
-			_message("先转到泥滩对齐，再点击金色空位。")
+			_message(GameLocale.text("先转到泥滩对齐，再点击金色空位。"))
 			return
 		if practice_step not in [Practice.Step.TILE,Practice.Step.ANIMAL]: return
 		if cell != Practice.TARGET:
-			_message("请点亮框标出的练习落点。")
+			_message(GameLocale.text("请点亮框标出的练习落点。"))
 			return
 	if game.pending.is_empty():
-		_message("请先从左侧市集选取一组地块与动物。")
+		_message(GameLocale.text("请先从左侧市集选取一组地块与动物。"))
 		return
 	var error = ""
 	if mode == "tile":
 		error = _request_action("place_tile",{"q":cell.x,"r":cell.y,"rotation":int(game.pending.rotation)})
 		if error.is_empty():
 			mode = "animal"
-			status = "点击带白圈的栖息地安置动物，也可选择放归。"
-			if _practicing: status = "泥滩接上了！把弹涂鱼放到新地块上。"
+			status = GameLocale.text("点击带白圈的栖息地安置动物，也可选择放归。")
+			if _practicing: status = GameLocale.text("泥滩接上了！把弹涂鱼放到新地块上。")
 	else:
 		error = _request_action("place_animal",{"q":cell.x,"r":cell.y})
 		if error.is_empty():
 			mode = "tile" if game.pending.tile_pos == null else "animal"
-			status = "地块与动物均可继续调整。满意后点击「完成回合」。" if game.ready_to_commit() else "动物已选择栖息地，接着摆放地块。"
-			if _practicing: status = "弹涂鱼已安置。可以确认这一回合，也可以撤回重试。"
+			status = GameLocale.text("地块与动物均可继续调整。满意后点击「完成回合」。") if game.ready_to_commit() else GameLocale.text("动物已选择栖息地，接着摆放地块。")
+			if _practicing: status = GameLocale.text("弹涂鱼已安置。可以确认这一回合，也可以撤回重试。")
 	_action(error)
 
 func _rotate(amount: int) -> void:
@@ -715,12 +717,12 @@ func _action(error: String) -> void:
 	_render_game()
 
 func _request_action(action: String, args: Dictionary = {}) -> String:
-	if not ai_executing and not _ai_level().is_empty(): return "电脑正在行动。"
+	if not ai_executing and not _ai_level().is_empty(): return GameLocale.text("电脑正在行动。")
 	if lan_session != null and lan_session.started:
 		if not lan_session.can_control_player(game.active):
-			return "请等待轮到自己且连接恢复后再操作。"
+			return GameLocale.text("请等待轮到自己且连接恢复后再操作。")
 		lan_session.request(action,args)
-		status = "正在同步操作……"
+		status = GameLocale.text("正在同步操作……")
 		return ""
 	var error: String = game.apply_action(action,args)
 	if error.is_empty():
@@ -729,6 +731,7 @@ func _request_action(action: String, args: Dictionary = {}) -> String:
 	return error
 
 func _message(text: String) -> void:
+	text = GameLocale.text(text)
 	sound.play("error")
 	status = text
 	if is_instance_valid(status_label):
@@ -749,12 +752,12 @@ func _commit() -> void:
 	_reset_selection()
 	highlight.clear()
 	if was_watching or _ai_level().is_empty(): view_player = game.active
-	status = game.players[game.active].name+"，轮到你了。选择下一组地块与动物。"
+	status = GameLocale.player_name(game.players[game.active].name)+GameLocale.text("，轮到你了。选择下一组地块与动物。")
 	if _practicing:
-		status = "这一回合已落定，练习数据不会保存。"
+		status = GameLocale.text("这一回合已落定，练习数据不会保存。")
 	if game.finished:
 		reports = S.game_scores(game)
-		status = "点击计分项目，可在版图上查看得分依据。"
+		status = GameLocale.text("点击计分项目，可在版图上查看得分依据。")
 		_record_result()
 	_render_game()
 	if game.finished: show_results()
@@ -762,7 +765,7 @@ func _commit() -> void:
 func _record_result() -> void:
 	if _practicing or (lan_session != null and lan_session.started): return
 	if records.record(game,reports) != OK:
-		status = "调查记录写入失败，重新打开存档后会重试。"
+		status = GameLocale.text("调查记录写入失败，重新打开存档后会重试。")
 
 func show_nature() -> void:
 	if not _ai_level().is_empty(): return
@@ -782,11 +785,11 @@ func _highlight_score(player: int, category: String, is_wildlife: bool) -> void:
 		for group in part.groups:
 			for k in group.cells:
 				if k not in highlight: highlight.append(k)
-		status = "%s：%d 分。金色边框显示参与计分的地块。" % [T.ANIMAL_NAMES[category],points]
+		status = GameLocale.text("%s：%d 分。金色边框显示参与计分的地块。") % [GameLocale.text(T.ANIMAL_NAMES[category]),points]
 	else:
 		var part = reports[player].habitats[category]
 		highlight = part.cells.duplicate()
-		status = "%s：最大相连区域 %d 分，奖励 %d 分。" % [T.HABITAT_NAMES[category],part.points,part.bonus]
+		status = GameLocale.text("%s：最大相连区域 %d 分，奖励 %d 分。") % [GameLocale.text(T.HABITAT_NAMES[category]),part.points,part.bonus]
 	_render_game()
 
 func show_results() -> void:
@@ -803,10 +806,31 @@ func _load_settings() -> void:
 		var data = JSON.parse_string(FileAccess.get_file_as_string("user://settings.json"))
 		if data is Dictionary:
 			settings.merge(data,true)
+	TranslationServer.set_locale("en" if settings.language == "en" else "zh_CN")
+	get_window().title = GameLocale.text("潮痕群岛")
 	_apply_comfort()
 	_apply_audio()
 	if settings.fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+func set_language(language: String) -> void:
+	if language not in ["zh_CN","en"]:
+		return
+	settings.language = language
+	TranslationServer.set_locale(language)
+	get_window().title = GameLocale.text("潮痕群岛")
+	_save_settings()
+	var reopen_settings = is_instance_valid(modal) and modal is SettingsModal
+	var on_board = is_instance_valid(board)
+	_close_modal()
+	if on_board:
+		status = ""
+		_screen_game = null
+		_render_game()
+	else:
+		show_menu()
+	if reopen_settings:
+		show_settings()
 
 func _save_settings() -> void:
 	var file = FileAccess.open("user://settings.json",FileAccess.WRITE)

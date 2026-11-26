@@ -352,4 +352,4 @@ func _get_tooltip(at_position: Vector2) -> String:
 	if not cells.has(cell_key): return ""
 	var cell = cells[cell_key]
 	var tile = TileDefinition.get_tile(int(cell.tile))
-	return " / ".join(tile.habitats.map(func(h):return TileDefinition.HABITAT_NAMES[h]))+"\n"+("入住："+TileDefinition.ANIMAL_NAMES[cell.animal] if cell.animal != "" else "可入住："+ "、".join(tile.wildlife.map(func(a):return TileDefinition.ANIMAL_NAMES[a])))
+	return " / ".join(tile.habitats.map(func(h):return GameLocale.text(TileDefinition.HABITAT_NAMES[h])))+"\n"+(GameLocale.text("入住：")+GameLocale.text(TileDefinition.ANIMAL_NAMES[cell.animal]) if cell.animal != "" else GameLocale.text("可入住：")+ GameLocale.text("、").join(tile.wildlife.map(func(a):return GameLocale.text(TileDefinition.ANIMAL_NAMES[a]))))

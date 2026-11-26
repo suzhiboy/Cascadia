@@ -31,7 +31,7 @@ func frame(controller, title: String, width: float, height: float) -> VBoxContai
 	title_label = ui._heading(title,30,P.DARK)
 	header.add_child(title_label)
 	ui._spacer(header)
-	header.add_child(ui._styled(ui._button("关闭",ui._close_modal),"QuietButton"))
+	header.add_child(ui._styled(ui._button(GameLocale.text("关闭"),ui._close_modal),"QuietButton"))
 	body.add_child(header)
 	return body
 

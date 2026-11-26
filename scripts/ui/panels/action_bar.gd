@@ -41,7 +41,7 @@ func build(ui) -> void:
 		var mark = Ornament.make("hex",Vector2(20,22),P.GOLD,P.DARK,str(i+1))
 		mark.font_size = 13
 		chip.add_child(mark)
-		var label = ui._heading(["选取","地块","动物","确认"][i],17)
+		var label = ui._heading([GameLocale.text("选取"),GameLocale.text("地块"),GameLocale.text("动物"),GameLocale.text("确认")][i],17)
 		chip.add_child(label)
 		var holder = ui._chip(chip)
 		stepper.add_child(holder)
@@ -49,10 +49,10 @@ func build(ui) -> void:
 		if i < 3: stepper.add_child(ui._label("›",18,Color(P.MUTED.r,P.MUTED.g,P.MUTED.b,.6)))
 	status = ui._wrap("",17,P.MUTED)
 	info.add_child(status)
-	review = ui._button("查看练习得分",ui._practice_results,true)
-	results = ui._button("查看计分",ui.show_results)
-	again = ui._button("再来一局",ui.show_setup,true)
-	back = ui._button("返回当前玩家",func():ui._view(ui.game.active),true)
+	review = ui._button(GameLocale.text("查看练习得分"),ui._practice_results,true)
+	results = ui._button(GameLocale.text("查看计分"),ui.show_results)
+	again = ui._button(GameLocale.text("再来一局"),ui.show_setup,true)
+	back = ui._button(GameLocale.text("返回当前玩家"),func():ui._view(ui.game.active),true)
 	for button in [review,results,again,back]: row.add_child(button)
 	hand = ui._hbox(12)
 	row.add_child(hand)
@@ -67,8 +67,8 @@ func build(ui) -> void:
 	pieces.add_child(animal)
 	hand.add_child(ui._chip(pieces))
 	hand.add_child(VSeparator.new())
-	tile_mode = ui._button("放地块",ui._set_mode.bind("tile"))
-	animal_mode = ui._button("放动物",ui._set_mode.bind("animal"))
+	tile_mode = ui._button(GameLocale.text("放地块"),ui._set_mode.bind("tile"))
+	animal_mode = ui._button(GameLocale.text("放动物"),ui._set_mode.bind("animal"))
 	tile_mode.visible = not ui._practicing
 	animal_mode.visible = not ui._practicing
 	hand.add_child(tile_mode)
@@ -78,15 +78,15 @@ func build(ui) -> void:
 	hand.add_child(rotate_left)
 	hand.add_child(rotate_right)
 	hand.add_child(VSeparator.new())
-	var release = ui._button("放归动物",func():ui._action(ui._request_action("discard_animal")))
+	var release = ui._button(GameLocale.text("放归动物"),func():ui._action(ui._request_action("discard_animal")))
 	release.disabled = ui._practicing
 	hand.add_child(ui._styled(release,"QuietButton"))
-	hand.add_child(ui._styled(ui._button("撤回摆放",func():
+	hand.add_child(ui._styled(ui._button(GameLocale.text("撤回摆放"),func():
 		ui._request_action("clear_preview")
 		ui.mode = "tile"
 		ui._action("")),"QuietButton"))
 	hand.add_child(VSeparator.new())
-	confirm = ui._button("完成回合",ui._commit,true)
+	confirm = ui._button(GameLocale.text("完成回合"),ui._commit,true)
 	confirm.custom_minimum_size.x = 150
 	hand.add_child(confirm)
 	for button in find_children("*","Button",true,false):
@@ -107,9 +107,9 @@ func update(state: Dictionary) -> void:
 	if status.get_theme_color("font_color") != P.MUTED:
 		status.add_theme_color_override("font_color",P.MUTED)
 	if state.ai and not spectating:
-		View.apply(caption,&"text",game.players[game.active].name+" · 电脑回合")
+		View.apply(caption,&"text",GameLocale.player_name(game.players[game.active].name)+GameLocale.text(" · 电脑回合"))
 	elif caption.visible:
-		View.apply(caption,&"text","首回合已确认" if in_review else ("旅程完成  ·  %d 分" % state.reports[state.view].total if game.finished else "正在查看其他旅行者的版图"))
+		View.apply(caption,&"text",GameLocale.text("首回合已确认") if in_review else (GameLocale.text("旅程完成  ·  %d 分") % state.reports[state.view].total if game.finished else GameLocale.text("正在查看其他旅行者的版图")))
 	var picked = not game.pending.is_empty()
 	View.apply(hand,&"visible",stepper.visible and picked and state.can_act)
 	var ready = picked and game.ready_to_commit()

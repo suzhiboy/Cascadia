@@ -63,7 +63,7 @@ static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, ro
 		for i in range(definition.habitats.size()):
 			var habitat = definition.habitats[i]
 			var label_pos = center+Vector2((-0.62 if i == 0 else 0.62)*radius,0).rotated(rotation*PI/3.0)+Vector2(-radius*.09,radius*.08)
-			canvas.draw_string(P.font(600),label_pos,T.HABITAT_NAMES[habitat].left(1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(radius*.20),Color("fff9e8"))
+			canvas.draw_string(P.font(600),label_pos,GameLocale.text(T.HABITAT_NAMES[habitat]).left(1),HORIZONTAL_ALIGNMENT_LEFT,-1,int(radius*.20),Color("fff9e8"))
 	if definition.wildlife.size() == 1:
 		_keystone(canvas,center+Vector2(0,-radius*.66),radius*.13)
 	if animal != "":

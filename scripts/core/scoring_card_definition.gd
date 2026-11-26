@@ -36,8 +36,8 @@ const DETAILS = {
 }
 
 static func title(animal: String, card: String) -> String:
-	return DETAILS[animal][card][0]
+	return GameLocale.text(DETAILS[animal][card][0])
 
 static func description(animal: String, card: String) -> String:
 	var data = DETAILS[animal][card]
-	return data[1] + "\n\n" + data[2]
+	return GameLocale.text(data[1]) + "\n\n" + GameLocale.text(data[2])
