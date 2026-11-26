@@ -1200,3 +1200,18 @@ msgstr "%s released wildlife (%s)."
 
 msgid "%s 拼接了新的海岸地块。"
 msgstr "%s extended the shore."
+
+msgid "拖海面 / 中键 / WASD 平移 · 滚轮 / + − 缩放 · F / Home 居中 · 拖市集地块摆放"
+msgstr "Drag water / MMB / WASD to pan · Wheel / + − zoom · F / Home center · Drag market tiles to place"
+
+msgid "1–4 选组 · Enter 确认 · Esc 撤回 · 方向键选格 · 右键 / Shift+滚轮 / Q E 旋转"
+msgstr "1–4 pick · Enter confirm · Esc undo · Arrows select hex · RMB / Shift+Wheel / Q E rotate"
+
+msgid " · Tab 得分"
+msgstr " · Tab scores"
+
+msgid "十字键 选格 / 导航 · A 放置 / 确认 · B 撤回"
+msgstr "D-pad select hex / navigate · A place / confirm · B undo"
+
+msgid "LB / RB 旋转 · Start 完成回合"
+msgstr "LB / RB rotate · Start finish turn"

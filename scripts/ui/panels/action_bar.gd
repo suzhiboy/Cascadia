@@ -17,6 +17,7 @@ var tile_mode: Button
 var animal_mode: Button
 var rotate_left: Button
 var rotate_right: Button
+var release: Button
 var confirm: Button
 var review: Button
 var results: Button
@@ -78,13 +79,10 @@ func build(ui) -> void:
 	hand.add_child(rotate_left)
 	hand.add_child(rotate_right)
 	hand.add_child(VSeparator.new())
-	var release = ui._button(GameLocale.text("放归动物"),func():ui._action(ui._request_action("discard_animal")))
+	release = ui._button(GameLocale.text("放归动物"),func():ui._action(ui._request_action("discard_animal")))
 	release.disabled = ui._practicing
 	hand.add_child(ui._styled(release,"QuietButton"))
-	hand.add_child(ui._styled(ui._button(GameLocale.text("撤回摆放"),func():
-		ui._request_action("clear_preview")
-		ui.mode = "tile"
-		ui._action("")),"QuietButton"))
+	hand.add_child(ui._styled(ui._button(GameLocale.text("撤回摆放"),ui._undo_placement),"QuietButton"))
 	hand.add_child(VSeparator.new())
 	confirm = ui._button(GameLocale.text("完成回合"),ui._commit,true)
 	confirm.custom_minimum_size.x = 150

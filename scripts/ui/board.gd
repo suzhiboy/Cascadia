@@ -1,6 +1,8 @@
 extends Control
 
 signal cell_clicked(cell: Vector2i)
+signal rotation_requested(amount: int)
+signal market_tile_dropped(data: Dictionary, cell: Vector2i)
 const H = preload("res://scripts/core/hex.gd")
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
@@ -12,6 +14,8 @@ const SHORE_DRY = Color("e7dab4")
 const Feedback = preload("res://scripts/ui/feedback.gd")
 const CAMERA_MARGIN = 80.0
 const CAMERA_DURATION = .35
+const SEA_DRAG_THRESHOLD = 6.0
+const NO_CELL = Vector2i(999,999)
 var animations = true:
 	set(enabled):
 		animations = enabled
@@ -31,7 +35,7 @@ var landing_animal := false
 var landing_progress := 1.0
 var landing_tween: Tween
 var preview_key = ""
-var hovered = Vector2i(999,999)
+var hovered = NO_CELL
 var pan = Vector2.ZERO
 var zoom = 1.0
 var camera_adjusted = false
@@ -42,7 +46,14 @@ var _fit_queued = false
 var _force_fit = false
 var radius = 73.0
 var dragging = false
+var market_drop_enabled = false
+var _sea_press = false
+var _sea_dragging = false
+var _sea_origin := Vector2.ZERO
+var _keyboard_cursor = false
+var _drag_tile = 0
 var interactive = true
+var rotation_enabled = false
 var pulse = 0.0
 var rotation_offset = 0.0
 # Presentation only: what the pending component would look like under the cursor.
@@ -118,9 +129,9 @@ func _process(delta: float) -> void:
 			queue_redraw()
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_MOUSE_EXIT:
-		hovered = Vector2i(999,999)
-		queue_redraw()
+	if what == NOTIFICATION_DRAG_END or what == NOTIFICATION_MOUSE_EXIT:
+		_drag_tile = 0
+		if not _keyboard_cursor: _set_hover(NO_CELL)
 
 func land(cell: Vector2i, animal: bool) -> void:
 	if not animations: return
@@ -207,46 +218,132 @@ func _adjust_camera() -> void:
 func screen_position(p: Vector2i) -> Vector2:
 	return size*.5+pan+H.to_pixel(p,radius)*zoom
 
+func pan_by(offset: Vector2) -> void:
+	_adjust_camera()
+	_set_camera(pan+offset,zoom)
+
+func zoom_by(amount: int, anchor: Vector2) -> void:
+	_adjust_camera()
+	var next = clampf(zoom*(1.12 if amount > 0 else 1.0/1.12),minf(.25,zoom),2.3)
+	var offset = anchor-size*.5
+	_set_camera(offset-(offset-pan)*(next/zoom),next)
+
+func _cell_at(point: Vector2) -> Vector2i:
+	return H.from_pixel((point-size*.5-pan)/zoom,radius)
+
+func _set_hover(cell: Vector2i) -> void:
+	hovered = cell
+	_update_ghost()
+	queue_redraw()
+
+func clear_cursor() -> void:
+	_keyboard_cursor = false
+	_drag_tile = 0
+	_set_hover(NO_CELL)
+
+func update_cursor() -> void:
+	if _keyboard_cursor: move_cursor(Vector2.ZERO)
+
+func move_cursor(direction: Vector2) -> bool:
+	var targets = frontier if not frontier.is_empty() else legal_animals
+	if not interactive or targets.is_empty():
+		if _keyboard_cursor: _set_hover(NO_CELL)
+		return false
+	var origin = H.to_pixel(hovered,radius) if hovered != NO_CELL else -pan/zoom
+	var selected = hovered if hovered in targets else NO_CELL
+	var best = INF
+	if selected == NO_CELL or direction != Vector2.ZERO:
+		for cell in targets:
+			var offset = H.to_pixel(cell,radius)-origin
+			var alignment = 1.0 if hovered not in targets else offset.normalized().dot(direction)
+			if alignment < .1: continue
+			var distance = offset.length_squared()/alignment
+			if distance < best:
+				best = distance
+				selected = cell
+	_keyboard_cursor = true
+	_set_hover(selected)
+	if direction != Vector2.ZERO:
+		var point = screen_position(selected)
+		var inset = Vector2.ONE*48
+		var visible_point = point.clamp(inset,size-inset)
+		if not visible_point.is_equal_approx(point): pan_by(visible_point-point)
+	return true
+
+func place_cursor() -> bool:
+	if not move_cursor(Vector2.ZERO): return false
+	cell_clicked.emit(hovered)
+	return true
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
+		var cell = _cell_at(event.position)
 		if event.button_index == MOUSE_BUTTON_MIDDLE:
 			dragging = event.pressed
+		elif rotation_enabled and (event.is_action_pressed("board_rotate_right",false,true) or event.is_action_pressed("board_rotate_left",false,true)):
+			rotation_requested.emit(-1 if event.is_action_pressed("board_rotate_left",false,true) else 1)
 		elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP,MOUSE_BUTTON_WHEEL_DOWN]:
-			_adjust_camera()
-			var old = zoom
-			zoom = clampf(zoom*(1.12 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0/1.12),minf(.25,old),2.3)
-			pan = event.position-size*.5-(event.position-size*.5-pan)*(zoom/old)
-			queue_redraw()
-		elif event.button_index == MOUSE_BUTTON_LEFT and event.pressed and interactive:
-			cell_clicked.emit(H.from_pixel((event.position-size*.5-pan)/zoom,radius))
+			zoom_by(1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -1,event.position)
+		elif event.button_index == MOUSE_BUTTON_LEFT:
+			_keyboard_cursor = false
+			if event.pressed:
+				_sea_origin = event.position
+				_sea_press = not cells.has(H.key(cell)) and cell not in frontier
+				_sea_dragging = false
+				if not _sea_press and interactive: cell_clicked.emit(cell)
+			else:
+				var click = _sea_press and not _sea_dragging
+				_sea_press = false
+				_sea_dragging = false
+				if click and interactive: cell_clicked.emit(_cell_at(_sea_origin))
 	if event is InputEventMouseMotion:
+		_keyboard_cursor = false
 		if dragging and event.relative != Vector2.ZERO:
-			_adjust_camera()
-			pan += event.relative
-		var cell = H.from_pixel((event.position-size*.5-pan)/zoom,radius)
-		if dragging or cell != hovered:
-			hovered = cell
-			queue_redraw()
+			pan_by(event.relative)
+		elif _sea_press:
+			if _sea_dragging: pan_by(event.relative)
+			elif event.position.distance_to(_sea_origin) > SEA_DRAG_THRESHOLD:
+				_sea_dragging = true
+				pan_by(event.position-_sea_origin)
+		_set_hover(_cell_at(event.position))
+
+func _can_drop_data(position: Vector2, data: Variant) -> bool:
+	if not market_drop_enabled or not data is Dictionary or not data.has("market_row"): return false
+	_drag_tile = data.tile
+	_keyboard_cursor = false
+	var cell = _cell_at(position)
+	_set_hover(cell)
+	return Rect2(Vector2.ZERO,size).has_point(position) and cell in camera_frontier
+
+func _drop_data(position: Vector2, data: Variant) -> void:
+	if _can_drop_data(position,data):
+		market_tile_dropped.emit(data,_cell_at(position))
+	_drag_tile = 0
+	_update_ghost()
+	queue_redraw()
 
 func _update_ghost() -> void:
 	if not is_instance_valid(_ghost):
 		return
-	var show_tile = interactive and ghost_tile > 0 and hovered in frontier
-	var show_animal = interactive and ghost_animal != "" and hovered in legal_animals and not cells.get(H.key(hovered),{}).get("animal","") == ghost_animal
+	var dragging_tile = _drag_tile > 0 and market_drop_enabled
+	var show_tile = interactive and (hovered in camera_frontier if dragging_tile else ghost_tile > 0 and hovered in frontier)
+	var show_animal = interactive and not dragging_tile and ghost_animal != "" and hovered in legal_animals and not cells.get(H.key(hovered),{}).get("animal","") == ghost_animal
 	_ghost.visible = show_tile or show_animal
 	_ghost_ring.visible = _ghost.visible
 	if not _ghost.visible:
 		return
 	var span = radius*2.4*zoom
-	var tile_id = ghost_tile if show_tile else 0
+	var tile_id = (_drag_tile if dragging_tile else ghost_tile) if show_tile else 0
 	var animal = "" if show_tile else ghost_animal
-	if _ghost.tile_id != tile_id or _ghost.tile_rotation != ghost_rotation or _ghost.animal != animal or not is_equal_approx(_ghost.hex_radius,(radius-2)*zoom):
+	var rotation = 0 if dragging_tile else ghost_rotation
+	if _ghost.tile_id != tile_id or _ghost.tile_rotation != rotation or _ghost.animal != animal or not is_equal_approx(_ghost.hex_radius,(radius-2)*zoom):
 		_ghost.tile_id = tile_id
-		_ghost.tile_rotation = ghost_rotation
+		_ghost.tile_rotation = rotation
 		_ghost.animal = animal
 		_ghost.hex_radius = (radius-2)*zoom
 		_ghost.queue_redraw()
 		_ghost_ring.tile_id = tile_id
+		_ghost_ring.tile_rotation = rotation
 		_ghost_ring.animal = animal
 		_ghost_ring.hex_radius = _ghost.hex_radius
 		_ghost_ring.queue_redraw()
@@ -268,7 +365,7 @@ func _draw() -> void:
 	draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
 	_draw_shore()
 	_draw_grid()
-	for p in frontier:
+	for p in (camera_frontier if _drag_tile > 0 and market_drop_enabled else frontier):
 		var c = H.to_pixel(p,radius)
 		var selected = p == hovered and interactive
 		draw_colored_polygon(Painter.polygon(c,radius-4),Color(1,.98,.9,.34 if not selected else .7))

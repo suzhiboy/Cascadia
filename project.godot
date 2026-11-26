@@ -49,6 +49,123 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.07, 0.14, 0.12, 1)
 
+[input]
+
+market_row_1={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":49)]
+}
+
+market_row_2={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":50)]
+}
+
+market_row_3={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":51)]
+}
+
+market_row_4={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":52)]
+}
+
+turn_confirm={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194309), Object(InputEventKey,"keycode":4194310)]
+}
+
+turn_undo={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194305), Object(InputEventJoypadButton,"device":-1,"button_index":1)]
+}
+
+board_place={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadButton,"device":-1,"button_index":0)]
+}
+
+turn_commit={
+"deadzone": 0.2,
+"events": [Object(InputEventJoypadButton,"device":-1,"button_index":6)]
+}
+
+board_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194319), Object(InputEventJoypadButton,"device":-1,"button_index":13)]
+}
+
+board_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194321), Object(InputEventJoypadButton,"device":-1,"button_index":14)]
+}
+
+board_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194320), Object(InputEventJoypadButton,"device":-1,"button_index":11)]
+}
+
+board_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194322), Object(InputEventJoypadButton,"device":-1,"button_index":12)]
+}
+
+board_pan_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":65)]
+}
+
+board_pan_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":68)]
+}
+
+board_pan_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":87)]
+}
+
+board_pan_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":83)]
+}
+
+board_zoom_in={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":43), Object(InputEventKey,"keycode":61), Object(InputEventKey,"keycode":4194437)]
+}
+
+board_zoom_out={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":45), Object(InputEventKey,"keycode":4194435)]
+}
+
+board_center={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":70), Object(InputEventKey,"keycode":4194317)]
+}
+
+board_rotate_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":81), Object(InputEventJoypadButton,"device":-1,"button_index":9), Object(InputEventMouseButton,"button_index":5,"shift_pressed":true)]
+}
+
+board_rotate_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":69), Object(InputEventJoypadButton,"device":-1,"button_index":10), Object(InputEventMouseButton,"button_index":2), Object(InputEventMouseButton,"button_index":4,"shift_pressed":true)]
+}
+
+ui_accept={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194309), Object(InputEventKey,"keycode":4194310), Object(InputEventKey,"keycode":32), Object(InputEventJoypadButton,"device":-1,"button_index":0)]
+}
+
+ui_cancel={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"keycode":4194305), Object(InputEventJoypadButton,"device":-1,"button_index":1)]
+}
+
 [internationalization]
 
 locale/fallback="zh_CN"

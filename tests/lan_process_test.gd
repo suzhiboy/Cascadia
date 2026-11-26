@@ -7,6 +7,8 @@ var began = false
 var ready_sent = false
 var elapsed = 0.0
 var count = 2
+var dragged = false
+var drop_target = null
 func _ready() -> void:
 	role = OS.get_cmdline_user_args()[-1]
 	call_deferred("run")
@@ -42,6 +44,23 @@ func get_tree_finish() -> void:
 	get_tree().quit(0)
 func step() -> void:
 	var g = session.game
+	if role == "client1" and not dragged:
+		if drop_target == null and g.pending.is_empty():
+			drop_target = g.frontier()[0]
+			var data = scene._market_drag_data(Vector2.ZERO,0)
+			if data == null:
+				printerr("LAN FAIL: market drag could not start")
+				get_tree().quit(1)
+			else:
+				scene._drop_market_tile(data,drop_target)
+			return
+		if g.pending.get("tile_pos") == null: return
+		if g.pending.tile_pos != [drop_target.x,drop_target.y] or g.pending.tile_index != 0:
+			printerr("LAN FAIL: market drag did not land at the chosen hex")
+			get_tree().quit(1)
+			return
+		print("LAN DRAG PASS ",role)
+		dragged = true
 	if g.pending.is_empty(): session.request("draft",{"tile_index":0,"animal_index":0})
 	elif g.pending.tile_pos == null:
 		var p = g.frontier()[0]

@@ -19,6 +19,7 @@ const SettingsModal = preload("res://scripts/ui/modals/settings_modal.gd")
 const SetupModal = preload("res://scripts/ui/modals/setup_modal.gd")
 const LobbyModal = preload("res://scripts/ui/modals/lobby_modal.gd")
 const Feedback = preload("res://scripts/ui/feedback.gd")
+const FocusNavigation = preload("res://scripts/ui/focus_navigation.gd")
 const Practice = preload("res://scripts/ui/first_turn_practice.gd")
 const Music = preload("res://scripts/ui/music.gd")
 const Sound = preload("res://scripts/ui/sound.gd")
@@ -49,6 +50,7 @@ var view_player = 0:
 		if index != view_player:
 			if is_instance_valid(turn_effects): turn_effects.stop_motion()
 			if is_instance_valid(board): board.stop_landing()
+			_market_drop.clear()
 		view_player = index
 var mode = "tile"
 var selection_tile = -1
@@ -66,6 +68,9 @@ var board_panel
 var cards_panel
 var action_bar
 var turn_effects
+var _focus_before_modal: Control
+var _market_drop := {}
+var _market_drop_request := 0
 var _screen_game
 var _large_text = false
 var _feedback_game_id = 0
@@ -105,8 +110,7 @@ func _ready() -> void:
 	lan_session.session_closed.connect(_on_lan_closed)
 	lan_session.lobby_changed.connect(_on_lan_lobby_changed)
 	lan_session.connection_changed.connect(_on_lan_connection_changed)
-	lan_session.action_result.connect(func(_id, accepted, message):
-		if not accepted: _message(message))
+	lan_session.action_result.connect(_on_lan_action_result)
 	lan_discovery = LanDiscoveryClass.new()
 	add_child(lan_discovery)
 	lan_discovery.room_found.connect(_on_lan_room_found)
@@ -128,34 +132,98 @@ func _exit_game() -> void:
 		game.save_game()
 	get_tree().quit()
 
-# Capture Tab before Control uses it for keyboard focus navigation.
 func _input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo or event.keycode != KEY_TAB:
-		return
-	if game == null or _practicing or not is_instance_valid(board):
-		return
+	if not (event is InputEventKey or event is InputEventJoypadButton or event is InputEventJoypadMotion): return
+	var on_board = is_instance_valid(board)
+	var scores = on_board and not _practicing and event.is_action_pressed("ui_focus_next",false,true)
 	if is_instance_valid(modal):
-		if modal.get_meta("live_scores",false):
+		if event.is_action_pressed("turn_undo") or (scores and modal.get_meta("live_scores",false)):
 			_close_modal()
 			get_viewport().set_input_as_handled()
+			return
+	elif scores:
+		show_results()
+		get_viewport().set_input_as_handled()
 		return
-	show_results()
-	get_viewport().set_input_as_handled()
+	elif on_board and _board_shortcut(event):
+		get_viewport().set_input_as_handled()
+		return
+	for action in ["ui_left","ui_right","ui_up","ui_down","ui_focus_next","ui_focus_prev","ui_accept"]:
+		if event.is_action_pressed(action,true):
+			_prepare_focus()
+			return
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	if not event is InputEventKey or not event.pressed or event.echo:
-		return
-	if event.keycode == KEY_ESCAPE:
-		if is_instance_valid(modal):
-			_close_modal()
-		elif game != null:
+func _board_shortcut(event: InputEvent) -> bool:
+	var holding = board.interactive and not game.pending.is_empty()
+	var directions = [Vector2.LEFT,Vector2.UP,Vector2.RIGHT,Vector2.DOWN]
+	for i in range(4):
+		var side = ["left","up","right","down"][i]
+		if event.is_action_pressed("board_pan_"+side,true):
+			board.pan_by(-directions[i]*42)
+			return true
+		if event.is_action_pressed("board_"+side,true):
+			if holding: return board.move_cursor(directions[i])
+			if event is InputEventKey:
+				board.pan_by(-directions[i]*42)
+				return true
+	if event.is_action_pressed("board_center"):
+		board.center_board()
+	elif event.is_action_pressed("board_zoom_in",true) or event.is_action_pressed("board_zoom_out",true):
+		board.zoom_by(1 if event.is_action_pressed("board_zoom_in",true) else -1,board.size*.5)
+	elif event.is_action_pressed("board_rotate_left") or event.is_action_pressed("board_rotate_right"):
+		_rotate(-1 if event.is_action_pressed("board_rotate_left") else 1)
+	elif event.is_action_pressed("turn_undo"):
+		if not _market_drop.is_empty():
+			_market_drop.clear()
+		elif holding:
+			_undo_placement()
+		elif selection_tile >= 0 or selection_animal >= 0 or independent or refreshing:
+			_reset_selection()
+			_render_game()
+		else:
 			show_settings()
+	elif event.is_action_pressed("board_place") and holding:
+		return board.place_cursor()
+	elif event.is_action_pressed("turn_commit") and holding and not action_bar.confirm.disabled:
+		action_bar.confirm.pressed.emit()
+	elif event.is_action_pressed("turn_confirm"):
+		if holding and game.ready_to_commit():
+			action_bar.confirm.pressed.emit()
+		elif holding:
+			return board.place_cursor()
+		elif not market_panel.take.disabled:
+			market_panel.take.pressed.emit()
+			board.move_cursor(Vector2.ZERO)
+		else:
+			return false
+	else:
+		for row in range(4):
+			if event.is_action_pressed("market_row_%d" % (row+1)) and not market_panel.rows[row].tile.disabled:
+				_market_pick(row,refreshing)
+				return true
+		return false
+	return true
+
+func _prepare_focus() -> void:
+	var scope = modal if is_instance_valid(modal) else screen
+	if not is_instance_valid(scope): return
+	var owner = get_viewport().gui_get_focus_owner()
+	var has_focus = owner != null and scope.is_ancestor_of(owner) and owner.is_visible_in_tree() and not (owner is BaseButton and owner.disabled)
+	if not has_focus and scope == screen and is_instance_valid(board):
+		var target = action_bar.back if action_bar.back.visible else (action_bar.release if action_bar.hand.visible else market_panel.rows[0].tile)
+		if target.is_visible_in_tree() and not target.disabled:
+			target.grab_focus()
+	FocusNavigation.update(scope)
+
+func _queue_initial_focus() -> void:
+	if not get_tree().process_frame.is_connected(_initial_focus):
+		get_tree().process_frame.connect(_initial_focus,CONNECT_ONE_SHOT)
+
+func _initial_focus() -> void:
 	if is_instance_valid(modal):
-		return
-	if event.keycode == KEY_Q:
-		_rotate(-1)
-	elif event.keycode == KEY_E:
-		_rotate(1)
+		FocusNavigation.update(modal)
+	elif not is_instance_valid(board) and is_instance_valid(screen):
+		FocusNavigation.update(screen)
 
 func _label(text: String, font_size: int = 21, color: Color = P.INK) -> Label:
 	var label = Label.new()
@@ -242,6 +310,7 @@ func _reset_screen() -> void:
 	_screen_game = null
 	_feedback_toast = null
 	_market_tokens = []
+	_market_drop.clear()
 	if is_instance_valid(screen):
 		remove_child(screen)
 		screen.queue_free()
@@ -329,13 +398,16 @@ func show_menu() -> void:
 	footer.add_theme_constant_override("shadow_outline_size",6)
 	footer.position = Vector2(1330,1005)
 	screen.add_child(footer)
+	_queue_initial_focus()
 
 func _open_modal(title: String, width: float = 850, height: float = 740, dialog = null) -> VBoxContainer:
 	_close_modal()
+	_focus_before_modal = get_viewport().gui_get_focus_owner()
 	modal = dialog if dialog != null else Modal.new()
 	modal.name = "Modal"
 	add_child(modal)
 	modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_queue_initial_focus()
 	return modal.frame(self,title,width,height)
 
 func _close_modal() -> void:
@@ -346,6 +418,9 @@ func _close_modal() -> void:
 	remove_child(modal)
 	modal.queue_free()
 	modal = null
+	if is_instance_valid(_focus_before_modal) and _focus_before_modal.is_visible_in_tree():
+		_focus_before_modal.grab_focus()
+	_focus_before_modal = null
 	if apply_size: _refresh_comfort_screen.call_deferred()
 	_schedule_ai()
 
@@ -393,6 +468,7 @@ func _on_lan_room_found(room: Dictionary) -> void:
 	lan_room_list.add_child(button)
 
 func _on_lan_connection_changed(kind: String, _details: Dictionary) -> void:
+	if kind != "connected": _market_drop.clear()
 	status = {"connected":GameLocale.text("已连接房主，等待开局。"),"reconnecting":GameLocale.text("连接中断，正在尝试重连（最多 120 秒）。"),"paused":GameLocale.text("当前玩家断线，等待重连。")}.get(kind,GameLocale.text("正在连接……"))
 	if is_instance_valid(lan_modal_body):
 		_render_lan_lobby()
@@ -410,6 +486,19 @@ func _on_lan_state_changed(snapshot: Dictionary, _revision: int) -> void:
 	if game.finished: reports = S.game_scores(game)
 	status = GameLocale.text("轮到 ")+GameLocale.player_name(game.players[game.active].name)+" · "+(GameLocale.text("请选择地块与动物。") if game.pending.is_empty() else GameLocale.text("正在摆放，可等待或查看其他版图。"))
 	_render_game()
+	if _market_drop.is_empty(): return
+	if not lan_session.can_control_player(game.active) or view_player != game.active:
+		_market_drop.clear()
+	elif not game.pending.is_empty():
+		var dropped = _market_drop.duplicate()
+		_market_drop.clear()
+		if game.pending.tile_index == dropped.market_row and game.pending.animal_index == dropped.market_row and game.pending.tile == dropped.tile and game.pending.animal == dropped.animal and dropped.cell in game.frontier():
+			_board_click(dropped.cell)
+
+func _on_lan_action_result(request_id: int, accepted: bool, message: String) -> void:
+	if accepted: return
+	if request_id == _market_drop_request: _market_drop.clear()
+	_message(message)
 
 func _on_lan_closed(reason: String) -> void:
 	lan_discovery.stop()
@@ -649,6 +738,7 @@ func _view(index: int) -> void:
 	_render_game()
 
 func _market_pick(index: int, is_animal: bool) -> void:
+	if not _market_drop.is_empty(): return
 	if not _ai_level().is_empty(): return
 	if _practicing and (index != Practice.MARKET_GROUP or _practice_step() == Practice.Step.REVIEW): return
 	if lan_session != null and lan_session.started and not lan_session.can_control_player(game.active): return
@@ -668,12 +758,40 @@ func _market_pick(index: int, is_animal: bool) -> void:
 	status = GameLocale.text("选择完成后，点击「确认选取」。")
 	_render_game()
 
-func _draft() -> void:
+func _market_drag_data(_position: Vector2, index: int) -> Variant:
+	if not _can_drop_market_tile() or market_panel.rows[index].tile.disabled: return null
+	return {"market_row":index,"tile":game.market_tiles[index],"animal":game.market_animals[index]}
+
+func _can_drop_market_tile() -> bool:
+	return is_instance_valid(board) and not is_instance_valid(modal) and board.market_drop_enabled and _market_drop.is_empty()
+
+func _drop_market_tile(data: Dictionary, cell: Vector2i) -> void:
+	if not _can_drop_market_tile() or cell not in game.frontier(): return
+	var row = int(data.market_row)
+	if game.market_tiles[row] != data.tile or game.market_animals[row] != data.animal: return
+	_market_pick(row,false)
+	if lan_session.started and not lan_session.host:
+		_market_drop = data.duplicate()
+		_market_drop.cell = cell
+		_draft(true)
+		return
+	_draft()
+	if not game.pending.is_empty(): _board_click(cell)
+
+func _draft(from_drop: bool = false) -> void:
+	if not from_drop and not _market_drop.is_empty(): return
 	var error = _request_action("draft",{"tile_index":selection_tile,"animal_index":selection_animal})
 	if error.is_empty():
 		if _practicing: game.rotate_pending(-1)
 		_reset_selection()
 		status = GameLocale.text("试着旋转一次，看看地块的朝向怎样变化。") if _practicing else GameLocale.text("点击虚线空格放地块；也可先切换到「放动物」。")
+	elif from_drop:
+		_market_drop.clear()
+	_action(error)
+
+func _undo_placement() -> void:
+	var error = _request_action("clear_preview")
+	if error.is_empty(): mode = "tile"
 	_action(error)
 
 func _board_click(cell: Vector2i) -> void:
@@ -726,7 +844,8 @@ func _request_action(action: String, args: Dictionary = {}) -> String:
 	if lan_session != null and lan_session.started:
 		if not lan_session.can_control_player(game.active):
 			return GameLocale.text("请等待轮到自己且连接恢复后再操作。")
-		lan_session.request(action,args)
+		var request_id = lan_session.request(action,args)
+		if action == "draft" and not _market_drop.is_empty(): _market_drop_request = request_id
 		status = GameLocale.text("正在同步操作……")
 		return ""
 	var error: String = game.apply_action(action,args)

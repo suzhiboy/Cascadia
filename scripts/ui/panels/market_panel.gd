@@ -42,6 +42,7 @@ func build(ui) -> void:
 		var tile = ui._button("",ui._market_pick.bind(i,false))
 		tile.custom_minimum_size = Vector2(140,102)
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tile.set_drag_forwarding(ui._market_drag_data.bind(i),Callable(),Callable())
 		var picture = MarketTile.new()
 		picture.market_display = true
 		tile.add_child(picture)
