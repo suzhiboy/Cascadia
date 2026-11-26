@@ -11,6 +11,11 @@ var frontier: Array = []
 var emphasize_frontier = false
 var legal_animals: Array = []
 var highlight: Array = []
+var placement_points := {}
+var landing_cell := Vector2i.ZERO
+var landing_animal := false
+var landing_progress := 1.0
+var landing_tween: Tween
 var preview_key = ""
 var hovered = Vector2i(999,999)
 var pan = Vector2.ZERO
@@ -95,6 +100,22 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_MOUSE_EXIT:
 		hovered = Vector2i(999,999)
 		queue_redraw()
+
+func land(cell: Vector2i, animal: bool) -> void:
+	if not animations: return
+	if landing_tween: landing_tween.kill()
+	landing_cell = cell
+	landing_animal = animal
+	landing_progress = 0.0
+	landing_tween = create_tween()
+	landing_tween.tween_method(func(t: float):
+		landing_progress = t
+		queue_redraw(),0.0,1.0,.20)
+
+func stop_landing() -> void:
+	if landing_tween: landing_tween.kill()
+	landing_progress = 1.0
+	queue_redraw()
 
 func center_board() -> void:
 	if cells.is_empty():
@@ -189,7 +210,17 @@ func _draw() -> void:
 	for k in order:
 		var cell = cells[k]
 		var c = H.to_pixel(H.coord(k),radius)
-		if k == preview_key:
+		if landing_progress < 1.0 and H.coord(k) == landing_cell:
+			var bounce = sin(landing_progress*PI)*.12
+			if landing_animal:
+				Painter.tile(self,c,radius-2,int(cell.tile),int(cell.rotation))
+				if cell.animal != "":
+					Painter.token(self,c-Vector2(0,12*(1.0-landing_progress)),(radius-2)*.39*(1.0+bounce),cell.animal)
+			else:
+				draw_set_transform(size*.5+pan+c*zoom-Vector2(0,12*(1.0-landing_progress)),0,Vector2.ONE*zoom*(1.0+bounce))
+				Painter.tile(self,Vector2.ZERO,radius-2,int(cell.tile),int(cell.rotation),cell.animal)
+				draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
+		elif k == preview_key:
 			draw_set_transform(size*.5+pan+c*zoom,rotation_offset*(1.0-pulse),Vector2.ONE*zoom*(.88+.12*pulse))
 			Painter.tile(self,Vector2.ZERO,radius-2,int(cell.tile),int(cell.rotation),cell.animal)
 			draw_set_transform(size*.5+pan,0,Vector2.ONE*zoom)
@@ -198,6 +229,9 @@ func _draw() -> void:
 	# Overlays sit above every tile so rings and outlines are never covered.
 	var choosing = not legal_animals.is_empty()
 	var scoring = not highlight.is_empty()
+	var scores = placement_points.values()
+	var low = float(scores.min()) if not scores.is_empty() else 0.0
+	var high = float(scores.max()) if not scores.is_empty() else 0.0
 	for k in order:
 		var c = H.to_pixel(H.coord(k),radius)
 		var p = H.coord(k)
@@ -212,6 +246,11 @@ func _draw() -> void:
 			Painter.outline(self,c,radius-1,Color(1,.86,.42,.25+.2*breathe),9.0)
 			Painter.outline(self,c,radius-4,Color(1,.95,.63,.55+.45*pulse),3.0+1.5*pulse)
 		if p in legal_animals:
+			var points = placement_points.get(p,0)
+			var strength = inverse_lerp(low,high,float(points)) if high > low else .5
+			var heat = P.MOSS.lerp(P.GOLD_LIGHT,strength)
+			heat.a = .18+.40*strength
+			draw_colored_polygon(Painter.polygon(c,radius-5),heat)
 			var ring = radius*(.43+.03*breathe)
 			draw_arc(c,ring,0,TAU,44,Color(.08,.16,.11,.32),6.0,true)
 			draw_arc(c,ring,0,TAU,44,Color("fff8d9"),2.8,true)
@@ -223,6 +262,12 @@ func _draw() -> void:
 		if p == hovered and interactive and choosing and p in legal_animals:
 			Painter.outline(self,c,radius,P.GOLD,3.0)
 	draw_set_transform(Vector2.ZERO)
+	if placement_points.has(hovered):
+		var value = "%+d" % placement_points[hovered]
+		var label_size = Vector2(58,30)
+		var pos = (screen_position(hovered)+Vector2(-29,-radius*zoom-24)).clamp(Vector2.ZERO,size-label_size)
+		draw_style_box(P.chip(P.DARK,P.GOLD_LIGHT,8,0,0),Rect2(pos,label_size))
+		draw_string(P.font(700),pos+Vector2(0,22),value,HORIZONTAL_ALIGNMENT_CENTER,label_size.x,21,P.CREAM)
 
 # A faint printed hex grid around the player's land: where the map could still grow.
 func _draw_grid() -> void:

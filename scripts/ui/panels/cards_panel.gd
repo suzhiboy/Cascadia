@@ -26,9 +26,19 @@ func build(ui) -> void:
 		button.add_child(margin)
 		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var illustrations = ui._vbox(0)
+		illustrations.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		illustrations.custom_minimum_size.x = 88
 		var art = ui._art(animal)
-		art.custom_minimum_size.x = 101
-		row.add_child(art)
+		art.custom_minimum_size = Vector2(80,35)
+		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		illustrations.add_child(art)
+		var diagram = preload("res://scripts/ui/rule_diagram.gd").new()
+		diagram.compact = true
+		diagram.animal = animal
+		diagram.card = ui.game.config.cards[animal]
+		illustrations.add_child(diagram)
+		row.add_child(illustrations)
 		var info = ui._vbox(2)
 		info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -45,7 +55,7 @@ func build(ui) -> void:
 		info.add_child(description)
 		var points = ui._heading("",22,P.GOLD_DEEP,700)
 		info.add_child(points)
-		cards[animal] = {"letter":letter,"description":description,"points":points}
+		cards[animal] = {"letter":letter,"description":description,"points":points,"diagram":diagram}
 		row.add_child(info)
 		content.add_child(button)
 	results = ui._button("查看完整计分",ui.show_results,true)
@@ -61,6 +71,8 @@ func update(state: Dictionary) -> void:
 		if row.letter.text != letter:
 			View.apply(row.letter,&"text",letter)
 			View.apply(row.description,&"text",Cards.title(animal,letter))
+			row.diagram.card = letter
+			row.diagram.queue_redraw()
 		View.apply(row.points,&"visible",game.finished)
 		if game.finished:
 			View.apply(row.points,&"text","%d 分" % state.reports[state.view].wildlife[animal].points)

@@ -33,7 +33,7 @@ var board
 var screen: Control
 var modal: Control
 var status_label: Label
-var sound: AudioStreamPlayer
+var sound: Sound
 var music: AudioStreamPlayer
 var view_player = 0
 var mode = "tile"
@@ -51,6 +51,7 @@ var market_panel
 var board_panel
 var cards_panel
 var action_bar
+var turn_effects
 var _screen_game
 var _large_text = false
 var _feedback_game_id = 0
@@ -164,6 +165,7 @@ func _button(text: String, action: Callable, primary: bool = false) -> Button:
 	button.text = text
 	button.custom_minimum_size.y = 50
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.pressed.connect(sound.play.bind("ui_click"))
 	button.pressed.connect(action)
 	if primary:
 		button.theme_type_variation = "PrimaryButton"
@@ -460,8 +462,6 @@ func _render_game() -> void:
 	if _screen_game != game or not is_instance_valid(board):
 		_build_game_screen()
 	refresh()
-	if feedback_event == "动物已刷新":
-		for token in _market_tokens: Feedback.reveal(token,.26)
 	if not _practicing and not feedback_event.is_empty(): _show_feedback(feedback_event)
 
 func _build_game_screen() -> void:
@@ -512,6 +512,9 @@ func _build_game_screen() -> void:
 	_toast_label.size = Vector2(620,45)
 	_toast_label.hide()
 	screen.add_child(_toast_label)
+	turn_effects = preload("res://scripts/ui/turn_effects.gd").new()
+	screen.add_child(turn_effects)
+	turn_effects.build(self)
 
 func _view_state() -> Dictionary:
 	var lan = lan_session != null and lan_session.started
@@ -522,6 +525,7 @@ func _view_state() -> Dictionary:
 
 func refresh() -> void:
 	var state = _view_state()
+	turn_effects.update(state)
 	for panel in [header_bar,market_panel,board_panel,cards_panel,action_bar]:
 		panel.update(state)
 	if is_instance_valid(modal): modal.update(state)
@@ -626,7 +630,6 @@ func _action(error: String) -> void:
 		_message(error)
 		return
 	_save()
-	sound.tap()
 	_render_game()
 
 func _request_action(action: String, args: Dictionary = {}) -> String:
@@ -636,9 +639,14 @@ func _request_action(action: String, args: Dictionary = {}) -> String:
 		lan_session.request(action,args)
 		status = "正在同步操作……"
 		return ""
-	return game.apply_action(action,args)
+	var error: String = game.apply_action(action,args)
+	if error.is_empty():
+		var cues = {"place_tile":"tile_place","place_animal":"token_place","rotate_pending":"rotate","refresh":"refresh","commit_turn":"game_end" if game.finished else "turn_end"}
+		if cues.has(action): sound.play(cues[action])
+	return error
 
 func _message(text: String) -> void:
+	sound.play("error")
 	status = text
 	if is_instance_valid(status_label):
 		status_label.text = text
@@ -653,7 +661,6 @@ func _commit() -> void:
 	if not error.is_empty():
 		_message(error)
 		return
-	sound.tap(1)
 	_save()
 	_reset_selection()
 	highlight.clear()
@@ -721,6 +728,9 @@ func _apply_comfort() -> void:
 		board.animations = settings.animations
 		board.show_names = settings.animal_names
 		if not settings.animations:
+			turn_effects.stop_motion()
+			market_panel.stop_motion()
+			board.stop_landing()
 			board.pulse = 1.0
 			board.rotation_offset = 0.0
 		board.queue_redraw()

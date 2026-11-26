@@ -125,6 +125,7 @@ func update(state: Dictionary) -> void:
 			board.emphasize_frontier = true
 			board.frontier = [Practice.TARGET] if state.step in [Practice.Step.ROTATE,Practice.Step.TILE] else []
 			board.legal_animals = [Practice.TARGET] if state.step == Practice.Step.ANIMAL else []
+		board.placement_points = Preview.placement_points(game,board.legal_animals)
 		board.queue_redraw()
 	if last_view != state.view:
 		if last_view >= 0: cameras[last_view] = [board.pan,board.zoom]

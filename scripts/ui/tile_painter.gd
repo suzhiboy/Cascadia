@@ -24,7 +24,7 @@ static func _rand(id: int, a: int, b: int) -> float:
 	var v = sin(float(id)*12.9898+float(a)*78.233+float(b)*37.719)*43758.5453
 	return v-floor(v)
 
-static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, rotation: int, animal: String = "") -> void:
+static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, rotation: int, animal: String = "", market_display: bool = false) -> void:
 	var definition = T.get_tile(id)
 	var depth = radius*.085
 	# Cast shadow, then the cardboard edge, then the printed face.
@@ -70,9 +70,9 @@ static func tile(canvas: CanvasItem, center: Vector2, radius: float, id: int, ro
 		token(canvas,center,radius*.39,animal)
 	else:
 		var animals = definition.wildlife
-		var spacing = radius*.45
+		var spacing = radius*(.52 if market_display else .45)
 		for i in range(animals.size()):
-			token(canvas,center+Vector2((i-(animals.size()-1)*.5)*spacing,0),radius*.205,animals[i],true)
+			token(canvas,center+Vector2((i-(animals.size()-1)*.5)*spacing,0),radius*(.26 if market_display else .205),animals[i],true)
 
 # A shell fan identifies the bonus printed on a single-species shore.
 static func _keystone(canvas: CanvasItem, center: Vector2, size: float) -> void:
