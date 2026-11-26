@@ -1,22 +1,31 @@
 extends "res://scripts/ui/modals/modal.gd"
 
 const S = preload("res://scripts/core/scorer.gd")
+const SOLO_THRESHOLDS = [91,95,100,105]
+const SOLO_RATINGS = ["完成初访","潮滩观察员","岸线记录员","群岛调查员","潮间带领航员"]
+const RATING_INKS = [P.SEA_DEEP,P.SEA_MID,P.MOSS,P.DARK,P.GOLD_DEEP]
+const CATEGORY_TIME = .11
+const TOTAL_TIME = .4
 
+var hero: PanelContainer
 var banner: Label
+var comparison: Label
+var record_mark: Label
+var rating_badge: Control
 var explanation: Label
 var review: Button
 var replay: Button
-var columns: Array[Dictionary] = []
+var names: Array[Label] = []
+var score_rows: Array[Dictionary] = []
 var animal_labels := {}
-var previous_scores: Array = []
 var source: Array = []
+var reveal: Tween
+var winners: Array = []
 
 func open(controller) -> void:
 	var body = controller._open_modal("",1150,950,self)
 	set_meta("live_scores",true)
-	banner = ui._wrap("",27,P.GOLD_DEEP)
-	banner.add_theme_font_override("font",P.font(680))
-	body.add_child(banner)
+	_build_banner(body)
 	explanation = ui._wrap("",18,P.MUTED)
 	body.add_child(explanation)
 	var grid = GridContainer.new()
@@ -36,26 +45,18 @@ func open(controller) -> void:
 		stripe.border_width_bottom = 4
 		label.add_theme_stylebox_override("normal",stripe)
 		grid.add_child(label)
-		columns.append({"name":label,"wildlife":{},"habitats":{}})
+		names.append(label)
 	for animal in T.ANIMALS:
 		animal_labels[animal] = ui._label("",20)
 		grid.add_child(animal_labels[animal])
-		for i in range(columns.size()):
-			columns[i].wildlife[animal] = _score_button(grid,i,animal,true)
+		_add_category(grid,animal,true)
 	for habitat in T.HABITATS:
 		grid.add_child(ui._label(GameLocale.text(T.HABITAT_NAMES[habitat]),20))
-		for i in range(columns.size()):
-			columns[i].habitats[habitat] = _score_button(grid,i,habitat,false)
+		_add_category(grid,habitat,false)
 	grid.add_child(ui._label(GameLocale.text("剩余自然标记"),20))
-	for column in columns:
-		column.nature = ui._label("",22)
-		column.nature.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		grid.add_child(column.nature)
+	_add_summary_row(grid,"nature",22,P.INK)
 	grid.add_child(ui._heading(GameLocale.text("总分"),26,P.DARK))
-	for column in columns:
-		column.total = ui._heading("",35,P.DARK,720)
-		column.total.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		grid.add_child(column.total)
+	_add_summary_row(grid,"total",35,P.DARK)
 	body.add_child(grid)
 	ui._spacer(body)
 	var row = ui._hbox()
@@ -67,14 +68,64 @@ func open(controller) -> void:
 	row.add_child(replay)
 	body.add_child(row)
 	update(ui._view_state())
-	Feedback.reveal(get_child(1))
+	if not ui.game.finished and _can_animate(): Feedback.reveal(get_child(1))
 
-func _score_button(grid: GridContainer, index: int, category: String, wildlife: bool) -> Button:
-	var button = ui._button("",ui._highlight_score.bind(index,category,wildlife))
-	button.custom_minimum_size.y = 39
-	button.theme_type_variation = "ScoreButton"
-	grid.add_child(button)
-	return button
+func _build_banner(body: VBoxContainer) -> void:
+	hero = PanelContainer.new()
+	hero.name = "ResultBanner"
+	hero.add_theme_stylebox_override("panel",P.box(P.DARK,14,P.GOLD))
+	body.add_child(hero)
+	var row = ui._hbox(15)
+	hero.add_child(row)
+	rating_badge = Ornament.make("rating",Vector2(64,64),P.DARK,P.GOLD_LIGHT)
+	rating_badge.name = "SoloRating"
+	row.add_child(rating_badge)
+	var text = ui._vbox(3)
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(text)
+	banner = ui._wrap("",27,P.GOLD_LIGHT)
+	banner.name = "ResultTitle"
+	banner.add_theme_font_override("font",P.font(680))
+	text.add_child(banner)
+	comparison = ui._wrap("",18,P.CREAM)
+	comparison.name = "ResultComparison"
+	text.add_child(comparison)
+	record_mark = ui._heading(GameLocale.text("新纪录"),23,P.GOLD_LIGHT,720)
+	record_mark.name = "NewRecord"
+	record_mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	record_mark.add_theme_stylebox_override("normal",Ornament.badge(P.SEA_DEEP,P.GOLD))
+	row.add_child(record_mark)
+
+func _add_category(grid: GridContainer, category: String, wildlife: bool) -> void:
+	var cells = []
+	for i in range(names.size()):
+		var button = ui._button("",ui._highlight_score.bind(i,category,wildlife))
+		button.name = category.capitalize()+"Score"+str(i)
+		button.custom_minimum_size.y = 39
+		button.theme_type_variation = "ScoreButton"
+		grid.add_child(button)
+		cells.append(button)
+	score_rows.append({"cells":cells,"group":"wildlife" if wildlife else "habitats","key":category})
+
+func _add_summary_row(grid: GridContainer, field: String, font_size: int, color: Color) -> void:
+	var cells = []
+	for i in range(names.size()):
+		var label = ui._heading("",font_size,color,720)
+		label.name = field.capitalize()+"Score"+str(i)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		grid.add_child(label)
+		cells.append(label)
+	score_rows.append({"cells":cells,"group":"","key":field})
+
+func _can_animate() -> bool:
+	return Feedback.enabled and is_instance_valid(ui.board) and ui.board.animations
+
+static func rating_for(total: int) -> int:
+	var rank = 0
+	for threshold in SOLO_THRESHOLDS:
+		if total >= threshold: rank += 1
+	return rank
 
 func update(state: Dictionary) -> void:
 	var game = state.game
@@ -83,36 +134,102 @@ func update(state: Dictionary) -> void:
 	source = inputs.duplicate(true)
 	var reports = S.game_scores(game)
 	ui.reports = reports
-	var winners = S.winners(game,reports)
-	var names = winners.map(func(i):return GameLocale.player_name(game.players[i].name))
 	var live = not game.finished
+	winners = S.winners(game,reports) if not live else []
 	View.apply(title_label,&"text",GameLocale.text("实时得分 · Tab 返回") if live else GameLocale.text("旅程的收获"))
-	var heading = " · ".join(names)+(GameLocale.text("  并列获胜") if names.size()>1 else GameLocale.text("  获胜"))
-	if reports.size() == 1: heading = GameLocale.text("你的生态世界 · %d 分") % reports[0].total
-	if not live and not str(game.config.get("daily","")).is_empty():
-		var date = game.config.daily
-		var best = ui.records.read().daily.get(date)
-		heading = GameLocale.text("每日挑战 %s · %d 分") % [date,int(reports[0].total)]
-		if best != null: heading += GameLocale.text("  /  本日最高 %d 分") % int(best)
-	View.apply(banner,&"text",GameLocale.text("当前已落定版图 · 分数预估") if live else heading)
+	_update_banner(state,reports)
 	View.apply(explanation,&"text",GameLocale.text("不含本回合未确认的摆放；生境奖励按当前排名估算。Tab / Esc 返回。") if live else GameLocale.text("点击动物或生境得分，查看版图上的计分依据。"))
 	View.apply(replay,&"visible",not live)
 	View.apply(review,&"visible",not live)
 	for animal in T.ANIMALS:
 		View.apply(animal_labels[animal],&"text",GameLocale.text(T.ANIMAL_NAMES[animal])+" "+game.config.cards[animal])
-	for i in range(columns.size()):
-		var column = columns[i]
-		var report = reports[i]
-		View.apply(column.name,&"text",GameLocale.player_name(game.players[i].name))
-		View.apply(column.name,&"tooltip_text",column.name.text)
-		for animal in T.ANIMALS: View.apply(column.wildlife[animal],&"text",str(report.wildlife[animal].points))
-		for habitat in T.HABITATS:
-			var part = report.habitats[habitat]
-			View.apply(column.habitats[habitat],&"text","%d + %d" % [part.points,part.bonus])
-		View.apply(column.nature,&"text",str(report.nature))
-		var color = P.GOLD_DEEP if i in winners else P.DARK
-		if column.total.get_theme_color("font_color") != color:
-			column.total.add_theme_color_override("font_color",color)
-		if previous_scores.is_empty() or previous_scores[i].total != report.total:
-			Feedback.count_score(column.total,int(report.total))
-	previous_scores = reports
+	for i in range(names.size()):
+		View.apply(names[i],&"text",GameLocale.player_name(game.players[i].name))
+		View.apply(names[i],&"tooltip_text",names[i].text)
+	for row in score_rows:
+		row.values = reports.map(func(report):
+			if row.group.is_empty(): return Vector2i(report[row.key],0)
+			var part = report[row.group][row.key]
+			return Vector2i(part.points,part.get("bonus",0)))
+	if live or not _can_animate():
+		finish_reveal()
+		return
+	if reveal: reveal.kill()
+	hero.modulate.a = 0.0
+	shade.color.a = 1.0
+	reveal = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	for row in score_rows:
+		_paint_row(0.0,row)
+		for cell in row.cells: cell.modulate.a = .35
+		var duration = TOTAL_TIME if row.key == "total" else CATEGORY_TIME
+		reveal.tween_method(_paint_row.bind(row),0.0,1.0,duration)
+	reveal.tween_callback(_mark_winners)
+	reveal.tween_property(hero,"modulate:a",1.0,.18)
+	reveal.parallel().tween_property(shade,"color:a",SHADE.a,.18)
+
+func _update_banner(state: Dictionary, reports: Array) -> void:
+	var game = state.game
+	var solo = game.finished and reports.size() == 1
+	rating_badge.visible = solo
+	comparison.hide()
+	record_mark.hide()
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if solo else HORIZONTAL_ALIGNMENT_CENTER
+	if not game.finished:
+		banner.text = GameLocale.text("当前已落定版图 · 分数预估")
+		return
+	var total = int(reports[winners.front()].total)
+	if solo:
+		var rank = rating_for(total)
+		rating_badge.value = rank
+		rating_badge.color = RATING_INKS[rank]
+		rating_badge.queue_redraw()
+		var title = GameLocale.text(SOLO_RATINGS[rank])
+		var date = str(game.config.get("daily",""))
+		banner.text = title if date.is_empty() else GameLocale.text("%s · 每日挑战 %s") % [title,date]
+	else:
+		var winners_text = " · ".join(winners.map(func(i):return GameLocale.player_name(game.players[i].name)))
+		var heading = "%s 并列获胜" if winners.size() > 1 else "%s 获胜"
+		banner.text = GameLocale.text(heading) % winners_text
+	if state.lan or state.practice: return
+	var context = ui.records.result_context(game)
+	var details = []
+	var new_record = context.best_before != null and total > context.best_before
+	if new_record and context.best == total:
+		var format = "个人最佳 %d 分（原 %d）" if solo else "本机最佳 %d 分（原 %d）"
+		details.append(GameLocale.text(format) % [total,int(context.best_before)])
+	elif context.best != null:
+		var format = "个人最佳 %d 分" if solo else "本机最佳 %d 分"
+		details.append(GameLocale.text(format) % int(context.best))
+	if context.previous != null:
+		var format = "上一局 %d 分（%+d）" if solo else "上局最高 %d 分（%+d）"
+		details.append(GameLocale.text(format) % [int(context.previous),total-int(context.previous)])
+	if context.daily != null:
+		details.append(GameLocale.text("本日最高 %d 分") % int(context.daily))
+	comparison.text = "     ·     ".join(details)
+	comparison.visible = not details.is_empty()
+	comparison.horizontal_alignment = banner.horizontal_alignment
+	record_mark.visible = new_record
+
+func _paint_row(fraction: float, row: Dictionary) -> void:
+	for i in range(row.cells.size()):
+		var cell = row.cells[i]
+		var value: Vector2i = row.values[i]
+		var points = roundi(value.x*fraction)
+		var text = "%d + %d" % [points,roundi(value.y*fraction)] if row.group == "habitats" else str(points)
+		View.apply(cell,&"text",text)
+		cell.modulate.a = 1.0
+		if cell is Button: View.apply(cell,&"disabled",fraction < 1.0)
+
+func _mark_winners() -> void:
+	var totals = score_rows.back().cells
+	for i in range(totals.size()):
+		totals[i].add_theme_color_override("font_color",P.GOLD_DEEP if i in winners else P.DARK)
+
+func finish_reveal() -> void:
+	if reveal: reveal.kill()
+	reveal = null
+	for row in score_rows:
+		_paint_row(1.0,row)
+	hero.modulate.a = 1.0
+	shade.color = SHADE
+	_mark_winners()

@@ -1242,3 +1242,48 @@ msgstr "D-pad select hex / navigate · A place / confirm · B undo"
 
 msgid "LB / RB 旋转 · Start 完成回合"
 msgstr "LB / RB rotate · Start finish turn"
+
+msgid "新纪录"
+msgstr "New record"
+
+msgid "完成初访"
+msgstr "First Survey Complete"
+
+msgid "潮滩观察员"
+msgstr "Mudflat Observer"
+
+msgid "岸线记录员"
+msgstr "Shoreline Recorder"
+
+msgid "群岛调查员"
+msgstr "Island Surveyor"
+
+msgid "潮间带领航员"
+msgstr "Intertidal Navigator"
+
+msgid "%s 并列获胜"
+msgstr "%s tie for first"
+
+msgid "%s 获胜"
+msgstr "%s wins"
+
+msgid "%s · 每日挑战 %s"
+msgstr "%s · Daily Survey %s"
+
+msgid "个人最佳 %d 分"
+msgstr "Personal best %d pts"
+
+msgid "个人最佳 %d 分（原 %d）"
+msgstr "Personal best %d pts (was %d)"
+
+msgid "上一局 %d 分（%+d）"
+msgstr "Previous survey %d pts (%+d)"
+
+msgid "本机最佳 %d 分"
+msgstr "Local best %d pts"
+
+msgid "本机最佳 %d 分（原 %d）"
+msgstr "Local best %d pts (was %d)"
+
+msgid "上局最高 %d 分（%+d）"
+msgstr "Previous winning score %d pts (%+d)"

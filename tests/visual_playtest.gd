@@ -117,6 +117,20 @@ func capture_turn_feedback() -> void:
 	await capture("stage3-turn-score",true)
 	layout()
 
+func capture_results(label: String) -> void:
+	var dialog = scene.modal
+	if dialog.reveal and dialog.reveal.is_running():
+		await dialog.reveal.finished
+	await settle()
+	var panel = dialog.get_child(1).get_global_rect()
+	verify(Rect2(Vector2.ZERO,Vector2(1920,1080)).encloses(panel),"Revealed results fit the design viewport")
+	verify(is_equal_approx(dialog.hero.modulate.a,1.0),"Result banner is fully revealed")
+	for i in range(scene.reports.size()):
+		var total = dialog.find_child("TotalScore"+str(i),true,false)
+		verify(total is Label and int(total.text) == scene.reports[i].total,"Final score shown for seat %d" % i)
+	await capture(label)
+	await capture("stage4-"+label,true)
+
 func run() -> void:
 	had_save = FileAccess.file_exists("user://autosave.json")
 	if had_save: saved = FileAccess.get_file_as_string("user://autosave.json")
@@ -147,7 +161,7 @@ func run() -> void:
 			verify(before == scene.game.snapshot(),"Resume keeps full state")
 		if i == 9: await capture("solo-midgame")
 	verify(scene.game.finished and scene.game.players[0].turns == 20,"Solo reaches scoring")
-	await capture("solo-results")
+	await capture_results("solo-results")
 	scene._highlight_score(0,"marsh",false)
 	await settle()
 	verify(not scene.highlight.is_empty(),"Habitat score highlights cells")
@@ -180,7 +194,7 @@ func run() -> void:
 			await capture("four-switch")
 			await press("返回当前玩家")
 	verify(scene.game.finished,"Four players reach scoring")
-	await capture("four-results")
+	await capture_results("four-results")
 	for p in scene.game.players: verify(p.turns == 20 and p.board.size() == 23,"Four-player final components")
 	verify(rank_captured,"Hotseat playtest shows a ranking change")
 	await capture_turn_feedback()

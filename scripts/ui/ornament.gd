@@ -1,7 +1,7 @@
 extends Control
 
 # Small vector emblems drawn in code so they stay crisp at any UI scale.
-# kind: "logo" | "shell" | "hex" | "progress" | "check"
+# kind: "logo" | "shell" | "hex" | "progress" | "check" | "rating"
 const Painter = preload("res://scripts/ui/tile_painter.gd")
 const P = preload("res://scripts/ui/palette.gd")
 var kind = "hex"
@@ -57,6 +57,25 @@ func _draw() -> void:
 			draw_polyline(PackedVector2Array([center+Vector2(-radius*.42,0),center+Vector2(-radius*.1,radius*.32),center+Vector2(radius*.45,-radius*.34)]),accent,maxf(2.0,radius*.2),true)
 		"progress":
 			_progress()
+		"rating":
+			_rating(center,radius)
+
+func _rating(center: Vector2, radius: float) -> void:
+	var ribbon = center+Vector2(0,radius*.6)
+	draw_colored_polygon(PackedVector2Array([ribbon+Vector2(-.39,-.24)*radius,ribbon+Vector2(.39,-.24)*radius,
+		ribbon+Vector2(.25,.36)*radius,ribbon,ribbon+Vector2(-.25,.36)*radius]),accent)
+	center.y -= radius*.11
+	draw_colored_polygon(hexagon(center,radius*.85),accent)
+	draw_colored_polygon(hexagon(center,radius*.74),color)
+	for y in [-.21,.01]:
+		var wave = PackedVector2Array()
+		for i in range(13):
+			var t = i/12.0
+			wave.append(center+Vector2((t-.5)*.95,y+.085*sin(t*TAU))*radius)
+		draw_polyline(wave,accent,maxf(1.0,radius*.057),true)
+	for i in range(value):
+		var x = (i-(value-1)*.5)*.21
+		draw_circle(center+Vector2(x,.31)*radius,radius*.065,accent,true,-1,true)
 
 func _logo(center: Vector2, radius: float) -> void:
 	draw_colored_polygon(hexagon(center+Vector2(0,2),radius),Color(0,0,0,.25))

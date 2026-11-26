@@ -6,14 +6,16 @@ const T = preload("res://scripts/core/tile_definition.gd")
 const Cards = preload("res://scripts/core/scoring_card_definition.gd")
 const Feedback = preload("res://scripts/ui/feedback.gd")
 const Ornament = preload("res://scripts/ui/ornament.gd")
+const SHADE = Color(.03,.1,.07,.72)
 
 var ui
 var title_label: Label
+var shade: ColorRect
 
 func frame(controller, title: String, width: float, height: float) -> VBoxContainer:
 	ui = controller
-	var shade = ColorRect.new()
-	shade.color = Color(.03,.1,.07,.72)
+	shade = ColorRect.new()
+	shade.color = SHADE
 	add_child(shade)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel = PanelContainer.new()

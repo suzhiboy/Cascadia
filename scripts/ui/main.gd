@@ -977,6 +977,8 @@ func _save_settings() -> void:
 
 func _apply_comfort() -> void:
 	Feedback.enabled = bool(settings.animations)
+	if not Feedback.enabled and is_instance_valid(modal) and modal is ResultsModal:
+		modal.finish_reveal()
 	load("res://scripts/ui/tile_painter.gd").habitat_labels = bool(settings.habitat_labels)
 	if is_instance_valid(board):
 		board.animations = settings.animations

@@ -1242,3 +1242,48 @@ msgstr "十字键 选格 / 导航 · A 放置 / 确认 · B 撤回"
 
 msgid "LB / RB 旋转 · Start 完成回合"
 msgstr "LB / RB 旋转 · Start 完成回合"
+
+msgid "新纪录"
+msgstr "新纪录"
+
+msgid "完成初访"
+msgstr "完成初访"
+
+msgid "潮滩观察员"
+msgstr "潮滩观察员"
+
+msgid "岸线记录员"
+msgstr "岸线记录员"
+
+msgid "群岛调查员"
+msgstr "群岛调查员"
+
+msgid "潮间带领航员"
+msgstr "潮间带领航员"
+
+msgid "%s 并列获胜"
+msgstr "%s 并列获胜"
+
+msgid "%s 获胜"
+msgstr "%s 获胜"
+
+msgid "%s · 每日挑战 %s"
+msgstr "%s · 每日挑战 %s"
+
+msgid "个人最佳 %d 分"
+msgstr "个人最佳 %d 分"
+
+msgid "个人最佳 %d 分（原 %d）"
+msgstr "个人最佳 %d 分（原 %d）"
+
+msgid "上一局 %d 分（%+d）"
+msgstr "上一局 %d 分（%+d）"
+
+msgid "本机最佳 %d 分"
+msgstr "本机最佳 %d 分"
+
+msgid "本机最佳 %d 分（原 %d）"
+msgstr "本机最佳 %d 分（原 %d）"
+
+msgid "上局最高 %d 分（%+d）"
+msgstr "上局最高 %d 分（%+d）"
