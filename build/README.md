@@ -17,4 +17,4 @@ godot --headless --path . --export-release "Web" build/web/index.html
 
 Release checks are optional. Set `updates/github_repository` in `project.godot` to the publisher's `owner/repo` to enable them. It is empty in the current source. Windows uses `TidetraceIsles-Windows-x64.zip` from a newer GitHub Release when its SHA-256 digest is available. The extracted package must contain `TidetraceIsles.exe` and `TidetraceIsles.pck` in the same directory. Linux and macOS open the release page.
 
-Build output and playtest screenshots stay local. The [published Cascadia v1.1.0 release](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0) contains the legacy Windows package. Its filenames and protocol belong to that build.
+The [Tidetrace Isles v1.2.0 release](https://github.com/suzhiboy/Cascadia/releases/tag/v1.2.0) provides the Windows x64 ZIP. The [Cascadia v1.1.0 release](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0) contains the legacy Windows package.

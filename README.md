@@ -6,9 +6,11 @@ Tidetrace Isles is a digital strategy board game about surveying a watercolor ar
 
 ## Play the current edition
 
-Open `project.godot` in Godot 4.7.2 and press F5. To make a Windows portable build, follow the [export instructions](build/README.md) and keep `TidetraceIsles.exe` and `TidetraceIsles.pck` together. The minimum desktop window is 1280×720.
+Download the [Windows x64 ZIP](https://github.com/suzhiboy/Cascadia/releases/download/v1.2.0/TidetraceIsles-Windows-x64.zip), extract it, and run `TidetraceIsles.exe`. Keep `TidetraceIsles.pck` alongside it. The minimum desktop window is 1280×720.
 
-The [published Cascadia v1.1.0 download](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0) is the earlier Windows edition. Run or build the current source for Tidetrace Isles.
+To run the source, open `project.godot` in Godot 4.7.2 and press F5. See the [export instructions](build/README.md) to build it yourself.
+
+The [Cascadia v1.1.0 release](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0) contains the earlier Windows edition.
 
 - **First-turn practice.** Learn to draft, rotate a tile, extend a mudflat, and place a mudskipper. Practice uses a separate session and leaves your autosave intact.
 - **Survey your island.** Draft a market pair, place the tile, and settle or release the animal. Adjust or undo placements before confirming. Use Q/E to rotate, the wheel to zoom, and middle mouse or WASD to pan. The game also supports keyboard and controller navigation.

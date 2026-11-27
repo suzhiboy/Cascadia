@@ -4,7 +4,7 @@
 
 《潮痕群岛 / Tidetrace Isles》使用对局存档格式 3、调查记录格式 3 和局域网协议 4。水彩主菜单、海图、生境地块和五张物种插画已纳入当前版本。各阶段的测试记录见下文。
 
-GitHub 上的 `v1.1.0` Release 是此前的 Cascadia Windows 包。当前源码的运行和导出说明见[中文 README](../README.zh-CN.md)。三首音乐的作者署名与许可文本仍待补充，Linux 和 macOS 原生运行及 Web 整局验证仍待完成。
+[《潮痕群岛》v1.2.0](https://github.com/suzhiboy/Cascadia/releases/tag/v1.2.0) 提供 Windows x64 便携包。此前的 `v1.1.0` 对应旧版 Cascadia。源码运行和导出说明见[中文 README](../README.zh-CN.md)。三首音乐的作者署名与许可文本仍待补充，Linux 和 macOS 原生运行及 Web 整局验证仍待完成。
 
 ## 阶段记录
 

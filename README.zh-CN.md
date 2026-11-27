@@ -6,9 +6,11 @@
 
 ## 运行当前版本
 
-在 Godot 4.7.2 中打开 `project.godot`，按 F5 运行。要制作 Windows 便携包，请参照[导出说明](build/README.md)，将 `TidetraceIsles.exe` 与同名 PCK 放在一起。桌面端最低窗口为 1280×720。
+下载 [Windows x64 ZIP](https://github.com/suzhiboy/Cascadia/releases/download/v1.2.0/TidetraceIsles-Windows-x64.zip)，完整解压后运行 `TidetraceIsles.exe`。请将同名的 PCK 文件保留在同一目录。桌面端最低窗口为 1280×720。
 
-GitHub 已发布的 [Cascadia v1.1.0 下载](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0)对应早期 Windows 版本。《潮痕群岛》可从当前分支源码运行或导出。
+从源码运行时，在 Godot 4.7.2 中打开 `project.godot`，按 F5。自行打包请参照[导出说明](build/README.md)。
+
+[Cascadia v1.1.0 发布页](https://github.com/suzhiboy/Cascadia/releases/tag/v1.1.0)保留早期 Windows 版本。
 
 - **首回合练习**演示选组、旋转岛块、连接泥滩和安置弹涂鱼。练习独立运行，保留正式存档。
 - **登岛调查**时，从市集选一组岛块与动物。岛块接在地图边缘，动物可以安置或放归。完成回合前可以调整或撤回试摆。Q/E 旋转，滚轮缩放，中键或 WASD 平移。游戏也支持键盘和手柄导航。
